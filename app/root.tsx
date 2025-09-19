@@ -126,6 +126,11 @@ export default function App() {
     refresh();
   };
 
+  const isSignedIn = !!loaderData.activeCustomer?.activeCustomer?.id;
+  const loyaltyPoints =
+    loaderData.activeCustomer?.activeCustomer?.customFields
+      ?.loyaltyPointsAvailable ?? null;
+
   return (
     <html lang={locale} dir={i18n.dir()} id="app">
       <head>
@@ -141,6 +146,8 @@ export default function App() {
           cartQuantity={activeOrder?.totalQuantity ?? 0}
           collections={collections}
           isCartOpen={open}
+          loyaltyPoints={loyaltyPoints}
+          isSignedIn={isSignedIn}
         />
 
         <CartTray

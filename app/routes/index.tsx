@@ -123,21 +123,21 @@ export default function Index() {
           </section>
         )}
 
-        <div className="text-center my-10">
-          <h1 className="text-5xl font-semibold uppercase text-gray-800">
+        <div className="text-center my-10 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl sm:text-5xl font-semibold uppercase text-gray-800">
             Sweet Treats
           </h1>
-          <h2 className="text-lg italic font-normal text-gray-600 mt-1">
+          <h2 className="text-base sm:text-lg italic font-normal text-gray-600 mt-1">
             Indulgent Desserts and Candies
           </h2>
         </div>
 
         <div className="mt-4">
-          <div className="overflow-x-auto whitespace-nowrap pb-4 scrollbar-none">
-            <div className="inline-flex gap-x-6 px-2 sm:px-6 lg:px-8">
+          <div className="overflow-x-auto whitespace-nowrap pb-4 scrollbar-none snap-x snap-mandatory">
+            <div className="inline-flex gap-x-4 sm:gap-x-6 px-4 sm:px-6 lg:px-8">
               {collections.map((collection) => (
                 <div
-                  className="flex-shrink-0 w-[150px] sm:w-[180px] md:w-[200px]"
+                  className="flex-shrink-0 w-32 sm:w-[180px] md:w-[200px] snap-center"
                   key={collection.id}
                 >
                   <CollectionCard collection={collection} />
@@ -152,36 +152,29 @@ export default function Index() {
         </div>
 
         {/* Products by Collection */}
-        <div className="text-center my-10">
-          <h1 className="text-5xl font-semibold uppercase text-gray-800">
+        <div className="text-center my-10 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl sm:text-5xl font-semibold uppercase text-gray-800">
             Dried Fruits
           </h1>
-          <h2 className="text-lg italic font-normal text-gray-600 mt-1">
+          <h2 className="text-base sm:text-lg italic font-normal text-gray-600 mt-1">
             Natural and Nutritious Snacks
           </h2>
         </div>
 
-        {collections.map(
-          (collection) =>
-            collection.products &&
-            collection.products.length > 0 && (
-              <ProductCollectionSlider
-                key={collection.id}
-                collection={collection}
-                activeOrderFetcher={activeOrderFetcher}
-                activeOrder={activeOrder}
-              />
-            ),
-        )}
-
-        <div className="mt-6 px-4 sm:hidden">
-          <a
-            href="/collections"
-            className="block text-sm font-semibold text-primary-600 hover:text-primary-500"
-          >
-            {t('common.browseCategories')}
-            <span aria-hidden="true"> &rarr;</span>
-          </a>
+        <div className="mt-4">
+          {collections.map(
+            (collection) =>
+              collection.products &&
+              collection.products.length > 0 && (
+                <div key={collection.id} className="mb-8">
+                  <ProductCollectionSlider
+                    collection={collection}
+                    activeOrderFetcher={activeOrderFetcher}
+                    activeOrder={activeOrder}
+                  />
+                </div>
+              ),
+          )}
         </div>
       </section>
     </>
