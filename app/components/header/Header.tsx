@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { SearchBar } from './SearchBar';
 import { useState, useEffect } from 'react';
+import { GoogleLoginButton } from '../Google/GoogleLoginButton';
 
 interface Collection {
   id: string;
@@ -217,6 +218,7 @@ export function Header({
             <CoinIcon points={isSignedIn ? loyaltyPoints : 0} />
           </div>
 
+
           <button
             onClick={onCartIconClick}
             aria-label="Open cart tray"
@@ -230,6 +232,14 @@ export function Header({
               </span>
             )}
           </button>
+
+           <div className="flex items-center">
+
+
+                <GoogleLoginButton />
+
+
+              </div>
 
           <Link
             to="/account"

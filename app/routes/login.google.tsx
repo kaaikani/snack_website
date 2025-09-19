@@ -1,8 +1,11 @@
 // app/routes/login.google.tsx
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
-import { authenticate } from '~/providers/account/account'; // Use the same authenticate function as phone OTP
+import { authenticate } from '~/providers/account/account';
 import { getSessionStorage } from '~/sessions';
+
+// Import the correct channel token from your SDK
+const CHANNEL_TOKEN = 'ind-madurai'; // ✅ Use the same token as in sdk.ts
 
 // Type guard functions
 function isCurrentUser(result: any): result is { id: string; identifier: string; __typename?: 'CurrentUser' } {
@@ -52,13 +55,11 @@ export async function action({ request }: ActionFunctionArgs) {
     const sessionStorage = await getSessionStorage();
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
     
-    // Use default channel token (you might want to implement email-based channel lookup later)
-    const channelToken = session.get('channelToken') || 'Vendure-token';
-        // const channelToken = session.get('channelToken') || 'vaishnavi-oils';
-
+    // ✅ Use the correct channel token that exists in your Vendure server
+    const channelToken = session.get('channelToken') || CHANNEL_TOKEN;
     console.log('Using channel token:', channelToken);
 
-    // ✅ Use the same authenticate function as phone OTP, but with Google auth data
+    // Use the same authenticate function as phone OTP, but with Google auth data
     const result = await authenticate(
       {
         google: {
@@ -72,7 +73,6 @@ export async function action({ request }: ActionFunctionArgs) {
     );
 
     console.log('Auth result:', result.result);
-    // console.log('Auth result __typename:', result.result.__typename);
 
     // Handle the response exactly like phone OTP
     if ('__typename' in result.result && result.result.__typename === 'CurrentUser') {
@@ -83,7 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
         
         // ✅ Save both authToken and channelToken (exactly like phone OTP)
         session.set('authToken', vendureToken);
-        session.set('channelToken', channelToken);
+        session.set('channelToken', channelToken); // This will now be 'ind-madurai'
         session.set('userId', result.result.id);
         session.set('identifier', result.result.identifier);
         session.set('rememberMe', true);
@@ -121,6 +121,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
   } catch (error) {
     console.error('Google authentication error:', error);
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
     return json({ error: 'Internal server error' }, { status: 500 });
   }
 }
