@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
 import { Price } from './Price';
+import { PriceRange } from './Price';
 import {
   HeartIcon as HeartSolidIcon,
   CheckIcon,
@@ -26,7 +27,7 @@ export interface ProductCardProps {
   productAsset: { preview: string } | null;
   productName: string;
   slug: string;
-  priceWithTax: number;
+  priceWithTax: number | PriceRange;
   currencyCode: CurrencyCode;
   variants?: Array<{
     id: string;

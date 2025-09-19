@@ -34,6 +34,7 @@ import { useChangeLanguage } from 'remix-i18next';
 import { useTranslation } from 'react-i18next';
 import { getI18NextServer } from '~/i18next.server';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { OrderWithOptionalCreatedAt } from '~/types/order';
 
 const devMode =
   typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
@@ -72,11 +73,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const collections = await getCollections(request, { take: 20 });
   const topLevelCollections = collections.filter(
-    (collection) => collection.parent?.name === '__root_collection__'
+    (collection) => collection.parent?.name === '__root_collection__',
   );
 
   const locale = await getI18NextServer().then((i18next) =>
-    i18next.getLocale(request)
+    i18next.getLocale(request),
   );
 
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -94,7 +95,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         GOOGLE_CLIENT_ID,
       },
     },
-    { headers: activeCustomer._headers }
+    { headers: activeCustomer._headers },
   );
 }
 
@@ -112,7 +113,7 @@ export default function App() {
 
   const [open, setOpen] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(
-    !!activeCustomer.activeCustomer?.id
+    !!activeCustomer.activeCustomer?.id,
   );
   const [isClient, setIsClient] = useState(false);
 
@@ -148,7 +149,6 @@ export default function App() {
     );
   }
 
-  const isSignedIn = !!loaderData.activeCustomer?.activeCustomer?.id;
   const loyaltyPoints =
     loaderData.activeCustomer?.activeCustomer?.customFields
       ?.loyaltyPointsAvailable ?? null;
@@ -171,11 +171,14 @@ export default function App() {
       <body>
         <GoogleOAuthProvider clientId={ENV.GOOGLE_CLIENT_ID}>
           {/* <Header collections={collections} /> */}
-           <Header
+          <Header
             onCartIconClick={() => setOpen(!open)}
             cartQuantity={activeOrder?.totalQuantity ?? 0}
             collections={collections}
-            isCartOpen={open} loyaltyPoints={null} isSignedIn={false}        />
+            isCartOpen={open}
+            loyaltyPoints={loyaltyPoints}
+            isSignedIn={isSignedIn}
+          />
           <main>
             <Outlet
               context={{
@@ -190,12 +193,12 @@ export default function App() {
             <CartTray
               open={open}
               onClose={setOpen}
-              activeOrder={activeOrder}
+              activeOrder={activeOrder as OrderWithOptionalCreatedAt}
               adjustOrderLine={adjustOrderLine}
               removeItem={removeItem}
             />
           )}
-          {/* <Footer /> */}
+          <Footer isSignedIn={isSignedIn} />
         </GoogleOAuthProvider>
         <ScrollRestoration />
         <Scripts />

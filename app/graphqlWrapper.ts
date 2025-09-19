@@ -1,9 +1,12 @@
 import { DocumentNode, print } from 'graphql';
 import { API_URL } from './constants';
 import { getSdk } from './generated/graphql';
+import { getSessionStorage } from '~/sessions';
 
 export interface QueryOptions {
-  request: Request;
+  request?: Request;
+  headers?: Headers;
+  customHeaders?: Record<string, string>;
 }
 
 export interface GraphqlResponse<Response> {
@@ -21,12 +24,29 @@ async function sendQuery<Response, Variables = {}>(options: {
   variables?: Variables;
   headers?: Headers;
   request?: Request;
+  customHeaders?: Record<string, string>;
 }): Promise<GraphqlResponse<Response> & { headers: Headers }> {
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');
 
   // Always attach your fixed channel token
   headers.set('vendure-token', CHANNEL_TOKEN);
+
+  if (options.request) {
+    const session = await getSessionStorage().then((s) =>
+      s.getSession(options.request?.headers.get('Cookie')),
+    );
+    const authToken = session.get('authToken');
+    if (authToken) {
+      headers.set('Authorization', `Bearer ${authToken}`);
+    }
+  }
+
+  if (options.customHeaders) {
+    for (const key in options.customHeaders) {
+      headers.set(key, options.customHeaders[key]);
+    }
+  }
 
   return fetch(API_URL, {
     method: 'POST',

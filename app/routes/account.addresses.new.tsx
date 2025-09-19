@@ -16,10 +16,8 @@ import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { getFixedT } from '~/i18next.server';
 import type { ErrorResult } from '~/generated/graphql';
 import { ErrorCode } from '~/generated/graphql';
-import { getChannelPostalcodes } from '~/lib/hygraph';
-import { getSessionStorage } from '~/sessions';
-import { getChannelsByCustomerPhonenumber } from '~/providers/customPlugins/customPlugin';
 import { validationError } from 'remix-validated-form';
+import { getSessionStorage } from '~/sessions';
 
 // Define the expected activeCustomer type for CustomerAddressForm
 type ActiveCustomerFormType =
@@ -55,19 +53,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     phoneNumber: activeCustomer.phoneNumber ?? undefined,
   };
 
-  const phoneNumber = transformedActiveCustomer.phoneNumber;
-  let channelCode = '';
-  if (phoneNumber) {
-    const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
-    channelCode = channels[0]?.code || '';
-  }
+  // const phoneNumber = transformedActiveCustomer.phoneNumber;
+  // let channelCode = '';
+  // if (phoneNumber) {
+  //   const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
+  //   channelCode = channels[0]?.code || '';
+  // }
 
-  const channelPostalcodes = await getChannelPostalcodes();
+  // const channelPostalcodes = await getChannelPostalcodes();
 
   return json({
     activeCustomer: transformedActiveCustomer,
-    channelCode,
-    channelPostalcodes,
+    // channelCode,
+    // channelPostalcodes,
   });
 }
 
@@ -123,8 +121,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function NewAddress() {
-  const { activeCustomer, channelCode, channelPostalcodes } =
-    useLoaderData<typeof loader>();
+  const { activeCustomer } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const submit = useSubmit();
   const formRef = useRef<HTMLFormElement>(null);
@@ -175,8 +172,8 @@ export default function NewAddress() {
             submit={handleSubmit}
             isEditing={false}
             activeCustomer={activeCustomer}
-            channelCode={channelCode}
-            channelPostalcodes={channelPostalcodes}
+            // channelCode={channelCode}
+            // channelPostalcodes={channelPostalcodes}
           />
         </div>
       </div>

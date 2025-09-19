@@ -11,8 +11,6 @@ import {
 import { useEffect, useState } from 'react';
 import { OrderDetailFragment } from '~/generated/graphql';
 import { useTranslation } from 'react-i18next';
-import { Header } from '~/components/header/Header';
-import Footer from '~/components/footer/Footer';
 import { useActiveOrder } from '~/utils/use-active-order';
 import { getCollections } from '~/providers/collections/collections';
 
@@ -77,14 +75,7 @@ export default function CheckoutConfirmation() {
   if (orderNotFound || (orderErrored && retries > maxRetries)) {
     return (
       <>
-        <Header
-          onCartIconClick={() => {}}
-          cartQuantity={activeOrder?.totalQuantity ?? 0}
-          isSignedIn={true}
-          collections={collections}
-          loyaltyPoints={loyaltyPoints}
-        />
-        <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-[90px]">
           <div className="max-w-md w-full text-center py-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               {t(
@@ -102,7 +93,6 @@ export default function CheckoutConfirmation() {
             </p>
           </div>
         </div>
-        <Footer collections={collections} />
       </>
     );
   }
@@ -111,14 +101,7 @@ export default function CheckoutConfirmation() {
 
   return (
     <>
-      <Header
-        onCartIconClick={() => {}}
-        cartQuantity={activeOrder?.totalQuantity ?? 0}
-        isSignedIn={true}
-        collections={collections}
-        loyaltyPoints={loyaltyPoints}
-      />
-      <main className="min-h-screen bg-white py-10 px-4 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-white py-10 px-4 sm:px-6 lg:px-8 pt-[100px]">
         <div className="max-w-6xl mx-auto shadow-lg">
           <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-10">
             <div className="flex items-center space-x-4 mb-6">
@@ -181,7 +164,7 @@ export default function CheckoutConfirmation() {
                 />
                 <div className="mt-8 text-center">
                   <a
-                    href="/home"
+                    href="/"
                     className="inline-block bg-black text-white px-6 py-2 border rounded-full shadow hover:bg-white hover:border-black hover:text-black transition-colors duration-200 text-sm sm:text-base"
                   >
                     Back to Home
@@ -192,7 +175,6 @@ export default function CheckoutConfirmation() {
           </div>
         </div>
       </main>
-      <Footer collections={collections} />
     </>
   );
 }

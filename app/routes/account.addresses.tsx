@@ -323,7 +323,7 @@ export default function AccountAddresses() {
         )}
 
         {/* Desktop sidebar */}
-        <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+        <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 pt-[90px]">
           <div className="flex flex-col flex-grow bg-white border-r overflow-y-auto">
             <SidebarContent
               navigation={navigation}
@@ -334,7 +334,7 @@ export default function AccountAddresses() {
         </div>
 
         {/* Main content */}
-        <div className="flex-1 lg:pl-64">
+        <div className="flex-1 lg:pl-64 pt-[80px]">
           {/* Mobile header */}
           <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white px-4 shadow-sm lg:hidden">
             <button

@@ -118,7 +118,7 @@ export default async function handleRequest(
 
   const jsx = (
     <I18nextProvider i18n={instance}>
-      <RemixServer context={remixContext} url={request.url} />
+      <RemixServer context={remixContext as any} url={request.url} />
     </I18nextProvider>
   );
 

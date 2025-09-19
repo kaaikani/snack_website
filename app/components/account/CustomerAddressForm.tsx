@@ -8,14 +8,15 @@ import type { Address } from '~/generated/graphql';
 import { Input } from '~/components/Input';
 import { useTranslation } from 'react-i18next';
 import { cn } from '~/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'; // Assuming Radix UI Select components are imported from here
-import { ChannelPostalcode } from '~/lib/hygraph';
+// Removed Select component imports as PostalCodeSelect is removed
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '~/components/ui/select';
+// import { ChannelPostalcode } from '~/lib/hygraph';
 
 export const validator = withZod(
   z.object({
@@ -157,95 +158,12 @@ const AddressTypeSelect = () => {
   );
 };
 
-export const PostalCodeSelect = ({
-  channelPostalcodes,
-  channelCode,
-}: {
-  channelPostalcodes: ChannelPostalcode[];
-  channelCode: string;
-}) => {
-  const { error, getInputProps } = useField('postalCode');
-
-  const matchingPostalcode = channelPostalcodes.find(
-    (p) => p.cityName === channelCode,
-  );
-  const postalCodes =
-    matchingPostalcode?.code.map((code) => code.toString()) || [];
-
-  const [value, setValue] = React.useState<string>('');
-
-  const handleChange = (newValue: string) => {
-    setValue(newValue);
-    // Create and dispatch a synthetic input event to update the form field
-    const syntheticEvent = {
-      target: {
-        name: 'postalCode',
-        value: newValue,
-      },
-    } as React.ChangeEvent<HTMLInputElement>;
-
-    // Get the onChange handler from getInputProps and call it
-    const inputProps = getInputProps();
-    if (inputProps.onChange) {
-      inputProps.onChange(syntheticEvent);
-    }
-  };
-
-  return (
-    <div className="w-full">
-      <label
-        htmlFor="postalCode"
-        className="text-sm font-medium text-neutral-800"
-      >
-        Pincode <span className="text-red-500">*</span>
-      </label>
-
-      <Select
-        value={value}
-        onValueChange={handleChange}
-        disabled={postalCodes.length === 0}
-      >
-        <SelectTrigger className="mt-1 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/20 enabled:cursor-pointer enabled:hover:border-cyan-500 disabled:bg-neutral-100 disabled:text-neutral-500 disabled:border-neutral-400">
-          <SelectValue
-            placeholder={
-              postalCodes.length === 0
-                ? 'No pincodes available'
-                : 'Select Pincode'
-            }
-          />
-        </SelectTrigger>
-
-        <SelectContent>
-          {postalCodes.length > 0 ? (
-            postalCodes.map((code) => (
-              <SelectItem key={code} value={code}>
-                {code}
-              </SelectItem>
-            ))
-          ) : (
-            <SelectItem value="" disabled>
-              No pincodes available
-            </SelectItem>
-          )}
-        </SelectContent>
-      </Select>
-
-      {/* Remove the conflicting hidden input with getInputProps() and value */}
-      <input type="hidden" name="postalCode" value={value} readOnly />
-
-      {error && <span className="text-sm text-red-500">{error}</span>}
-    </div>
-  );
-};
-
 export default function CustomerAddressForm({
   address,
   formRef,
   submit,
   isEditing = false,
   activeCustomer,
-  channelCode,
-  channelPostalcodes,
   availableCountries,
 }: {
   address?: Address;
@@ -257,8 +175,6 @@ export default function CustomerAddressForm({
     lastName?: string;
     phoneNumber?: string;
   };
-  channelCode: string;
-  channelPostalcodes: ChannelPostalcode[];
   availableCountries?: { id: string; name: string; code: string }[];
 }) {
   const { t } = useTranslation();
@@ -291,7 +207,7 @@ export default function CustomerAddressForm({
           method="post"
           defaultValues={{
             fullName: isEditing ? address?.fullName || '' : fullName,
-            city: address?.city || channelCode,
+            city: address?.city || '',
             postalCode: address?.postalCode || '', // Use existing postalCode or empty string
             streetLine1: address?.streetLine1 || '',
             streetLine2: address?.streetLine2 || '',
@@ -352,12 +268,13 @@ export default function CustomerAddressForm({
                 name="city"
                 required
                 autoComplete="address-level2"
-                defaultValue={address?.city || channelCode}
-                readOnly={true}
+                defaultValue={address?.city || ''}
               />
-              <PostalCodeSelect
-                channelPostalcodes={channelPostalcodes}
-                channelCode={channelCode}
+              <ModernInput
+                label="Pincode"
+                name="postalCode"
+                required
+                autoComplete="postal-code"
               />
             </div>
             <ModernInput

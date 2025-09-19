@@ -1,21 +1,22 @@
 import { CurrencyCode } from '~/generated/graphql';
-import { ProductCardProps } from './ProductCard';
+
+export type PriceRange = {
+  min: number;
+  max: number;
+};
 
 export function Price({
   priceWithTax,
   currencyCode,
 }: {
-  priceWithTax?: number | ProductCardProps['priceWithTax'];
-  currencyCode?: ProductCardProps['currencyCode'];
+  priceWithTax?: number | PriceRange;
+  currencyCode?: CurrencyCode;
 }) {
   if (priceWithTax == null || !currencyCode) {
     return <></>;
   }
   if (typeof priceWithTax === 'number') {
     return <>{formatPrice(priceWithTax, currencyCode)}</>;
-  }
-  if ('value' in priceWithTax) {
-    return <>{formatPrice(priceWithTax.value, currencyCode)}</>;
   }
   if (priceWithTax.min === priceWithTax.max) {
     return <>{formatPrice(priceWithTax.min, currencyCode)}</>;

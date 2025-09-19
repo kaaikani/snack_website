@@ -1,7 +1,9 @@
+import React from 'react';
 import { Link } from '@remix-run/react';
 import { Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
+import { GoogleLoginButton } from '../Google/GoogleLoginButton';
 
-export default function Footer() {
+export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <footer className="relative overflow-hidden">
       <div className="relative bg-white min-h-[200px]">
@@ -62,27 +64,8 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Sign Up Section */}
-          <div className="text-center mb-5">
-            <div className="text-center mb-8">
-              <h3 className="text-6xl font-bold text-white">SIGN UP</h3>
-            </div>
-
-            <div className="flex items-center justify-center gap-4 max-w-md mx-auto mb-4">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="flex-1 bg-white text-black placeholder-gray-500 border-0 rounded-full px-6 py-3"
-              />
-              <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full">
-                SEND
-              </button>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-sm text-blue-200">
-              <input type="checkbox" className="w-4 h-4" />
-              <span>By continuing, you will accept the Privacy Policy</span>
-            </div>
+          <div className="items-center">
+            {!isSignedIn && <GoogleLoginButton />}
           </div>
 
           {/* Navigation Links */}

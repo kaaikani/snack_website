@@ -256,22 +256,18 @@ export function Header({
               </span>
             )}
           </button>
-
-           <div className="flex items-center">
-
-
-                <GoogleLoginButton />
-
-
-              </div>
-
-          <Link
-            to="/account"
-            aria-label="User profile"
-            className="hidden sm:block bg-white p-1.5 sm:p-2 rounded-full hover:bg-black"
-          >
-            <UserIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#1F0322] hover:text-white" />
-          </Link>
+          <div className="flex items-center">
+            {!isSignedIn && <GoogleLoginButton />}
+          </div>
+          {isSignedIn && (
+            <Link
+              to="/account"
+              aria-label="User profile"
+              className="hidden sm:block bg-white p-1.5 sm:p-2 rounded-full hover:bg-black text-[#1F0322] hover:text-white"
+            >
+              <UserIcon className="w-4 h-4 sm:w-6 sm:h-6 " />
+            </Link>
+          )}
 
           {/* Mobile Menu Button */}
           <button

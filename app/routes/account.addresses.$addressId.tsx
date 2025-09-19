@@ -24,8 +24,8 @@ import { updateCustomerAddress } from '~/providers/account/account';
 import { getAvailableCountries } from '~/providers/checkout/checkout';
 import { getActiveCustomerAddresses } from '~/providers/customer/customer';
 import { useTranslation } from 'react-i18next';
-import { ChannelPostalcode, getChannelPostalcodes } from '~/lib/hygraph';
-import { getChannelsByCustomerPhonenumber } from '~/providers/customPlugins/customPlugin';
+// import { ChannelPostalcode, getChannelPostalcodes } from '~/lib/hygraph';
+// import { getChannelsByCustomerPhonenumber } from '~/providers/customPlugins/customPlugin';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
 
 type AddressUpdateInput = {
@@ -56,17 +56,20 @@ export async function loader({ request, params }: DataFunctionArgs) {
   const { activeCustomer: detailedCustomer } = await getActiveCustomerDetails({
     request,
   });
-  const phoneNumber = detailedCustomer?.phoneNumber ?? undefined;
-  let channelCode = '';
-  if (phoneNumber) {
-    const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
-    channelCode = channels[0]?.code || '';
-  }
+  // const phoneNumber = detailedCustomer?.phoneNumber ?? undefined;
+  // let channelCode = '';
+  // if (phoneNumber) {
+  //   const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
+  //   channelCode = channels[0]?.code || '';
+  // }
 
-  const channelPostalcodes = await getChannelPostalcodes();
+  // const channelPostalcodes = await getChannelPostalcodes();
 
   const { availableCountries } = await getAvailableCountries({ request });
-  return json({ address, availableCountries, channelCode, channelPostalcodes });
+  return json({
+    address,
+    availableCountries /*, channelCode, channelPostalcodes */,
+  });
 }
 
 export async function action({ request, params }: DataFunctionArgs) {
@@ -113,8 +116,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 }
 
 export default function EditAddress() {
-  const { address, availableCountries, channelCode, channelPostalcodes } =
-    useLoaderData<typeof loader>();
+  const { address, availableCountries } = useLoaderData<typeof loader>();
   const actionData = useActionData<{ saved?: boolean; error?: string }>();
   const navigation = useNavigation();
   const navigate = useNavigate();
@@ -167,8 +169,8 @@ export default function EditAddress() {
               formRef={formRef}
               submit={submitForm}
               isEditing={true}
-              channelCode={channelCode}
-              channelPostalcodes={channelPostalcodes}
+              // channelCode={channelCode}
+              // channelPostalcodes={channelPostalcodes}
             />
           </div>
         </Modal.Body>

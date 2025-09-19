@@ -8,6 +8,7 @@ import { Link, useLocation } from '@remix-run/react';
 import { Price } from '~/components/products/Price';
 import { CurrencyCode, OrderDetailFragment } from '~/generated/graphql';
 import { useTranslation } from 'react-i18next';
+import { OrderWithOptionalCreatedAt } from '~/types/order';
 
 // Define CartLoaderData explicitly to match /api/active-order.ts loader
 export interface CartLoaderData {
@@ -23,7 +24,7 @@ export function CartTray({
 }: {
   open: boolean;
   onClose: (closed: boolean) => void;
-  activeOrder: OrderDetailFragment | null | undefined;
+  activeOrder: OrderWithOptionalCreatedAt | null | undefined;
   adjustOrderLine?: (lineId: string, quantity: number) => void;
   removeItem?: (lineId: string) => void;
 }) {

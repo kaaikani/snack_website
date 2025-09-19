@@ -10,7 +10,7 @@ import {
   VerifyCustomerAccountMutation,
   AuthenticationInput,
   CurrentUser,
-  ErrorResult
+  ErrorResult,
 } from '~/generated/graphql';
 import { QueryOptions, sdk, WithHeaders } from '~/graphqlWrapper';
 import { redirect } from '@remix-run/server-runtime';
@@ -32,19 +32,19 @@ export async function login(
   email: string,
   password: string,
   rememberMe: boolean,
-  p0: { request: Request; customHeaders: { 'vendure-token': string; } }
+  p0: { request: Request; customHeaders: { 'vendure-token': string } },
 ) {
   const response = await sdk.login({
-    email, password, rememberMe 
+    email,
+    password,
+    rememberMe,
   });
-  
 
   return {
     ...response.login,
-    _headers: response._headers, 
+    _headers: response._headers,
   };
 }
-
 
 export const logout = async (
   options: QueryOptions,
@@ -54,7 +54,6 @@ export const logout = async (
     _headers: res._headers,
   }));
 };
-
 
 // export const logout = async (
 //   options: QueryOptions
@@ -126,12 +125,31 @@ export async function updateCustomerEmailAddress(
     .then((res) => res.updateCustomerEmailAddress);
 }
 
+async function addAuthHeaderToOptions(
+  options: QueryOptions,
+): Promise<QueryOptions> {
+  const sessionStorage = await getSessionStorage();
+  const session = await sessionStorage.getSession(
+    options.request?.headers.get('Cookie'),
+  );
+  const authToken = session.get('authToken');
+
+  const headers = options.headers
+    ? new Headers(options.headers)
+    : new Headers();
+  if (authToken) {
+    headers.set('Authorization', `Bearer ${authToken}`);
+  }
+  return { ...options, headers };
+}
+
 export async function updateCustomerAddress(
   input: UpdateAddressInput,
   options: QueryOptions,
 ) {
+  const newOptions = await addAuthHeaderToOptions(options);
   return sdk
-    .updateCustomerAddress({ input }, options)
+    .updateCustomerAddress({ input }, newOptions)
     .then((res) => res.updateCustomerAddress);
 }
 
@@ -139,14 +157,16 @@ export async function createCustomerAddress(
   input: CreateAddressInput,
   options: QueryOptions,
 ) {
+  const newOptions = await addAuthHeaderToOptions(options);
   return sdk
-    .createCustomerAddress({ input }, options)
+    .createCustomerAddress({ input }, newOptions)
     .then((res) => res.createCustomerAddress);
 }
 
 export async function deleteCustomerAddress(id: string, options: QueryOptions) {
+  const newOptions = await addAuthHeaderToOptions(options);
   return sdk
-    .deleteCustomerAddress({ id }, options)
+    .deleteCustomerAddress({ id }, newOptions)
     .then((res) => res.deleteCustomerAddress);
 }
 
@@ -158,7 +178,6 @@ export async function updateCustomerPassword(
     .updateCustomerPassword(input, options)
     .then((res) => res.updateCustomerPassword);
 }
-
 
 // export async function authenticate(
 //   input: AuthenticationInput,
@@ -199,8 +218,6 @@ export async function updateCustomerPassword(
 //     }
 //   }
 // }
-
-
 
 // `;
 
@@ -342,13 +359,12 @@ gql`
   }
 `;
 
-
 export async function authenticate(
   input: AuthenticationInput,
   {
     request,
     customHeaders,
-  }: { request: Request; customHeaders: { 'vendure-token': string } }
+  }: { request: Request; customHeaders: { 'vendure-token': string } },
 ): Promise<{ result: CurrentUser | ErrorResult; headers: Headers }> {
   const vendureApiUrl = process.env.VENDURE_API_URL;
   console.log('authenticate:', authenticate);
@@ -388,7 +404,9 @@ export async function authenticate(
     }),
   });
 
-  const json = await response.json() as { data: { authenticate: CurrentUser | ErrorResult } };
+  const json = (await response.json()) as {
+    data: { authenticate: CurrentUser | ErrorResult };
+  };
   return {
     result: json.data.authenticate,
     headers: response.headers,

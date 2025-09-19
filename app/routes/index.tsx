@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import ContentSection from '~/components/ContentSection';
 import { ProductCollectionSlider } from '~/components/products/ProductCollectionSlider';
 import { search } from '~/providers/products/products';
+import Footer from '~/components/footer/Footer';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const collections = await getCollections(request, { take: 20 });
@@ -17,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   try {
     // Always use your fixed channel token
-    const bannersResponse = await getCustomBanners(request, 'ind-snacks');
+    const bannersResponse = await getCustomBanners(request);
     banners = bannersResponse ? bannersResponse.data : [];
   } catch (error) {
     console.error('Error fetching banners:', error);
@@ -106,12 +107,14 @@ type OutletContext = {
   activeOrder: any;
   adjustOrderLine: (lineId: string, quantity: number) => void;
   removeItem: (lineId: string) => void;
+  isSignedIn: boolean;
 };
 
 export default function Index() {
   const { collections, banners } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
-  const { activeOrderFetcher, activeOrder } = useOutletContext<OutletContext>();
+  const { activeOrderFetcher, activeOrder, isSignedIn } =
+    useOutletContext<OutletContext>();
 
   return (
     <>
@@ -176,6 +179,7 @@ export default function Index() {
               ),
           )}
         </div>
+        <Footer isSignedIn={isSignedIn} />
       </section>
     </>
   );

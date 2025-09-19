@@ -16,7 +16,7 @@ export function GoogleLoginButton() {
   }, [fetcher.data]);
 
   return (
-    <div className="w-full">
+    <div>
       <GoogleLogin
         onSuccess={(credentialResponse) => {
           console.log('Google login success:', credentialResponse);
@@ -27,7 +27,7 @@ export function GoogleLoginButton() {
               {
                 method: 'post',
                 action: '/login/google', // Changed from '/' to '/login/google'
-              }
+              },
             );
           } else {
             console.error('No token received from Google');
