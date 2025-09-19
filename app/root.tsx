@@ -148,6 +148,11 @@ export default function App() {
     );
   }
 
+  const isSignedIn = !!loaderData.activeCustomer?.activeCustomer?.id;
+  const loyaltyPoints =
+    loaderData.activeCustomer?.activeCustomer?.customFields
+      ?.loyaltyPointsAvailable ?? null;
+
   return (
     <html lang={locale} dir={i18n.dir()} id="app">
       <head>

@@ -11,7 +11,7 @@ import { HeartIcon as HeartOutlineIcon } from '@heroicons/react/24/outline';
 import { CurrencyCode, type Order, type OrderLine } from '~/generated/graphql';
 import { useTranslation } from 'react-i18next';
 import { StockLevelLabel } from '~/components/products/StockLevelLabel';
-import { useActiveOrder } from '~/utils/use-active-order';
+// import { useActiveOrder } from '~/utils/use-active-order';
 
 export interface ActiveCustomer {
   activeCustomer?: {
@@ -70,7 +70,7 @@ export function ProductCard({
   const [isFavorited, setIsFavorited] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  const { adjustOrderLine, refresh } = useActiveOrder();
+  // const { adjustOrderLine, refresh } = useActiveOrder();
 
   useEffect(() => {
     setIsHydrated(true);
@@ -103,8 +103,14 @@ export function ProductCard({
   const qtyInCart = orderLine?.quantity ?? 0;
 
   const handleAdjustQty = async (orderLineId: string, quantity: number) => {
-    await adjustOrderLine(orderLineId, quantity);
-    refresh();
+    const formData = new FormData();
+    formData.append('action', 'adjustItem');
+    formData.append('lineId', orderLineId);
+    formData.append('quantity', quantity.toString());
+    activeOrderFetcher.submit(formData, {
+      method: 'post',
+      action: '/api/active-order',
+    });
   };
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {

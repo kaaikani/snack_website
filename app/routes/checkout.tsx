@@ -990,13 +990,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-gray-50">
-      <Header
-        onCartIconClick={() => setOpen(!open)}
-        cartQuantity={activeOrder?.totalQuantity ?? 0}
-        isSignedIn={isSignedIn}
-        collections={collections}
-        loyaltyPoints={loyaltyPoints}
-      />
       <div className="lg:max-w-7xl max-w-2xl mx-auto pt-8 pb-24 px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
           <div>
@@ -1374,7 +1367,6 @@ export default function CheckoutPage() {
         message="Address is required to place an order."
         onClose={() => setShowAddressToast(false)}
       />
-      <Footer collections={collections} />
     </div>
   );
 }
