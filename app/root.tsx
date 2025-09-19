@@ -1,3 +1,4 @@
+// app/root.tsx
 import { cssBundleHref } from '@remix-run/css-bundle';
 import {
   isRouteErrorResponse,
@@ -8,7 +9,6 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  ShouldRevalidateFunction,
   useLoaderData,
   useRouteError,
   MetaFunction,
@@ -19,6 +19,8 @@ import {
   DataFunctionArgs,
   json,
   LinksFunction,
+  LoaderFunctionArgs,
+  redirect,
 } from '@remix-run/server-runtime';
 import { getCollections } from '~/providers/collections/collections';
 import { activeChannel } from '~/providers/channel/channel';
@@ -27,12 +29,14 @@ import { useEffect, useState } from 'react';
 import { CartTray } from '~/components/cart/CartTray';
 import { getActiveCustomer } from '~/providers/customer/customer';
 import Footer from '~/components/footer/Footer';
-import type { CartLoaderData } from '~/routes/api.active-order';
 import { useActiveOrder } from '~/utils/use-active-order';
 import { useChangeLanguage } from 'remix-i18next';
 import { useTranslation } from 'react-i18next';
 import { getI18NextServer } from '~/i18next.server';
-import { OrderDetailFragment } from '~/generated/graphql';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const devMode =
+  typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
 
 export const meta: MetaFunction = () => {
   return [{ title: APP_META_TITLE }, { description: APP_META_DESCRIPTION }];
@@ -43,63 +47,61 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
 ];
 
-const devMode =
-  typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
-
-// The root data does not change once loaded.
-export const shouldRevalidate: ShouldRevalidateFunction = ({
-  nextUrl,
-  currentUrl,
-  formAction,
-}) => {
-  if (currentUrl.pathname === '/sign-in') {
-    // just logged in
-    return true;
-  }
-  if (currentUrl.pathname === '/account' && nextUrl.pathname === '/') {
-    // just logged out
-    return true;
-  }
-  if (formAction === '/checkout/payment') {
-    // submitted payment for order
-    return true;
-  }
-  return false;
-};
-
 export type RootLoaderData = {
   activeCustomer: Awaited<ReturnType<typeof getActiveCustomer>>;
   activeChannel: Awaited<ReturnType<typeof activeChannel>>;
   collections: Awaited<ReturnType<typeof getCollections>>;
   locale: string;
+  ENV: {
+    GOOGLE_CLIENT_ID: string;
+  };
 };
 
-export async function loader({ request }: DataFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  // const publicPaths = ['/', '/sign-in', '/sign-up', '/forgot-password'];
+  // const isPublic = publicPaths.includes(pathname);
+
+  const activeCustomer = await getActiveCustomer({ request });
+
+  // if (!activeCustomer.activeCustomer?.id && !isPublic) {
+  //   return redirect('/sign-in');
+  // }
+
   const collections = await getCollections(request, { take: 20 });
   const topLevelCollections = collections.filter(
-    (collection) => collection.parent?.name === '__root_collection__',
+    (collection) => collection.parent?.name === '__root_collection__'
   );
-  const activeCustomer = await getActiveCustomer({ request });
-  const locale = await getI18NextServer().then((i18next) =>
-    i18next.getLocale(request),
-  );
-  const loaderData: RootLoaderData = {
-    activeCustomer,
-    activeChannel: await activeChannel({ request }),
-    collections: topLevelCollections,
-    locale,
-  };
 
-  return json(loaderData, { headers: activeCustomer._headers });
+  const locale = await getI18NextServer().then((i18next) =>
+    i18next.getLocale(request)
+  );
+
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  if (!GOOGLE_CLIENT_ID) {
+    throw new Error('Missing GOOGLE_CLIENT_ID in environment');
+  }
+
+  return json<RootLoaderData>(
+    {
+      activeCustomer,
+      activeChannel: await activeChannel({ request }),
+      collections: topLevelCollections,
+      locale,
+      ENV: {
+        GOOGLE_CLIENT_ID,
+      },
+    },
+    { headers: activeCustomer._headers }
+  );
 }
 
 export default function App() {
-  const [open, setOpen] = useState(false);
   const loaderData = useLoaderData<RootLoaderData>();
-  const { collections } = loaderData;
-  const { locale } = useLoaderData<typeof loader>();
+  const { collections, activeCustomer, locale, ENV } = loaderData;
   const { i18n } = useTranslation();
-
   const {
     activeOrderFetcher,
     activeOrder,
@@ -108,23 +110,43 @@ export default function App() {
     refresh,
   } = useActiveOrder();
 
-  useChangeLanguage(locale);
+  const [open, setOpen] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(
+    !!activeCustomer.activeCustomer?.id
+  );
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Refresh active order when loader runs
+    setIsSignedIn(!!loaderData.activeCustomer.activeCustomer?.id);
+  }, [loaderData.activeCustomer.activeCustomer?.id]);
+
+  useEffect(() => {
     refresh();
   }, [loaderData]);
 
-  // ✅ handlers defined INSIDE component
-  const handleAdjustQty = async (orderLineId: string, quantity: number) => {
-    await adjustOrderLine(orderLineId, quantity);
-    refresh();
-  };
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
-  const handleRemoveItem = async (orderLineId: string) => {
-    await removeItem(orderLineId);
-    refresh();
-  };
+  useChangeLanguage(locale);
+
+  // Show loading only if we don't have the Google Client ID
+  if (!ENV.GOOGLE_CLIENT_ID) {
+    return (
+      <html lang={locale} dir={i18n.dir()} id="app">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+          <link rel="icon" href="/favicon.ico" type="image/png" />
+          <Meta />
+          <Links />
+        </head>
+        <body>
+          <div>Loading...</div>
+        </body>
+      </html>
+    );
+  }
 
   const isSignedIn = !!loaderData.activeCustomer?.activeCustomer?.id;
   const loyaltyPoints =
@@ -136,40 +158,45 @@ export default function App() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" type="image/png"></link>
+        <link rel="icon" href="/favicon.ico" type="image/png" />
         <Meta />
         <Links />
+        {/* 👇 this must be before the body to inject early */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(ENV)};`,
+          }}
+        />
       </head>
       <body>
-        <Header
-          onCartIconClick={() => setOpen(!open)}
-          cartQuantity={activeOrder?.totalQuantity ?? 0}
-          collections={collections}
-          isCartOpen={open}
-          loyaltyPoints={loyaltyPoints}
-          isSignedIn={isSignedIn}
-        />
-
-        <CartTray
-          open={open}
-          onClose={setOpen}
-          activeOrder={activeOrder as OrderDetailFragment}
-          adjustOrderLine={handleAdjustQty}
-          removeItem={handleRemoveItem}
-        />
-
-        <main>
-          <Outlet
-            context={{
-              activeOrderFetcher,
-              activeOrder,
-              adjustOrderLine,
-              removeItem,
-            }}
-          />
-        </main>
-
-        <Footer />
+        <GoogleOAuthProvider clientId={ENV.GOOGLE_CLIENT_ID}>
+          {/* <Header collections={collections} /> */}
+           <Header
+            onCartIconClick={() => setOpen(!open)}
+            cartQuantity={activeOrder?.totalQuantity ?? 0}
+            collections={collections}
+            isCartOpen={open} loyaltyPoints={null} isSignedIn={false}        />
+          <main>
+            <Outlet
+              context={{
+                activeOrderFetcher,
+                activeOrder,
+                adjustOrderLine,
+                removeItem,
+              }}
+            />
+          </main>
+          {isSignedIn && (
+            <CartTray
+              open={open}
+              onClose={setOpen}
+              activeOrder={activeOrder}
+              adjustOrderLine={adjustOrderLine}
+              removeItem={removeItem}
+            />
+          )}
+          {/* <Footer /> */}
+        </GoogleOAuthProvider>
         <ScrollRestoration />
         <Scripts />
         {devMode && <LiveReload />}
@@ -178,26 +205,21 @@ export default function App() {
   );
 }
 
-type DefaultSparseErrorPageProps = {
-  tagline: string;
-  headline: string;
-  description: string;
-};
-
-/**
- * You should replace this in your actual storefront to provide a better user experience.
- */
+// Error Boundaries
 function DefaultSparseErrorPage({
   tagline,
   headline,
   description,
-}: DefaultSparseErrorPageProps) {
+}: {
+  tagline: string;
+  headline: string;
+  description: string;
+}) {
   return (
     <html lang="en" id="app">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" type="image/png"></link>
         <Meta />
         <Links />
       </head>
@@ -229,9 +251,6 @@ function DefaultSparseErrorPage({
   );
 }
 
-/**
- * Error boundary
- */
 export function ErrorBoundary() {
   let tagline = 'Oopsy daisy';
   let headline = 'Unexpected error';
@@ -253,9 +272,6 @@ export function ErrorBoundary() {
   );
 }
 
-/**
- * In Remix v2 there will only be a `ErrorBoundary`
- */
 export function CatchBoundary() {
   return ErrorBoundary();
 }

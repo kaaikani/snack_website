@@ -572,10 +572,10 @@
   resolved "https://registry.npmjs.org/@cloudflare/unenv-preset/-/unenv-preset-2.0.2.tgz"
   integrity sha512-nyzYnlZjjV5xT3LizahG1Iu6mnrCaxglJ04rZLpDwlDVDZ7v46lNsfxhV3A/xtfgQuSHmLnc6SVI+KwBpc3Lwg==
 
-"@cloudflare/workerd-windows-64@1.20250408.0":
+"@cloudflare/workerd-linux-64@1.20250408.0":
   version "1.20250408.0"
-  resolved "https://registry.npmjs.org/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20250408.0.tgz"
-  integrity sha512-nJ3RjMKGae2aF2rZ/CNeBvQPM+W5V1SUK0FYWG/uomyr7uQ2l4IayHna1ODg/OHHTEgIjwom0Mbn58iXb0WOcQ==
+  resolved "https://registry.npmjs.org/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20250408.0.tgz"
+  integrity sha512-WbgItXWln6G5d7GvYLWcuOzAVwafysZaWunH3UEfsm95wPuRofpYnlDD861gdWJX10IHSVgMStGESUcs7FLerQ==
 
 "@cloudflare/workers-types@^4.0.0", "@cloudflare/workers-types@^4.20231218.0", "@cloudflare/workers-types@^4.20250408.0":
   version "4.20250710.0"
@@ -633,20 +633,20 @@
     escape-string-regexp "^4.0.0"
     rollup-plugin-node-polyfills "^0.2.1"
 
-"@esbuild/win32-x64@0.17.19":
+"@esbuild/linux-x64@0.17.19":
   version "0.17.19"
-  resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.17.19.tgz"
-  integrity sha512-lAhycmKnVOuRYNtRtatQR1LPQf2oYCkRGkSFnseDAKPl8lu5SOsK/e1sXe5a0Pc5kHIHe6P2I/ilntNv2xf3cA==
+  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.17.19.tgz"
+  integrity sha512-68ngA9lg2H6zkZcyp22tsVt38mlhWde8l3eJLWkyLrp4HwMUr3c1s/M2t7+kHIhvMjglIBrFpncX1SzMckomGw==
 
-"@esbuild/win32-x64@0.17.6":
+"@esbuild/linux-x64@0.17.6":
   version "0.17.6"
-  resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.17.6.tgz"
-  integrity sha512-n6d8MOyUrNp6G4VSpRcgjs5xj4A91svJSaiwLIDWVWEsZtpN5FA9NlBbZHDmAJc2e8e6SF4tkBD3HAvPF+7igA==
+  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.17.6.tgz"
+  integrity sha512-a3yHLmOodHrzuNgdpB7peFGPx1iJ2x6m+uDvhP2CKdr2CwOaqEFMeSqYAHU7hG+RjCq8r2NFujcd/YsEsFgTGw==
 
-"@esbuild/win32-x64@0.21.5":
+"@esbuild/linux-x64@0.21.5":
   version "0.21.5"
-  resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz"
-  integrity sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==
+  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.21.5.tgz"
+  integrity sha512-1rYdTpyv03iycF1+BhzrzQJCdOuAOtaqHTWJZCWvijKD2N5Xu0TtVC8/+1faWqcP9iBCWOmjmhoH94dH82BxPQ==
 
 "@fastify/busboy@^2.0.0":
   version "2.1.1"
@@ -1711,10 +1711,29 @@
   resolved "https://registry.npmjs.org/@heroicons/react/-/react-2.2.0.tgz"
   integrity sha512-LMcepvRaS9LYHJGsF0zzmgKCUim/X3N/DQKc4jepAXJ7l8QxJ1PmxJzqplF2Z3FE4PqBAIGyJAQ/w4B5dsqbtQ==
 
-"@img/sharp-win32-x64@0.33.5":
+"@img/sharp-libvips-linux-x64@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/@img/sharp-libvips-linux-x64/-/sharp-libvips-linux-x64-1.0.4.tgz"
+  integrity sha512-MmWmQ3iPFZr0Iev+BAgVMb3ZyC4KeFc3jFxnNbEPas60e1cIfevbtuyf9nDGIzOaW9PdnDciJm+wFFaTlj5xYw==
+
+"@img/sharp-libvips-linuxmusl-x64@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/@img/sharp-libvips-linuxmusl-x64/-/sharp-libvips-linuxmusl-x64-1.0.4.tgz"
+  integrity sha512-viYN1KX9m+/hGkJtvYYp+CCLgnJXwiQB39damAO7WMdKWlIhmYTfHjwSbQeUK/20vY154mwezd9HflVFM1wVSw==
+
+"@img/sharp-linux-x64@0.33.5":
   version "0.33.5"
-  resolved "https://registry.npmjs.org/@img/sharp-win32-x64/-/sharp-win32-x64-0.33.5.tgz"
-  integrity sha512-MpY/o8/8kj+EcnxwvrP4aTJSWw/aZ7JIGR4aBeZkZw5B7/Jn+tY9/VNwtcoGmdT7GfggGIU4kygOMSbYnOrAbg==
+  resolved "https://registry.npmjs.org/@img/sharp-linux-x64/-/sharp-linux-x64-0.33.5.tgz"
+  integrity sha512-opC+Ok5pRNAzuvq1AG0ar+1owsu842/Ab+4qvU879ippJBHvyY5n2mxF1izXqkPYlGuP/M556uh53jRLJmzTWA==
+  optionalDependencies:
+    "@img/sharp-libvips-linux-x64" "1.0.4"
+
+"@img/sharp-linuxmusl-x64@0.33.5":
+  version "0.33.5"
+  resolved "https://registry.npmjs.org/@img/sharp-linuxmusl-x64/-/sharp-linuxmusl-x64-0.33.5.tgz"
+  integrity sha512-WT+d/cgqKkkKySYmqoZ8y3pxx7lx9vVejxW/W4DOFMYVSkErR+w7mf2u8m/y4+xHe7yY9DAXQMWQhpnMuFfScw==
+  optionalDependencies:
+    "@img/sharp-libvips-linuxmusl-x64" "1.0.4"
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -2153,6 +2172,11 @@
   resolved "https://registry.npmjs.org/@radix-ui/rect/-/rect-1.1.1.tgz"
   integrity sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==
 
+"@react-oauth/google@^0.12.2":
+  version "0.12.2"
+  resolved "https://registry.npmjs.org/@react-oauth/google/-/google-0.12.2.tgz"
+  integrity sha512-d1GVm2uD4E44EJft2RbKtp8Z1fp/gK8Lb6KHgs3pHlM0PxCXGLaq8LLYQYENnN4xPWO1gkL4apBtlPKzpLvZwg==
+
 "@remix-run/cloudflare-pages@^2.4.1":
   version "2.16.8"
   resolved "https://registry.npmjs.org/@remix-run/cloudflare-pages/-/cloudflare-pages-2.16.8.tgz"
@@ -2410,10 +2434,15 @@
   resolved "https://registry.npmjs.org/@repeaterjs/repeater/-/repeater-3.0.6.tgz"
   integrity sha512-Javneu5lsuhwNCryN+pXH93VPQ8g0dBX7wItHFgYiwQmzE1sVdg5tWHiOgHywzL2W21XQopa7IwIEnNbmeUJYA==
 
-"@rollup/rollup-win32-x64-msvc@4.44.2":
+"@rollup/rollup-linux-x64-gnu@4.44.2":
   version "4.44.2"
-  resolved "https://registry.npmjs.org/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.44.2.tgz"
-  integrity sha512-3+QZROYfJ25PDcxFF66UEk8jGWigHJeecZILvkPkyQN7oc5BvFo4YEXFkOs154j3FTMp9mn9Ky8RCOwastduEA==
+  resolved "https://registry.npmjs.org/@rollup/rollup-linux-x64-gnu/-/rollup-linux-x64-gnu-4.44.2.tgz"
+  integrity sha512-/bXb0bEsWMyEkIsUL2Yt5nFB5naLAwyOWMEviQfQY1x3l5WsLKgvZf66TM7UTfED6erckUVUJQ/jJ1FSpm3pRQ==
+
+"@rollup/rollup-linux-x64-musl@4.44.2":
+  version "4.44.2"
+  resolved "https://registry.npmjs.org/@rollup/rollup-linux-x64-musl/-/rollup-linux-x64-musl-4.44.2.tgz"
+  integrity sha512-3D3OB1vSSBXmkGEZR27uiMRNiwN08/RVAcBKwhUYPaiZ8bcvdeEwWPvbnXvvXHY+A/7xluzcN+kaiOFNiOZwWg==
 
 "@stripe/react-stripe-js@^1.15.0":
   version "1.16.5"

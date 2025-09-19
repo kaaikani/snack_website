@@ -10,7 +10,7 @@ import {
   VerifyCustomerAccountMutation,
   AuthenticationInput,
   CurrentUser,
-  ErrorResult,
+  ErrorResult
 } from '~/generated/graphql';
 import { QueryOptions, sdk, WithHeaders } from '~/graphqlWrapper';
 import { redirect } from '@remix-run/server-runtime';
@@ -32,24 +32,19 @@ export async function login(
   email: string,
   password: string,
   rememberMe: boolean,
-  p0: { request: Request; customHeaders: { 'vendure-token': string } },
+  p0: { request: Request; customHeaders: { 'vendure-token': string; } }
 ) {
-  const response = await sdk.login(
-    {
-      email,
-      password,
-      rememberMe,
-    },
-    {
-      customHeaders: p0.customHeaders,
-    },
-  );
+  const response = await sdk.login({
+    email, password, rememberMe 
+  });
+  
 
   return {
     ...response.login,
-    _headers: response._headers,
+    _headers: response._headers, 
   };
 }
+
 
 export const logout = async (
   options: QueryOptions,
@@ -59,6 +54,7 @@ export const logout = async (
     _headers: res._headers,
   }));
 };
+
 
 // export const logout = async (
 //   options: QueryOptions
@@ -163,6 +159,7 @@ export async function updateCustomerPassword(
     .then((res) => res.updateCustomerPassword);
 }
 
+
 // export async function authenticate(
 //   input: AuthenticationInput,
 //   p0: { request: Request; customHeaders: { 'vendure-token': string } }
@@ -202,6 +199,8 @@ export async function updateCustomerPassword(
 //     }
 //   }
 // }
+
+
 
 // `;
 
@@ -343,12 +342,13 @@ gql`
   }
 `;
 
+
 export async function authenticate(
   input: AuthenticationInput,
   {
     request,
     customHeaders,
-  }: { request: Request; customHeaders: { 'vendure-token': string } },
+  }: { request: Request; customHeaders: { 'vendure-token': string } }
 ): Promise<{ result: CurrentUser | ErrorResult; headers: Headers }> {
   const vendureApiUrl = process.env.VENDURE_API_URL;
   console.log('authenticate:', authenticate);
@@ -388,9 +388,7 @@ export async function authenticate(
     }),
   });
 
-  const json = (await response.json()) as {
-    data: { authenticate: CurrentUser | ErrorResult };
-  };
+  const json = await response.json() as { data: { authenticate: CurrentUser | ErrorResult } };
   return {
     result: json.data.authenticate,
     headers: response.headers,

@@ -3843,78 +3843,6 @@ export type Zone = Node & {
 
 export type GenerateRazorpayOrderIdResult = RazorpayOrderIdGenerationError | RazorpayOrderIdSuccess;
 
-type ErrorResult_AlreadyLoggedInError_Fragment = { __typename: 'AlreadyLoggedInError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_CouponCodeExpiredError_Fragment = { __typename: 'CouponCodeExpiredError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_CouponCodeInvalidError_Fragment = { __typename: 'CouponCodeInvalidError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_CouponCodeLimitError_Fragment = { __typename: 'CouponCodeLimitError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_EmailAddressConflictError_Fragment = { __typename: 'EmailAddressConflictError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_GuestCheckoutError_Fragment = { __typename: 'GuestCheckoutError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_IdentifierChangeTokenExpiredError_Fragment = { __typename: 'IdentifierChangeTokenExpiredError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_IdentifierChangeTokenInvalidError_Fragment = { __typename: 'IdentifierChangeTokenInvalidError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_IneligiblePaymentMethodError_Fragment = { __typename: 'IneligiblePaymentMethodError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_IneligibleShippingMethodError_Fragment = { __typename: 'IneligibleShippingMethodError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_InsufficientStockError_Fragment = { __typename: 'InsufficientStockError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_InvalidCredentialsError_Fragment = { __typename: 'InvalidCredentialsError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_MissingPasswordError_Fragment = { __typename: 'MissingPasswordError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_NativeAuthStrategyError_Fragment = { __typename: 'NativeAuthStrategyError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_NegativeQuantityError_Fragment = { __typename: 'NegativeQuantityError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_NoActiveOrderError_Fragment = { __typename: 'NoActiveOrderError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_NotVerifiedError_Fragment = { __typename: 'NotVerifiedError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_OrderInterceptorError_Fragment = { __typename: 'OrderInterceptorError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_OrderLimitError_Fragment = { __typename: 'OrderLimitError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_OrderModificationError_Fragment = { __typename: 'OrderModificationError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_OrderPaymentStateError_Fragment = { __typename: 'OrderPaymentStateError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_OrderStateTransitionError_Fragment = { __typename: 'OrderStateTransitionError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_PasswordAlreadySetError_Fragment = { __typename: 'PasswordAlreadySetError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_PasswordResetTokenExpiredError_Fragment = { __typename: 'PasswordResetTokenExpiredError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_PasswordResetTokenInvalidError_Fragment = { __typename: 'PasswordResetTokenInvalidError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_PasswordValidationError_Fragment = { __typename: 'PasswordValidationError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_PaymentDeclinedError_Fragment = { __typename: 'PaymentDeclinedError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_PaymentFailedError_Fragment = { __typename: 'PaymentFailedError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_VerificationTokenExpiredError_Fragment = { __typename: 'VerificationTokenExpiredError', errorCode: ErrorCode, message: string };
-
-type ErrorResult_VerificationTokenInvalidError_Fragment = { __typename: 'VerificationTokenInvalidError', errorCode: ErrorCode, message: string };
-
-export type ErrorResultFragment = ErrorResult_AlreadyLoggedInError_Fragment | ErrorResult_CouponCodeExpiredError_Fragment | ErrorResult_CouponCodeInvalidError_Fragment | ErrorResult_CouponCodeLimitError_Fragment | ErrorResult_EmailAddressConflictError_Fragment | ErrorResult_GuestCheckoutError_Fragment | ErrorResult_IdentifierChangeTokenExpiredError_Fragment | ErrorResult_IdentifierChangeTokenInvalidError_Fragment | ErrorResult_IneligiblePaymentMethodError_Fragment | ErrorResult_IneligibleShippingMethodError_Fragment | ErrorResult_InsufficientStockError_Fragment | ErrorResult_InvalidCredentialsError_Fragment | ErrorResult_MissingPasswordError_Fragment | ErrorResult_NativeAuthStrategyError_Fragment | ErrorResult_NegativeQuantityError_Fragment | ErrorResult_NoActiveOrderError_Fragment | ErrorResult_NotVerifiedError_Fragment | ErrorResult_OrderInterceptorError_Fragment | ErrorResult_OrderLimitError_Fragment | ErrorResult_OrderModificationError_Fragment | ErrorResult_OrderPaymentStateError_Fragment | ErrorResult_OrderStateTransitionError_Fragment | ErrorResult_PasswordAlreadySetError_Fragment | ErrorResult_PasswordResetTokenExpiredError_Fragment | ErrorResult_PasswordResetTokenInvalidError_Fragment | ErrorResult_PasswordValidationError_Fragment | ErrorResult_PaymentDeclinedError_Fragment | ErrorResult_PaymentFailedError_Fragment | ErrorResult_VerificationTokenExpiredError_Fragment | ErrorResult_VerificationTokenInvalidError_Fragment;
-
-export type AssetFragment = { __typename: 'Asset', id: string, width: number, height: number, name: string, preview: string, focalPoint?: { __typename: 'Coordinate', x: number, y: number } | null };
-
-export type CartFragment = { __typename: 'Order', id: string, code: string, state: string, active: boolean, couponCodes: Array<string>, totalQuantity: number, subTotal: number, subTotalWithTax: number, total: number, totalWithTax: number, shipping: number, shippingWithTax: number, promotions: Array<{ __typename?: 'Promotion', couponCode?: string | null, name: string, enabled: boolean, actions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', value: string, name: string }> }>, conditions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', name: string, value: string }> }> }>, lines: Array<{ __typename: 'OrderLine', id: string, customFields?: any | null, unitPrice: number, unitPriceWithTax: number, quantity: number, linePriceWithTax: number, discountedLinePriceWithTax: number, featuredAsset?: { __typename: 'Asset', id: string, width: number, height: number, name: string, preview: string, focalPoint?: { __typename: 'Coordinate', x: number, y: number } | null } | null, productVariant: { __typename: 'ProductVariant', id: string, name: string }, discounts: Array<{ __typename: 'Discount', amount: number, amountWithTax: number, description: string, adjustmentSource: string, type: AdjustmentType }> }>, shippingLines: Array<{ __typename: 'ShippingLine', priceWithTax: number, shippingMethod: { __typename: 'ShippingMethod', id: string, code: string, name: string, description: string } }>, discounts: Array<{ __typename: 'Discount', amount: number, amountWithTax: number, description: string, adjustmentSource: string, type: AdjustmentType }>, customFields?: { __typename?: 'OrderCustomFields', clientRequestToCancel?: number | null } | null };
-
-export type OrderDetailFragment = { __typename: 'Order', id: string, code: string, active: boolean, createdAt: any, state: string, currencyCode: CurrencyCode, totalQuantity: number, subTotal: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, couponCodes: Array<string>, surcharges: Array<{ __typename?: 'Surcharge', id: string, price: number }>, taxSummary: Array<{ __typename?: 'OrderTaxSummary', description: string, taxRate: number, taxTotal: number }>, promotions: Array<{ __typename?: 'Promotion', id: string, couponCode?: string | null, name: string, enabled: boolean, actions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', value: string, name: string }> }>, conditions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', name: string, value: string }> }> }>, customer?: { __typename?: 'Customer', id: string, firstName: string, lastName: string, emailAddress: string } | null, shippingAddress?: { __typename?: 'OrderAddress', fullName?: string | null, streetLine1?: string | null, streetLine2?: string | null, company?: string | null, city?: string | null, province?: string | null, postalCode?: string | null, countryCode?: string | null, phoneNumber?: string | null } | null, shippingLines: Array<{ __typename?: 'ShippingLine', priceWithTax: number, shippingMethod: { __typename?: 'ShippingMethod', id: string, name: string } }>, lines: Array<{ __typename?: 'OrderLine', id: string, unitPriceWithTax: number, linePriceWithTax: number, quantity: number, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null, productVariant: { __typename?: 'ProductVariant', id: string, name: string, price: number, product: { __typename?: 'Product', id: string, slug: string } } }>, payments?: Array<{ __typename?: 'Payment', id: string, state: string, method: string, amount: number, metadata?: any | null }> | null };
-
-export type DetailedProductFragment = { __typename?: 'Product', id: string, name: string, description: string, slug: string, collections: Array<{ __typename?: 'Collection', id: string, slug: string, name: string, breadcrumbs: Array<{ __typename?: 'CollectionBreadcrumb', id: string, name: string, slug: string }> }>, facetValues: Array<{ __typename?: 'FacetValue', id: string, code: string, name: string, facet: { __typename?: 'Facet', id: string, code: string, name: string } }>, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null, assets: Array<{ __typename?: 'Asset', id: string, preview: string }>, variants: Array<{ __typename?: 'ProductVariant', id: string, name: string, priceWithTax: number, currencyCode: CurrencyCode, sku: string, stockLevel: string, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null }> };
-
-export type ListedProductFragment = { __typename?: 'SearchResult', productId: string, productName: string, slug: string, currencyCode: CurrencyCode, productAsset?: { __typename?: 'SearchResultAsset', id: string, preview: string } | null, priceWithTax: { __typename?: 'PriceRange', min: number, max: number } | { __typename?: 'SinglePrice', value: number } };
-
 export type LoginMutationVariables = Exact<{
   email: Scalars['String'];
   password: Scalars['String'];
@@ -4091,6 +4019,68 @@ export type ResetPasswordMutationVariables = Exact<{
 
 export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename: 'CurrentUser', id: string, channels: Array<{ __typename?: 'CurrentUserChannel', token: string, code: string, permissions: Array<Permission> }> } | { __typename: 'NativeAuthStrategyError', errorCode: ErrorCode, message: string } | { __typename: 'NotVerifiedError', errorCode: ErrorCode, message: string } | { __typename: 'PasswordResetTokenExpiredError', errorCode: ErrorCode, message: string } | { __typename: 'PasswordResetTokenInvalidError', errorCode: ErrorCode, message: string } | { __typename: 'PasswordValidationError', errorCode: ErrorCode, message: string } };
 
+type ErrorResult_AlreadyLoggedInError_Fragment = { __typename: 'AlreadyLoggedInError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_CouponCodeExpiredError_Fragment = { __typename: 'CouponCodeExpiredError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_CouponCodeInvalidError_Fragment = { __typename: 'CouponCodeInvalidError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_CouponCodeLimitError_Fragment = { __typename: 'CouponCodeLimitError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_EmailAddressConflictError_Fragment = { __typename: 'EmailAddressConflictError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_GuestCheckoutError_Fragment = { __typename: 'GuestCheckoutError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_IdentifierChangeTokenExpiredError_Fragment = { __typename: 'IdentifierChangeTokenExpiredError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_IdentifierChangeTokenInvalidError_Fragment = { __typename: 'IdentifierChangeTokenInvalidError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_IneligiblePaymentMethodError_Fragment = { __typename: 'IneligiblePaymentMethodError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_IneligibleShippingMethodError_Fragment = { __typename: 'IneligibleShippingMethodError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_InsufficientStockError_Fragment = { __typename: 'InsufficientStockError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_InvalidCredentialsError_Fragment = { __typename: 'InvalidCredentialsError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_MissingPasswordError_Fragment = { __typename: 'MissingPasswordError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_NativeAuthStrategyError_Fragment = { __typename: 'NativeAuthStrategyError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_NegativeQuantityError_Fragment = { __typename: 'NegativeQuantityError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_NoActiveOrderError_Fragment = { __typename: 'NoActiveOrderError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_NotVerifiedError_Fragment = { __typename: 'NotVerifiedError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_OrderInterceptorError_Fragment = { __typename: 'OrderInterceptorError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_OrderLimitError_Fragment = { __typename: 'OrderLimitError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_OrderModificationError_Fragment = { __typename: 'OrderModificationError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_OrderPaymentStateError_Fragment = { __typename: 'OrderPaymentStateError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_OrderStateTransitionError_Fragment = { __typename: 'OrderStateTransitionError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_PasswordAlreadySetError_Fragment = { __typename: 'PasswordAlreadySetError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_PasswordResetTokenExpiredError_Fragment = { __typename: 'PasswordResetTokenExpiredError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_PasswordResetTokenInvalidError_Fragment = { __typename: 'PasswordResetTokenInvalidError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_PasswordValidationError_Fragment = { __typename: 'PasswordValidationError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_PaymentDeclinedError_Fragment = { __typename: 'PaymentDeclinedError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_PaymentFailedError_Fragment = { __typename: 'PaymentFailedError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_VerificationTokenExpiredError_Fragment = { __typename: 'VerificationTokenExpiredError', errorCode: ErrorCode, message: string };
+
+type ErrorResult_VerificationTokenInvalidError_Fragment = { __typename: 'VerificationTokenInvalidError', errorCode: ErrorCode, message: string };
+
+export type ErrorResultFragment = ErrorResult_AlreadyLoggedInError_Fragment | ErrorResult_CouponCodeExpiredError_Fragment | ErrorResult_CouponCodeInvalidError_Fragment | ErrorResult_CouponCodeLimitError_Fragment | ErrorResult_EmailAddressConflictError_Fragment | ErrorResult_GuestCheckoutError_Fragment | ErrorResult_IdentifierChangeTokenExpiredError_Fragment | ErrorResult_IdentifierChangeTokenInvalidError_Fragment | ErrorResult_IneligiblePaymentMethodError_Fragment | ErrorResult_IneligibleShippingMethodError_Fragment | ErrorResult_InsufficientStockError_Fragment | ErrorResult_InvalidCredentialsError_Fragment | ErrorResult_MissingPasswordError_Fragment | ErrorResult_NativeAuthStrategyError_Fragment | ErrorResult_NegativeQuantityError_Fragment | ErrorResult_NoActiveOrderError_Fragment | ErrorResult_NotVerifiedError_Fragment | ErrorResult_OrderInterceptorError_Fragment | ErrorResult_OrderLimitError_Fragment | ErrorResult_OrderModificationError_Fragment | ErrorResult_OrderPaymentStateError_Fragment | ErrorResult_OrderStateTransitionError_Fragment | ErrorResult_PasswordAlreadySetError_Fragment | ErrorResult_PasswordResetTokenExpiredError_Fragment | ErrorResult_PasswordResetTokenInvalidError_Fragment | ErrorResult_PasswordValidationError_Fragment | ErrorResult_PaymentDeclinedError_Fragment | ErrorResult_PaymentFailedError_Fragment | ErrorResult_VerificationTokenExpiredError_Fragment | ErrorResult_VerificationTokenInvalidError_Fragment;
+
 export type SendPhoneOtpMutationVariables = Exact<{
   phoneNumber: Scalars['String'];
 }>;
@@ -4138,6 +4128,10 @@ export type CancelOrderOnClientRequestMutationVariables = Exact<{
 
 
 export type CancelOrderOnClientRequestMutation = { __typename?: 'Mutation', cancelOrderOnClientRequest: { __typename: 'Order', id: string, code: string, state: string, active: boolean, couponCodes: Array<string>, totalQuantity: number, subTotal: number, subTotalWithTax: number, total: number, totalWithTax: number, shipping: number, shippingWithTax: number, promotions: Array<{ __typename?: 'Promotion', couponCode?: string | null, name: string, enabled: boolean, actions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', value: string, name: string }> }>, conditions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', name: string, value: string }> }> }>, lines: Array<{ __typename: 'OrderLine', id: string, customFields?: any | null, unitPrice: number, unitPriceWithTax: number, quantity: number, linePriceWithTax: number, discountedLinePriceWithTax: number, featuredAsset?: { __typename: 'Asset', id: string, width: number, height: number, name: string, preview: string, focalPoint?: { __typename: 'Coordinate', x: number, y: number } | null } | null, productVariant: { __typename: 'ProductVariant', id: string, name: string }, discounts: Array<{ __typename: 'Discount', amount: number, amountWithTax: number, description: string, adjustmentSource: string, type: AdjustmentType }> }>, shippingLines: Array<{ __typename: 'ShippingLine', priceWithTax: number, shippingMethod: { __typename: 'ShippingMethod', id: string, code: string, name: string, description: string } }>, discounts: Array<{ __typename: 'Discount', amount: number, amountWithTax: number, description: string, adjustmentSource: string, type: AdjustmentType }>, customFields?: { __typename?: 'OrderCustomFields', clientRequestToCancel?: number | null } | null } };
+
+export type CartFragment = { __typename: 'Order', id: string, code: string, state: string, active: boolean, couponCodes: Array<string>, totalQuantity: number, subTotal: number, subTotalWithTax: number, total: number, totalWithTax: number, shipping: number, shippingWithTax: number, promotions: Array<{ __typename?: 'Promotion', couponCode?: string | null, name: string, enabled: boolean, actions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', value: string, name: string }> }>, conditions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', name: string, value: string }> }> }>, lines: Array<{ __typename: 'OrderLine', id: string, customFields?: any | null, unitPrice: number, unitPriceWithTax: number, quantity: number, linePriceWithTax: number, discountedLinePriceWithTax: number, featuredAsset?: { __typename: 'Asset', id: string, width: number, height: number, name: string, preview: string, focalPoint?: { __typename: 'Coordinate', x: number, y: number } | null } | null, productVariant: { __typename: 'ProductVariant', id: string, name: string }, discounts: Array<{ __typename: 'Discount', amount: number, amountWithTax: number, description: string, adjustmentSource: string, type: AdjustmentType }> }>, shippingLines: Array<{ __typename: 'ShippingLine', priceWithTax: number, shippingMethod: { __typename: 'ShippingMethod', id: string, code: string, name: string, description: string } }>, discounts: Array<{ __typename: 'Discount', amount: number, amountWithTax: number, description: string, adjustmentSource: string, type: AdjustmentType }>, customFields?: { __typename?: 'OrderCustomFields', clientRequestToCancel?: number | null } | null };
+
+export type AssetFragment = { __typename: 'Asset', id: string, width: number, height: number, name: string, preview: string, focalPoint?: { __typename: 'Coordinate', x: number, y: number } | null };
 
 export type OtherInstructionsMutationVariables = Exact<{
   orderId: Scalars['ID'];
@@ -4258,6 +4252,8 @@ export type AdjustOrderLineMutationVariables = Exact<{
 
 export type AdjustOrderLineMutation = { __typename?: 'Mutation', adjustOrderLine: { __typename?: 'InsufficientStockError', errorCode: ErrorCode, message: string } | { __typename?: 'NegativeQuantityError', errorCode: ErrorCode, message: string } | { __typename: 'Order', id: string, code: string, active: boolean, createdAt: any, state: string, currencyCode: CurrencyCode, totalQuantity: number, subTotal: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, couponCodes: Array<string>, surcharges: Array<{ __typename?: 'Surcharge', id: string, price: number }>, taxSummary: Array<{ __typename?: 'OrderTaxSummary', description: string, taxRate: number, taxTotal: number }>, promotions: Array<{ __typename?: 'Promotion', id: string, couponCode?: string | null, name: string, enabled: boolean, actions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', value: string, name: string }> }>, conditions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', name: string, value: string }> }> }>, customer?: { __typename?: 'Customer', id: string, firstName: string, lastName: string, emailAddress: string } | null, shippingAddress?: { __typename?: 'OrderAddress', fullName?: string | null, streetLine1?: string | null, streetLine2?: string | null, company?: string | null, city?: string | null, province?: string | null, postalCode?: string | null, countryCode?: string | null, phoneNumber?: string | null } | null, shippingLines: Array<{ __typename?: 'ShippingLine', priceWithTax: number, shippingMethod: { __typename?: 'ShippingMethod', id: string, name: string } }>, lines: Array<{ __typename?: 'OrderLine', id: string, unitPriceWithTax: number, linePriceWithTax: number, quantity: number, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null, productVariant: { __typename?: 'ProductVariant', id: string, name: string, price: number, product: { __typename?: 'Product', id: string, slug: string } } }>, payments?: Array<{ __typename?: 'Payment', id: string, state: string, method: string, amount: number, metadata?: any | null }> | null } | { __typename?: 'OrderInterceptorError', errorCode: ErrorCode, message: string } | { __typename?: 'OrderLimitError', errorCode: ErrorCode, message: string } | { __typename?: 'OrderModificationError', errorCode: ErrorCode, message: string } };
 
+export type OrderDetailFragment = { __typename: 'Order', id: string, code: string, active: boolean, createdAt: any, state: string, currencyCode: CurrencyCode, totalQuantity: number, subTotal: number, subTotalWithTax: number, shippingWithTax: number, totalWithTax: number, couponCodes: Array<string>, surcharges: Array<{ __typename?: 'Surcharge', id: string, price: number }>, taxSummary: Array<{ __typename?: 'OrderTaxSummary', description: string, taxRate: number, taxTotal: number }>, promotions: Array<{ __typename?: 'Promotion', id: string, couponCode?: string | null, name: string, enabled: boolean, actions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', value: string, name: string }> }>, conditions: Array<{ __typename?: 'ConfigurableOperation', code: string, args: Array<{ __typename?: 'ConfigArg', name: string, value: string }> }> }>, customer?: { __typename?: 'Customer', id: string, firstName: string, lastName: string, emailAddress: string } | null, shippingAddress?: { __typename?: 'OrderAddress', fullName?: string | null, streetLine1?: string | null, streetLine2?: string | null, company?: string | null, city?: string | null, province?: string | null, postalCode?: string | null, countryCode?: string | null, phoneNumber?: string | null } | null, shippingLines: Array<{ __typename?: 'ShippingLine', priceWithTax: number, shippingMethod: { __typename?: 'ShippingMethod', id: string, name: string } }>, lines: Array<{ __typename?: 'OrderLine', id: string, unitPriceWithTax: number, linePriceWithTax: number, quantity: number, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null, productVariant: { __typename?: 'ProductVariant', id: string, name: string, price: number, product: { __typename?: 'Product', id: string, slug: string } } }>, payments?: Array<{ __typename?: 'Payment', id: string, state: string, method: string, amount: number, metadata?: any | null }> | null };
+
 export type ActiveOrderQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -4289,6 +4285,8 @@ export type RemoveCouponCodeMutationVariables = Exact<{
 
 export type RemoveCouponCodeMutation = { __typename?: 'Mutation', removeCouponCode?: { __typename: 'Order' } | null };
 
+export type DetailedProductFragment = { __typename?: 'Product', id: string, name: string, description: string, slug: string, collections: Array<{ __typename?: 'Collection', id: string, slug: string, name: string, breadcrumbs: Array<{ __typename?: 'CollectionBreadcrumb', id: string, name: string, slug: string }> }>, facetValues: Array<{ __typename?: 'FacetValue', id: string, code: string, name: string, facet: { __typename?: 'Facet', id: string, code: string, name: string } }>, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null, assets: Array<{ __typename?: 'Asset', id: string, preview: string }>, variants: Array<{ __typename?: 'ProductVariant', id: string, name: string, priceWithTax: number, currencyCode: CurrencyCode, sku: string, stockLevel: string, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null }> };
+
 export type ProductQueryVariables = Exact<{
   slug?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['ID']>;
@@ -4296,6 +4294,8 @@ export type ProductQueryVariables = Exact<{
 
 
 export type ProductQuery = { __typename?: 'Query', product?: { __typename?: 'Product', id: string, name: string, description: string, slug: string, collections: Array<{ __typename?: 'Collection', id: string, slug: string, name: string, breadcrumbs: Array<{ __typename?: 'CollectionBreadcrumb', id: string, name: string, slug: string }> }>, facetValues: Array<{ __typename?: 'FacetValue', id: string, code: string, name: string, facet: { __typename?: 'Facet', id: string, code: string, name: string } }>, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null, assets: Array<{ __typename?: 'Asset', id: string, preview: string }>, variants: Array<{ __typename?: 'ProductVariant', id: string, name: string, priceWithTax: number, currencyCode: CurrencyCode, sku: string, stockLevel: string, featuredAsset?: { __typename?: 'Asset', id: string, preview: string } | null }> } | null };
+
+export type ListedProductFragment = { __typename?: 'SearchResult', productId: string, productName: string, slug: string, currencyCode: CurrencyCode, productAsset?: { __typename?: 'SearchResultAsset', id: string, preview: string } | null, priceWithTax: { __typename?: 'PriceRange', min: number, max: number } | { __typename?: 'SinglePrice', value: number } };
 
 export type SearchQueryVariables = Exact<{
   input: SearchInput;

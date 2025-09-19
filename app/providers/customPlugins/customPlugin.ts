@@ -21,6 +21,7 @@ import {
   LoyaltyPointsConfig,
   UpdateOrderPlacedAtIstMutation,
   GetFrequentlyOrderedProductsQuery,
+    AuthenticateGoogleMutation
 } from '~/generated/graphql';
 import { QueryOptions, sdk, WithHeaders } from '~/graphqlWrapper';
 
@@ -702,3 +703,31 @@ gql`
     }
   }
 `;
+
+
+export async function authenticateWithGoogle(
+  token: string,
+  options?: { request: Request; customHeaders?: Record<string, string> }
+): Promise<WithHeaders<AuthenticateGoogleMutation['authenticate']>> {
+  const response = await sdk.AuthenticateGoogle(
+    { input: { google: { token } } },
+    options
+  );
+
+  return Object.assign(response.authenticate, {
+    _headers: response._headers,
+  });
+}
+gql`
+mutation AuthenticateGoogle($input: AuthenticationInput!) {
+  authenticate(input: $input) {
+    ... on CurrentUser {
+      id
+      identifier
+    }
+    ... on ErrorResult {
+      errorCode
+      message
+    }
+  }
+}`
