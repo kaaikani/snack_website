@@ -45,18 +45,15 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
                 />
               </div>
               <div className="w-2/3 text-center">
-                <h2 className="text-3xl font-bold text-blue-900 mb-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-blue-900 mb-1">
                   NEVER MISS A DROP
                 </h2>
-                <p
-                  className="text-blue-800 mb-4
-                 text-sm"
-                >
+                <p className="text-xs sm:text-sm text-blue-800 mb-2">
                   Looking for a trusted wholesale snack supplier? We specialize
                   in providing a wide variety of snacks – from traditional
                   favorites to modern healthy choices
                 </p>
-                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full">
+                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-full text-sm">
                   CONTACT US
                 </button>
               </div>
@@ -68,7 +65,7 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex items-center justify-center gap-8 text-white">
+          <nav className="flex items-center justify-center gap-4 sm:gap-6 text-white text-sm sm:text-base">
             <Link
               to="/about"
               className="hover:text-yellow-300 transition-colors font-medium"
@@ -94,34 +91,42 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
               CONTACT US
             </Link>
           </nav>
-        </div>
-
-        {/* Bottom Section */}
-        <div className="flex relative items-center mx-auto mt-7 text-center max-w-4xl justify-between text-sm text-blue-200 border-t border-blue-600 py-6">
-          <div className="flex items-center gap-4">
-            <span>
-              Copyright | 2023 SPARKS (S) PTE LTD. All Rights Reserved.
-            </span>
-            <Link to="/terms" className="hover:text-white transition-colors">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mt-4 text-xs sm:text-sm text-blue-200">
+            <Link
+              to="/terms"
+              className="hover:text-yellow-300 transition-colors font-medium"
+            >
               Terms and Conditions
             </Link>
-            <Link to="/privacy" className="hover:text-white transition-colors">
+            <Link
+              to="/privacy"
+              className="hover:text-yellow-300 transition-colors font-medium"
+            >
               Privacy Policy
             </Link>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-              <Facebook className="w-4 h-4 text-black" />
+        {/* Bottom Section */}
+        <div className="flex relative items-center mx-auto mt-7 text-center max-w-sm sm:max-w-4xl justify-between text-xs sm:text-sm text-blue-200 border-t border-blue-600 py-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <span>
+              Copyright | 2023 SPARKS (S) PTE LTD. All Rights Reserved.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Facebook className="w-3 h-3 sm:w-4 sm:h-4 text-black" />
             </div>
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-              <Instagram className="w-4 h-4 text-black" />
+            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Instagram className="w-3 h-3 sm:w-4 sm:h-4 text-black" />
             </div>
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-              <Twitter className="w-4 h-4 text-black" />
+            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Twitter className="w-3 h-3 sm:w-4 sm:h-4 text-black" />
             </div>
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-              <Linkedin className="w-4 h-4 text-black" />
+            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-yellow-400 rounded-full flex items-center justify-center">
+              <Linkedin className="w-3 h-3 sm:w-4 sm:h-4 text-black" />
             </div>
           </div>
         </div>

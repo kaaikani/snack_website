@@ -1,10 +1,33 @@
 // app/components/GoogleLoginButton.tsx
 import { GoogleLogin } from '@react-oauth/google';
 import { useFetcher } from '@remix-run/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function GoogleLoginButton() {
   const fetcher = useFetcher();
+
+  const [buttonSize, setButtonSize] = useState<'small' | 'medium'>('medium');
+  const [buttonText, setButtonText] = useState<'signin' | 'signin_with'>(
+    'signin_with',
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        // Assuming 768px as the breakpoint for mobile
+        setButtonSize('small');
+        setButtonText('signin');
+      } else {
+        setButtonSize('medium');
+        setButtonText('signin_with');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Call once on mount to set initial size
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Handle the response from the server
   useEffect(() => {
@@ -40,8 +63,8 @@ export function GoogleLoginButton() {
         }}
         useOneTap={false}
         theme="outline"
-        size="medium"
-        text="signin_with"
+        size={buttonSize}
+        text={buttonText}
         shape="rectangular"
         // width="100%"
       />

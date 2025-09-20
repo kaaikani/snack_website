@@ -125,7 +125,18 @@ export function Header({
       }`}
     >
       {/* Black Bar Above Navbar */}
-      <div className="bg-[#6F00FF] h-7"></div>
+      <div className="bg-[#6F00FF] h-7 overflow-hidden relative">
+        <div className="animate-marquee whitespace-nowrap absolute left-0 -translate-y-1/2">
+          <span className="text-white text-sm font-medium mr-12">
+            First-time here? Welcome! Enjoy FLAT 25% OFF on your first order of
+            snacks. Tasty treats, sweeter deals – don’t miss it!
+          </span>
+          <span className="text-white text-sm font-medium mr-12">
+            First-time here? Welcome! Enjoy FLAT 25% OFF on your first order of
+            snacks. Tasty treats, sweeter deals – don’t miss it!
+          </span>
+        </div>
+      </div>
 
       <div className="mx-1 p-2 sm:p-4 flex items-center justify-between">
         <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-8">
@@ -393,14 +404,16 @@ export function Header({
                   <span>Favorites</span>
                 </Link>
 
-                <Link
-                  to="/account"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-white font-medium py-2"
-                >
-                  {/* <UserIcon className="w-5 h-5" /> */}
-                  <span>Account</span>
-                </Link>
+                {isSignedIn && (
+                  <Link
+                    to="/account"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-white font-medium py-2"
+                  >
+                    {/* <UserIcon className="w-5 h-5" /> */}
+                    <span>Account</span>
+                  </Link>
+                )}
               </div>
             </nav>
           </div>
