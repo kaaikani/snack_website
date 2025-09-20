@@ -32,12 +32,14 @@ interface ProductCollectionSliderProps {
   };
   activeOrderFetcher: any;
   activeOrder: any;
+  isSignedIn: boolean;
 }
 
 export function ProductCollectionSlider({
   collection,
   activeOrderFetcher,
   activeOrder,
+  isSignedIn,
 }: ProductCollectionSliderProps) {
   const { t } = useTranslation();
   return (
@@ -90,6 +92,7 @@ export function ProductCollectionSlider({
                   variants={product.variants}
                   activeOrderFetcher={activeOrderFetcher}
                   activeOrder={activeOrder}
+                  isSignedIn={isSignedIn}
                 />
               </div>
             ))}

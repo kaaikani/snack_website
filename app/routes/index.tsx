@@ -174,6 +174,7 @@ export default function Index() {
                     collection={collection}
                     activeOrderFetcher={activeOrderFetcher}
                     activeOrder={activeOrder}
+                    isSignedIn={isSignedIn}
                   />
                 </div>
               ),

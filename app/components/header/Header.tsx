@@ -274,7 +274,9 @@ export function Header({
             onClick={isSignedIn ? onCartIconClick : handleShowSignInModal}
             aria-label="Open cart tray"
             className={`p-1.5 sm:p-2 px-2 sm:px-3 rounded-full flex items-center space-x-1 relative ${
-              isSignedIn ? 'bg-white hover:bg-black' : 'bg-gray-400'
+              isSignedIn
+                ? 'bg-white text-black hover:bg-black hover:text-white'
+                : 'bg-gray-400'
             }`}
           >
             <ShoppingBagIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#1F0322]" />
@@ -282,7 +284,7 @@ export function Header({
               Cart
             </span>
             {cartQuantity > 0 && (
-              <span className="bg-white text-[#1F0322] text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center absolute -top-1 -right-1 sm:relative sm:top-0 sm:right-0">
+              <span className="bg-white text-[#1F0322] text-xs rounded-full w-4 h-4  sm:w-5 sm:h-5 flex items-center justify-center absolute -top-1 -right-1 sm:relative sm:top-0 sm:right-0">
                 {cartQuantity}
               </span>
             )}

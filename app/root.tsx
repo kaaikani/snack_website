@@ -186,6 +186,7 @@ export default function App() {
                 activeOrder,
                 adjustOrderLine,
                 removeItem,
+                isSignedIn,
               }}
             />
           </main>

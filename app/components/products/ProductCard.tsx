@@ -45,6 +45,7 @@ export interface ProductCardProps {
   activeOrder?: Order | null;
   onFavoriteToggle?: (productId: string, isFavorited: boolean) => void;
   orderCount?: number;
+  isSignedIn: boolean;
 }
 
 export function ProductCard({
@@ -60,6 +61,7 @@ export function ProductCard({
   activeOrder,
   onFavoriteToggle,
   orderCount,
+  isSignedIn,
 }: ProductCardProps) {
   const { t } = useTranslation();
   const [selectedVariantId, setSelectedVariantId] = useState(
@@ -68,7 +70,7 @@ export function ProductCard({
   const selectedVariant =
     variants?.find((v) => v.id === selectedVariantId) || null;
 
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  // const [isSignedIn, setIsSignedIn] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
@@ -79,11 +81,11 @@ export function ProductCard({
     setIsHydrated(true);
   }, []);
 
-  useEffect(() => {
-    if (isHydrated) {
-      setIsSignedIn(!!activeCustomer?.activeCustomer?.id);
-    }
-  }, [activeCustomer, isHydrated]);
+  // useEffect(() => {
+  //   if (isHydrated) {
+  //     setIsSignedIn(!!activeCustomer?.activeCustomer?.id);
+  //   }
+  // }, [activeCustomer, isHydrated]);
 
   useEffect(() => {
     if (isHydrated) {
