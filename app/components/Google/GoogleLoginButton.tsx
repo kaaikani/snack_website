@@ -40,10 +40,10 @@ export function GoogleLoginButton() {
         }}
         useOneTap={false}
         theme="outline"
-        size="large"
+        size="medium"
         text="signin_with"
         shape="rectangular"
-        width="100%"
+        // width="100%"
       />
       {fetcher.state === 'submitting' && (
         <div className="mt-2 text-center text-sm text-gray-600">

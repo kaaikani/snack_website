@@ -52,10 +52,9 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
                   className="text-blue-800 mb-4
                  text-sm"
                 >
-                  Need our help? Want a bottle? Get in touch with our friendly
-                  team
-                  <br />
-                  and we'll get in touch with you as soon as we can.
+                  Looking for a trusted wholesale snack supplier? We specialize
+                  in providing a wide variety of snacks – from traditional
+                  favorites to modern healthy choices
                 </p>
                 <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full">
                   CONTACT US
@@ -64,7 +63,7 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
             </div>
           </div>
 
-          <div className="items-center">
+          <div className="flex justify-center items-center mb-5">
             {!isSignedIn && <GoogleLoginButton />}
           </div>
 

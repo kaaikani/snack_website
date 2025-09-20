@@ -12,6 +12,7 @@ import { HeartIcon as HeartOutlineIcon } from '@heroicons/react/24/outline';
 import { CurrencyCode, type Order, type OrderLine } from '~/generated/graphql';
 import { useTranslation } from 'react-i18next';
 import { StockLevelLabel } from '~/components/products/StockLevelLabel';
+import { SignInPromptModal } from '~/components/modal/SignInPromptModal';
 // import { useActiveOrder } from '~/utils/use-active-order';
 
 export interface ActiveCustomer {
@@ -70,6 +71,7 @@ export function ProductCard({
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   // const { adjustOrderLine, refresh } = useActiveOrder();
 
@@ -146,8 +148,18 @@ export function ProductCard({
     }
   };
 
+  const handleShowSignInModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowSignInModal(true);
+  };
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+
+    if (!isSignedIn) {
+      setShowSignInModal(true);
+      return;
+    }
 
     if (!selectedVariantId) return;
 
@@ -221,8 +233,10 @@ export function ProductCard({
       {qtyInCart === 0 ? (
         <button
           type="button"
-          className="w-full bg-blue-600 text-white py-2 mt-1 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-md"
-          onClick={handleAddToCart}
+          className={`w-full text-white py-2 mt-1 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 shadow-md ${
+            isSignedIn ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'
+          }`}
+          onClick={isSignedIn ? handleAddToCart : handleShowSignInModal}
         >
           {t('product.addToCart')}
         </button>
@@ -268,6 +282,11 @@ export function ProductCard({
           )}
         </button>
       )}
+
+      <SignInPromptModal
+        isOpen={showSignInModal}
+        close={() => setShowSignInModal(false)}
+      />
     </div>
   );
 }

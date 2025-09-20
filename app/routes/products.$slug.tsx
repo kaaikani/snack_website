@@ -31,6 +31,7 @@ import { useActiveOrder } from '~/utils/use-active-order';
 import { Dialog } from '@headlessui/react';
 import { RecentOrders } from './RecentOrders';
 import { getFrequentlyOrderedProducts } from '~/providers/customPlugins/customPlugin';
+import { SignInPromptModal } from '~/components/modal/SignInPromptModal';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -101,6 +102,7 @@ export default function ProductSlug() {
     !!activeCustomer?.activeCustomer?.id,
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   const { adjustOrderLine, removeItem, refresh } = useActiveOrder();
 
@@ -130,7 +132,7 @@ export default function ProductSlug() {
 
   const handleToggleFavorite = async () => {
     if (!isSignedIn) {
-      alert(t('product.signInToFavorite'));
+      setShowSignInModal(true);
       return;
     }
     try {
@@ -161,6 +163,11 @@ export default function ProductSlug() {
   useEffect(() => {
     refresh();
   }, []);
+
+  const handleShowSignInModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowSignInModal(true);
+  };
 
   const [selectedVariantId, setSelectedVariantId] = useState(
     product.variants[0].id,
@@ -339,8 +346,16 @@ export default function ProductSlug() {
                       {qtyInCart === 0 ? (
                         <button
                           type="button"
-                          className="w-full bg-blue-600 text-white py-2 mt-1 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-md"
-                          onClick={() => formRef.current?.requestSubmit()}
+                          className={`w-full text-white py-2 mt-1 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 shadow-md ${
+                            isSignedIn
+                              ? 'bg-blue-600 hover:bg-blue-700'
+                              : 'bg-gray-400'
+                          }`}
+                          onClick={
+                            isSignedIn
+                              ? () => formRef.current?.requestSubmit()
+                              : handleShowSignInModal
+                          }
                         >
                           {t('product.addToCart')}
                         </button>
@@ -395,6 +410,10 @@ export default function ProductSlug() {
         activeCustomer={activeCustomer}
         activeOrderFetcher={activeOrderFetcher}
         activeOrder={activeOrder}
+      />
+      <SignInPromptModal
+        isOpen={showSignInModal}
+        close={() => setShowSignInModal(false)}
       />
     </div>
   );

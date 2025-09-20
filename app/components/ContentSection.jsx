@@ -8,19 +8,19 @@ const cards = [
   {
     name: 'Sales',
     description:
-      'Consectetur vel non. Rerum ut consequatur nobis unde. Enim est quo corrupti consequatur.',
+      'Delicious snacks at unbeatable prices. Bulk orders made simple and affordable.',
     icon: PhoneIcon,
   },
   {
     name: 'Technical Support',
     description:
-      'Quod possimus sit modi rerum exercitationem quaerat atque tenetur ullam.',
+      'We’re here to help anytime. Quick support for all your snacking needs.',
     icon: LifebuoyIcon,
   },
   {
-    name: 'Media Inquiries',
+    name: 'Orders',
     description:
-      'Ratione et porro eligendi est sed ratione rerum itaque. Placeat accusantium impedit eum odit.',
+      'Order fresh, tasty snacks in just a click. Fast delivery right to your door',
     icon: NewspaperIcon,
   },
 ];
@@ -30,7 +30,7 @@ export default function ContentSection() {
     <div className="relative isolate overflow-hidden bg-gray-900 py-24 sm:py-32">
       <img
         alt=""
-        src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&crop=focalpoint&fp-y=.8&w=2830&h=1500&q=80&blend=111827&sat=-100&exp=15&blend-mode=multiply"
+        src="snacks 5.jpg"
         className="absolute inset-0 -z-10 h-full w-full object-cover object-right md:object-center"
       />
       <div className="hidden sm:absolute sm:-top-10 sm:right-1/2 sm:-z-10 sm:mr-10 sm:block sm:transform-gpu sm:blur-3xl">
@@ -52,29 +52,30 @@ export default function ContentSection() {
         />
       </div>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:mx-0">
-          <h2 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
+        <div className="mx-auto max-w-2xl lg:mx-0 gap-x-4 rounded-xl bg-blue-100 p-6 ring-1 ring-inset ring-white/10">
+          <h2 className="text-4xl font-bold tracking-tight text-black sm:text-6xl">
             Support center
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-300">
-            Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui
-            lorem cupidatat commodo. Elit sunt amet fugiat veniam occaecat
-            fugiat aliqua.
+          <p className="mt-6 text-lg leading-8 text-black">
+            Our support center is dedicated to ensuring smooth and hassle-free
+            service. From bulk snack orders to delivery updates, our team is
+            here to assist you. Reach out anytime, and we’ll provide quick,
+            reliable solutions..
           </p>
         </div>
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-8">
           {cards.map((card) => (
             <div
               key={card.name}
-              className="flex gap-x-4 rounded-xl bg-white/5 p-6 ring-1 ring-inset ring-white/10"
+              className="flex gap-x-4 rounded-xl bg-blue-100 p-6 ring-1 ring-inset ring-white/10"
             >
               <card.icon
                 aria-hidden="true"
                 className="h-7 w-5 flex-none text-indigo-400"
               />
               <div className="text-base leading-7">
-                <h3 className="font-semibold text-white">{card.name}</h3>
-                <p className="mt-2 text-gray-300">{card.description}</p>
+                <h3 className="font-semibold text-black">{card.name}</h3>
+                <p className="mt-2 text-black">{card.description}</p>
               </div>
             </div>
           ))}

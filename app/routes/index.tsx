@@ -179,7 +179,6 @@ export default function Index() {
               ),
           )}
         </div>
-        <Footer isSignedIn={isSignedIn} />
       </section>
     </>
   );

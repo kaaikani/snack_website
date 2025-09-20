@@ -13,6 +13,7 @@ import {
 import { SearchBar } from './SearchBar';
 import { useState, useEffect } from 'react';
 import { GoogleLoginButton } from '../Google/GoogleLoginButton';
+import { SignInPromptModal } from '~/components/modal/SignInPromptModal';
 
 interface Collection {
   id: string;
@@ -63,6 +64,7 @@ export function Header({
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   useEffect(() => {
     if (isCartOpen) {
@@ -87,6 +89,10 @@ export function Header({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY, isCartOpen]);
+
+  const handleShowSignInModal = () => {
+    setShowSignInModal(true);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -121,7 +127,7 @@ export function Header({
       {/* Black Bar Above Navbar */}
       <div className="bg-[#6F00FF] h-7"></div>
 
-      <div className="mx-2 sm:mx-4 lg:mx-10 p-2 sm:p-4 flex items-center justify-between">
+      <div className="mx-1 p-2 sm:p-4 flex items-center justify-between">
         <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-8">
           {/* Logo */}
           <div className="w-16 sm:w-20">
@@ -177,7 +183,7 @@ export function Header({
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
                         />
                       </div>
-                      <span className="text-gray-800 text-sm font-medium group-hover:text-white">
+                      <span className="text-gray-800 text-sm font-small ">
                         {collection.name}
                       </span>
                     </Link>
@@ -205,13 +211,18 @@ export function Header({
 
         <div className="flex space-x-1 sm:space-x-2 lg:space-x-4 items-center">
           {/* Search */}
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            <SearchBar isOpen={isSearchOpen} />
+          <div className="flex items-center space-x-1 sm:space-x-2 relative">
+            {/* Inline search bar for xl+ screens */}
+            <div className="hidden xl:block">
+              <SearchBar isOpen={isSearchOpen} />
+            </div>
+
+            {/* Toggle button */}
             {isSearchOpen && (
               <button
                 onClick={() => setIsSearchOpen(false)}
                 aria-label="Close search"
-                className="bg-white text-[#1F0322] p-1.5 sm:p-2 rounded-full  transition-colors duration-200"
+                className="bg-white text-[#1F0322] p-1.5 sm:p-2 rounded-full transition-colors duration-200"
               >
                 <XMarkIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#1F0322]" />
               </button>
@@ -224,6 +235,13 @@ export function Header({
               >
                 <MagnifyingGlassIcon className="w-4 h-4 sm:w-6 sm:h-6 " />
               </button>
+            )}
+
+            {/* Mobile/Tablet dropdown search bar */}
+            {isSearchOpen && (
+              <div className="absolute top-full left-0 xl:hidden shadow-md">
+                <SearchBar isOpen={true} />
+              </div>
             )}
           </div>
 
@@ -242,12 +260,14 @@ export function Header({
           </div>
 
           <button
-            onClick={onCartIconClick}
+            onClick={isSignedIn ? onCartIconClick : handleShowSignInModal}
             aria-label="Open cart tray"
-            className="bg-white p-1.5 sm:p-2 px-2 sm:px-3 rounded-full  flex items-center space-x-1 relative"
+            className={`p-1.5 sm:p-2 px-2 sm:px-3 rounded-full flex items-center space-x-1 relative ${
+              isSignedIn ? 'bg-white hover:bg-black' : 'bg-gray-400'
+            }`}
           >
             <ShoppingBagIcon className="w-4 h-4 sm:w-6 sm:h-6 text-[#1F0322]" />
-            <span className=" text-[#1F0322] text-xs sm:text-sm hidden sm:inline">
+            <span className="text-[#1F0322] text-xs sm:text-sm hidden sm:inline">
               Cart
             </span>
             {cartQuantity > 0 && (
@@ -292,7 +312,7 @@ export function Header({
               <Link
                 to="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-white hover:text-green-800 font-medium py-2 border-b border-gray-100"
+                className="flex items-center justify-between w-full text-gray-800 font-medium py-2 mb-2 hover:text-white"
               >
                 Home
               </Link>
@@ -300,7 +320,7 @@ export function Header({
               <div className="border-b border-gray-100">
                 <button
                   onClick={() => setIsMobileProductsOpen(!isMobileProductsOpen)}
-                  className="flex items-center justify-between w-full text-gray-800 font-medium py-2 mb-2 hover:text-white transition-colors duration-200"
+                  className="flex items-center justify-between w-full text-gray-800 font-medium py-2 mb-2 hover:text-white"
                 >
                   <span>Products</span>
                   <ChevronDownIcon
@@ -326,7 +346,7 @@ export function Header({
                           setIsMobileMenuOpen(false);
                           setIsMobileProductsOpen(false);
                         }}
-                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-green-50 transition-colors duration-200"
+                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-green-50 "
                       >
                         <div className="w-10 h-10 overflow-hidden rounded-lg shadow-sm flex-shrink-0">
                           <img
@@ -350,7 +370,7 @@ export function Header({
               <Link
                 to="/about"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-gray-700 hover:text-white font-medium py-2 border-b border-gray-100"
+                className="flex items-center justify-between w-full text-gray-800 font-medium py-2 mb-2 hover:text-white"
               >
                 About Us
               </Link>
@@ -358,7 +378,7 @@ export function Header({
               <Link
                 to="/contact"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-gray-700 hover:text-white font-medium py-2 border-b border-gray-100"
+                className="flex items-center justify-between w-full text-gray-800 font-medium py-2 mb-2 hover:text-white "
               >
                 Contact Us
               </Link>
@@ -386,6 +406,10 @@ export function Header({
           </div>
         </div>
       )}
+      <SignInPromptModal
+        isOpen={showSignInModal}
+        close={() => setShowSignInModal(false)}
+      />
     </header>
   );
 }
