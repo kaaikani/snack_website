@@ -8,15 +8,25 @@ import { getSessionStorage } from '~/sessions';
 const CHANNEL_TOKEN = 'ind-madurai'; // ✅ Use the same token as in sdk.ts
 
 // Type guard functions
-function isCurrentUser(result: any): result is { id: string; identifier: string; __typename?: 'CurrentUser' } {
-  return result && typeof result.id === 'string' && typeof result.identifier === 'string';
+function isCurrentUser(
+  result: any,
+): result is { id: string; identifier: string; __typename?: 'CurrentUser' } {
+  return (
+    result &&
+    typeof result.id === 'string' &&
+    typeof result.identifier === 'string'
+  );
 }
 
-function isInvalidCredentialsError(result: any): result is { message: string; __typename: 'InvalidCredentialsError' } {
+function isInvalidCredentialsError(
+  result: any,
+): result is { message: string; __typename: 'InvalidCredentialsError' } {
   return result && result.__typename === 'InvalidCredentialsError';
 }
 
-function isNotVerifiedError(result: any): result is { message: string; __typename: 'NotVerifiedError' } {
+function isNotVerifiedError(
+  result: any,
+): result is { message: string; __typename: 'NotVerifiedError' } {
   return result && result.__typename === 'NotVerifiedError';
 }
 
@@ -24,13 +34,16 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const formData = await request.formData();
     const token = formData.get('token')?.toString();
-    
+
     if (!token) {
       console.error('No token provided');
       return json({ error: 'No token provided' }, { status: 400 });
     }
 
-    console.log('Received token (first 50 chars):', token.substring(0, 50) + '...');
+    console.log(
+      'Received token (first 50 chars):',
+      token.substring(0, 50) + '...',
+    );
 
     // Decode the JWT to see the payload (for debugging)
     let userEmail: string | undefined;
@@ -43,18 +56,20 @@ export async function action({ request }: ActionFunctionArgs) {
         exp: payload.exp,
         iat: payload.iat,
         sub: payload.sub,
-        email: payload.email
+        email: payload.email,
       });
     } catch (e) {
       console.error('Failed to decode token:', e);
     }
 
     console.log('Attempting Google authentication...');
-    
+
     // Get session storage
     const sessionStorage = await getSessionStorage();
-    const session = await sessionStorage.getSession(request.headers.get('Cookie'));
-    
+    const session = await sessionStorage.getSession(
+      request.headers.get('Cookie'),
+    );
+
     // ✅ Use the correct channel token that exists in your Vendure server
     const channelToken = session.get('channelToken') || CHANNEL_TOKEN;
     console.log('Using channel token:', channelToken);
@@ -69,18 +84,24 @@ export async function action({ request }: ActionFunctionArgs) {
       {
         request,
         customHeaders: { 'vendure-token': channelToken },
-      }
+      },
     );
 
     console.log('Auth result:', result.result);
 
     // Handle the response exactly like phone OTP
-    if ('__typename' in result.result && result.result.__typename === 'CurrentUser') {
+    if (
+      '__typename' in result.result &&
+      result.result.__typename === 'CurrentUser'
+    ) {
       const vendureToken = result.headers.get('vendure-auth-token');
 
       if (vendureToken) {
-        console.log('Authentication successful for user:', result.result.identifier);
-        
+        console.log(
+          'Authentication successful for user:',
+          result.result.identifier,
+        );
+
         // ✅ Save both authToken and channelToken (exactly like phone OTP)
         session.set('authToken', vendureToken);
         session.set('channelToken', channelToken); // This will now be 'ind-madurai'
@@ -92,6 +113,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
         // ✅ Redirect to home with success parameters (exactly like phone OTP)
         const url = new URL('/', request.url);
+        const protocol =
+          request.headers.get('X-Forwarded-Proto') || url.protocol;
+        url.protocol = protocol + ':';
         url.searchParams.set('reload', 'true');
         url.searchParams.set('loginSuccess', 'true');
 
@@ -118,16 +142,15 @@ export async function action({ request }: ActionFunctionArgs) {
     console.error('Unexpected authentication result:', result.result);
     console.error('Full auth result:', JSON.stringify(result.result, null, 2));
     return json({ error: 'Authentication failed' }, { status: 401 });
-
   } catch (error) {
     console.error('Google authentication error:', error);
-    
+
     // More detailed error logging
     if (error instanceof Error) {
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
     }
-    
+
     return json({ error: 'Internal server error' }, { status: 500 });
   }
 }
