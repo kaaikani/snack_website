@@ -14,11 +14,16 @@ export default {
       },
       animation: {
         dropIn: 'dropIn 0.2s ease-out',
+        marquee: 'marquee 20s linear infinite',
       },
       keyframes: {
         dropIn: {
           '0%': { transform: 'translateY(-100px)' },
           '100%': { transform: 'translateY(0)' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(-100%)' },
         },
       },
     },
