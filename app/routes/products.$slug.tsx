@@ -199,7 +199,7 @@ export default function ProductSlug() {
 
   return (
     <div>
-      <div className="max-w-6xl mx-auto px-4 pt-[120px] py-4 min-h-screen">
+      <div className="max-w-6xl mx-auto px-4  py-4 min-h-screen">
         <Breadcrumbs
           items={
             product.collections[product.collections.length - 1]?.breadcrumbs ??
@@ -277,7 +277,7 @@ export default function ProductSlug() {
                 />
               </div>
 
-              <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="mt-6 pt-4 border-t border-[#FF4D4D]">
                 <div className="flex items-baseline space-x-2 mb-6">
                   <span className="text-2xl font-bold text-gray-900">
                     <Price
@@ -313,8 +313,8 @@ export default function ProductSlug() {
                                 type="button"
                                 className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors duration-200 ${
                                   selectedVariantId === variant.id
-                                    ? 'bg-black text-white border-black'
-                                    : 'bg-white text-black border-black'
+                                    ? 'bg-[#FF4D4D] text-white border-[#FF4D4D]'
+                                    : 'bg-white text-black border-[#FF4D4D]'
                                 }`}
                                 onClick={() => {
                                   setSelectedVariantId(variant.id);
@@ -342,13 +342,13 @@ export default function ProductSlug() {
                         />
                       )}
 
-                      {/* ✅ Add-to-Cart or Stepper UI */}
+                      {/* ✅ Add-to-Cart or Stepper UI (same as ProductCard) */}
                       {qtyInCart === 0 ? (
                         <button
                           type="button"
                           className={`w-full text-white py-2 mt-1 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 shadow-md ${
                             isSignedIn
-                              ? 'bg-blue-600 hover:bg-blue-700'
+                              ? 'bg-[#FF4D4D] hover:bg-[#FF6B6B]'
                               : 'bg-gray-400'
                           }`}
                           onClick={
@@ -360,7 +360,7 @@ export default function ProductSlug() {
                           {t('product.addToCart')}
                         </button>
                       ) : (
-                        <div className="flex mt-1 items-center justify-center w-full mx-auto border border-blue-600 rounded-lg">
+                        <div className="flex mt-1 items-center justify-center w-full mx-auto rounded-lg">
                           <button
                             type="button"
                             onClick={() =>
@@ -370,11 +370,11 @@ export default function ProductSlug() {
                                 Math.max(0, qtyInCart - 1),
                               )
                             }
-                            className="flex-1 py-1 rounded-l-lg text-blue-600 hover:bg-blue-50 transition-colors duration-200"
+                            className="flex-1 rounded-2xl border text-[#FF6B6B] shadow-sm text-lg hover:bg-red-50 transition-colors duration-200"
                           >
                             -
                           </button>
-                          <span className="flex-1 text-center py-1 text-sm font-semibold text-blue-800 border-l border-r border-blue-600">
+                          <span className="flex-1 text-center py-1 text-sm font-semibold text-blue-800">
                             {qtyInCart}
                           </span>
                           <button
@@ -383,7 +383,7 @@ export default function ProductSlug() {
                               orderLine &&
                               handleAdjustQty(orderLine.id, qtyInCart + 1)
                             }
-                            className="flex-1 py-1 rounded-r-lg text-blue-600 hover:bg-blue-50 transition-colors duration-200"
+                            className="flex-1 rounded-2xl border text-[#FF6B6B] shadow-sm text-lg hover:bg-red-50 transition-colors duration-200"
                           >
                             +
                           </button>

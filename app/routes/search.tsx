@@ -1,5 +1,5 @@
 'use client';
-import { useLoaderData, useSubmit } from '@remix-run/react';
+import { useLoaderData, useSubmit, useOutletContext } from '@remix-run/react';
 import { useRef, useState } from 'react';
 import { FacetFilterTracker } from '~/components/facet-filter/facet-filter-tracker';
 import { filteredSearchLoaderFromPagination } from '~/utils/filtered-search-loader';
@@ -173,18 +173,16 @@ export default function Search() {
   );
   const submit = useSubmit();
   const { t } = useTranslation();
-  const {
-    activeOrderFetcher,
-    activeOrder,
-    adjustOrderLine,
-    removeItem,
-    refresh,
-  } = useActiveOrder();
+  const { activeOrderFetcher } = useOutletContext<{
+    activeOrderFetcher: any;
+  }>();
+  const { activeOrder } = activeOrderFetcher.data ?? {};
+  const { adjustOrderLine, removeItem, refresh } = useActiveOrder();
   const isSignedIn = !!activeCustomer?.activeCustomer?.id;
 
   return (
     <>
-      <div className="max-w-6xl mx-auto px-4 pt-20">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl sm:text-3xl font-light tracking-tight text-gray-900 my-8">
             {term ? `Results for "${term}"` : 'All Results'}
@@ -215,10 +213,10 @@ export default function Search() {
             appliedPaginationPage={loaderData.appliedPaginationPage}
             activeCustomer={activeCustomer}
             activeOrder={activeOrder}
+            isSignedIn={isSignedIn}
           />
         </ValidatedForm>
       </div>
-      <Footer />
     </>
   );
 }

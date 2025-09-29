@@ -8,6 +8,10 @@ export default {
 
   theme: {
     extend: {
+      screens: {
+        mob: '425px',
+        md: '768px',
+      },
       colors: {
         primary: colors.sky,
         secondary: colors.emerald,

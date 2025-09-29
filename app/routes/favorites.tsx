@@ -110,6 +110,11 @@ export default function Favorites() {
   const [favoriteItems, setFavoriteItems] = useState(
     activeCustomer?.activeCustomer?.favorites?.items || [],
   );
+
+  useEffect(() => {
+    setIsSignedIn(!!activeCustomer?.activeCustomer?.id);
+  }, [activeCustomer]);
+
   const fetcher = useFetcher();
 
   const { activeOrderFetcher } = useOutletContext<{
@@ -142,7 +147,7 @@ export default function Favorites() {
 
   return (
     <>
-      <div className="max-w-6xl min-h-screen pt-[90px] px-4 xl:w-full xl:max-w-none xl:px-8">
+      <div className="max-w-6xl min-h-screen px-4 xl:w-full xl:max-w-none xl:px-8">
         {addItemToOrderError && (
           <div className="mb-4">
             <Alert message={addItemToOrderError} />
@@ -169,6 +174,7 @@ export default function Favorites() {
                   activeOrderFetcher={activeOrderFetcher}
                   activeOrder={activeOrder}
                   onFavoriteToggle={handleFavoriteToggle}
+                  isSignedIn={isSignedIn}
                 />
               ))}
             </div>
@@ -177,10 +183,7 @@ export default function Favorites() {
               {isSignedIn ? 'No Favorites' : 'Sign In To View Favorites'}
               {!isSignedIn && (
                 <div className="mt-4">
-                  <Link
-                    to="/sign-in"
-                    className="text-blue-600 hover:text-blue-800"
-                  >
+                  <Link to="/" className="text-blue-600 hover:text-blue-800">
                     SignIn
                   </Link>
                 </div>

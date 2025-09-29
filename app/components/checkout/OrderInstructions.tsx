@@ -56,7 +56,7 @@ export function OrderInstructions({
             type="button"
             onClick={handleSave}
             disabled={isSaving || disabled}
-            className="text-xs bg-black text-white px-2 py-1 rounded hover:black disabled:opacity-50"
+            className="text-xs bg-[#FF4D4D] text-white px-2 py-1 rounded hover:black disabled:opacity-50"
           >
             {isSaving ? t('common.saving') : t('common.save')}
           </button>

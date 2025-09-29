@@ -5,8 +5,8 @@ import { GoogleLoginButton } from '../Google/GoogleLoginButton';
 
 export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
   return (
-    <footer className="relative overflow-hidden">
-      <div className="relative bg-white min-h-[200px]">
+    <footer className="relative bg-[#ffedc7] overflow-hidden">
+      <div className="relative min-h-[200px]">
         <div className="absolute inset-0">
           <svg
             className="absolute inset-0 w-full h-full"
@@ -21,9 +21,9 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
                 x2="0%"
                 y2="100%"
               >
-                <stop offset="0%" stopColor="#1e3a8a" />
-                <stop offset="50%" stopColor="#2563eb" />
-                <stop offset="100%" stopColor="#1e3a8a" />
+                <stop offset="0%" stopColor="#f48c06" />
+                <stop offset="50%" stopColor="#ffba08" />
+                <stop offset="100%" stopColor="#faa307" />
               </linearGradient>
             </defs>
             <path
@@ -35,8 +35,8 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
 
         <div className="relative max-w-3xl mx-auto mt-5 text-center px-6 py-8">
           {/* Main CTA Card */}
-          <div className="bg-gradient-to-r from-yellow-300 to-orange-300 rounded-3xl mb-7 relative overflow-hidden">
-            <div className="flex items-center gap-8">
+          <div className="bg-[#e63946] rounded-3xl mb-7 relative overflow-hidden">
+            <div className="flex items-center gap-3 lg:gap-6">
               <div className="w-1/3 rounded-full">
                 <img
                   src="/Apple.jpg"
@@ -45,15 +45,15 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
                 />
               </div>
               <div className="w-2/3 text-center">
-                <h2 className="text-xl sm:text-2xl font-bold text-blue-900 mb-1">
+                <h2 className="text-[0.65rem] sm:text-2xl font-bold text-black mb-1">
                   NEVER MISS A DROP
                 </h2>
-                <p className="text-xs sm:text-sm text-blue-800 mb-2">
+                <p className="text-[0.55rem] xs:text-sm md:text-base mx-2 text-black mb-2">
                   Looking for a trusted wholesale snack supplier? We specialize
                   in providing a wide variety of snacks – from traditional
                   favorites to modern healthy choices
                 </p>
-                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-full text-sm">
+                <button className="bg-[#FF4D4D]  hover:bg-[#FF6B6B] text-white font-semibold px-4 py-2 rounded-full text-xs xs:text-sm">
                   CONTACT US
                 </button>
               </div>
@@ -68,25 +68,25 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
           <nav className="flex items-center justify-center gap-4 sm:gap-6 text-white text-sm sm:text-base">
             <Link
               to="/about"
-              className="hover:text-yellow-300 transition-colors font-medium"
+              className="hover:[#e63946] transition-colors font-medium"
             >
               HOME
             </Link>
-            <Link
+            {/* <Link
               to="/products"
               className="hover:text-yellow-300 transition-colors font-medium"
             >
               PRODUCTS
-            </Link>
+            </Link> */}
             <Link
               to="/contact"
-              className="hover:text-yellow-300 transition-colors font-medium"
+              className="hover:[#e63946] transition-colors font-medium"
             >
               ABOUT US
             </Link>
             <Link
               to="/faq"
-              className="hover:text-yellow-300 transition-colors font-medium"
+              className="hover:[#e63946] transition-colors font-medium"
             >
               CONTACT US
             </Link>
@@ -94,13 +94,13 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mt-4 text-xs sm:text-sm text-blue-200">
             <Link
               to="/terms"
-              className="hover:text-yellow-300 transition-colors font-medium"
+              className="hover:[#e63946] transition-colors font-medium"
             >
               Terms and Conditions
             </Link>
             <Link
               to="/privacy"
-              className="hover:text-yellow-300 transition-colors font-medium"
+              className="hover:[#e63946] transition-colors font-medium"
             >
               Privacy Policy
             </Link>
@@ -108,7 +108,7 @@ export default function Footer({ isSignedIn }: { isSignedIn: boolean }) {
         </div>
 
         {/* Bottom Section */}
-        <div className="flex relative items-center mx-auto mt-7 text-center max-w-sm sm:max-w-4xl justify-between text-xs sm:text-sm text-blue-200 border-t border-blue-600 py-4">
+        <div className="flex relative items-center mx-auto mt-7 text-center max-w-sm sm:max-w-4xl justify-between text-xs sm:text-sm text-blue-200 border-t border-[#e63946] py-4">
           <div className="flex items-center gap-2 sm:gap-4">
             <span>
               Copyright | 2023 SPARKS (S) PTE LTD. All Rights Reserved.

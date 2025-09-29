@@ -68,22 +68,23 @@ export function CartContents({
               </div>
 
               <div className="flex items-center text-sm mt-2">
+                {/* Quantity controls */}
                 {editable ? (
-                  <div className="flex items-center border rounded-md overflow-hidden">
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       disabled={!isEditable}
                       onClick={() => handleQuantityChange(line.id, -1)}
-                      className="px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                      className="w-8 h-8 flex items-center justify-center rounded-full border text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                     >
                       -
                     </button>
-                    <span className="px-4">{line.quantity}</span>
+                    <span className="px-2 font-medium">{line.quantity}</span>
                     <button
                       type="button"
                       disabled={!isEditable}
                       onClick={() => handleQuantityChange(line.id, 1)}
-                      className="px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                      className="w-8 h-8 flex items-center justify-center rounded-full border text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                     >
                       +
                     </button>
@@ -95,18 +96,20 @@ export function CartContents({
                   </div>
                 )}
 
-                <div className="flex-1" />
-                {isEditable && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(line.id)}
-                    disabled={removingItems.includes(line.id)}
-                    className="p-2 text-red-500 hover:text-red-700 disabled:opacity-50"
-                    title="Remove item"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                )}
+                {/* Remove button */}
+                <div className="ml-auto">
+                  {isEditable && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(line.id)}
+                      disabled={removingItems.includes(line.id)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-700 disabled:opacity-50 ml-3"
+                      title="Remove item"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </li>

@@ -15,15 +15,7 @@ import {
 import { getActiveCustomer } from '~/providers/customer/customer';
 import { Pagination } from '~/components/Pagination';
 import { useTranslation } from 'react-i18next';
-import {
-  Award,
-  Menu,
-  User,
-  MapPin,
-  ShoppingBag,
-  X,
-  LogOut,
-} from 'lucide-react';
+import AccountSidebar from '~/components/account/AccountSidebar';
 import { useState, useEffect } from 'react';
 import { ValidatedForm } from 'remix-validated-form';
 import { withZod } from '@remix-validated-form/with-zod';
@@ -73,7 +65,6 @@ export default function AccountLoyaltyPointsTransactions() {
     useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -88,29 +79,6 @@ export default function AccountLoyaltyPointsTransactions() {
   const showingFrom = (page - 1) * limit + 1;
   const showingTo = Math.min(page * limit, totalItems);
 
-  const sidebarNavigation = [
-    {
-      name: 'Details',
-      href: '/account',
-      icon: User,
-    },
-    {
-      name: 'Addresses',
-      href: '/account/addresses',
-      icon: MapPin,
-    },
-    {
-      name: 'PurchaseHistory',
-      href: '/account/history',
-      icon: ShoppingBag,
-    },
-    {
-      name: 'Reward Points History',
-      href: '/account/loyaltypointstransactions',
-      icon: Award,
-    },
-  ];
-
   const activeCustomer = {
     firstName: '',
     lastName: '',
@@ -119,69 +87,15 @@ export default function AccountLoyaltyPointsTransactions() {
   };
 
   return (
-    <>
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="fixed inset-0 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="fixed inset-y-0 left-0 w-80 max-w-full bg-white shadow-xl">
-            <div className="flex h-full flex-col">
-              <div className="flex h-16 items-center justify-between px-4 border-b">
-                <button
-                  type="button"
-                  className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <SidebarContent
-                  navigation={sidebarNavigation}
-                  activeCustomer={activeCustomer}
-                  t={t}
-                  onNavigate={() => setSidebarOpen(false)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 pt-[90px]">
-        <div className="flex flex-col flex-grow bg-white border-r overflow-y-auto">
-          <SidebarContent
-            navigation={sidebarNavigation}
-            activeCustomer={activeCustomer}
-            t={t}
-          />
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 flex relative">
+      <AccountSidebar activeCustomer={activeCustomer} />
 
       {/* Main content */}
-      <div className="flex-1 lg:pl-64 pt-[80px]">
-        {/* Mobile header */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white px-4 shadow-sm lg:hidden">
-          <button
-            type="button"
-            className="p-2 rounded-md text-gray-700 hover:bg-gray-100"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <h1 className="text-lg font-semibold">
-            {t('account.loyaltyPointsTransactions')}
-          </h1>
-        </div>
-
+      <div className="flex-1">
         {/* Page content */}
-        <div className="bg-white min-h-screen">
+        <div className=" min-h-screen">
           {/* Header Section */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-8 border-b bg-white">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-8 border-b">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold">
                 Loyalty Points Transactions
@@ -197,7 +111,7 @@ export default function AccountLoyaltyPointsTransactions() {
           <div className="p-6">
             {/* Loading-Overlay */}
             {navigation.state !== 'idle' && (
-              <div className="absolute top-0 left-0 w-full h-full z-50 bg-white bg-opacity-75"></div>
+              <div className="absolute top-0 left-0 w-full h-full z-50 bg-opacity-75"></div>
             )}
 
             {totalItems === 0 && (
@@ -238,7 +152,7 @@ export default function AccountLoyaltyPointsTransactions() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200">
                     {transactions.map((tx: any) => (
                       <tr key={tx.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -296,102 +210,6 @@ export default function AccountLoyaltyPointsTransactions() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
-
-  function SidebarContent({
-    navigation,
-    activeCustomer,
-    t,
-    onNavigate,
-  }: {
-    navigation: any[];
-    activeCustomer: any;
-    t: any;
-    onNavigate?: () => void;
-  }) {
-    const { firstName, lastName, emailAddress, phoneNumber } = activeCustomer;
-    const user = { firstName, lastName, emailAddress, phoneNumber };
-    const links = navigation.map((item) => ({
-      to: item.href,
-      label: item.name,
-      icon: item.icon,
-    }));
-
-    return <Sidebar user={user} links={links} onNavigate={onNavigate} />;
-  }
-
-  function Sidebar({
-    user,
-    links,
-    onNavigate,
-  }: {
-    user: {
-      firstName: string;
-      lastName: string;
-      emailAddress: string;
-      phoneNumber?: string;
-    };
-    links: { to: string; label: string; icon: React.ElementType }[];
-    onNavigate?: () => void;
-  }) {
-    const { t } = useTranslation();
-
-    return (
-      <div className="flex flex-col h-full bg-white">
-        <div className="px-6 py-8 border-b flex space-x-3">
-          <a
-            href="/home"
-            className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
-          >
-            <img src="/KK-Logo.png" alt="logo" className="w-32 h-auto" />
-          </a>
-        </div>
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          {links.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              onClick={onNavigate}
-              end={to === '/account'}
-              className={({ isActive }) =>
-                `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-muted-foreground hover:bg-gray-50 hover:text-gray-900'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon
-                    className={`h-5 w-5 mr-3 flex-shrink-0 ${
-                      isActive ? 'text-blue-700' : ''
-                    }`}
-                  />
-                  {label}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="px-4 py-6 border-t">
-          <Form method="post" action="/api/logout">
-            <button
-              type="submit"
-              className="group flex items-center px-3 py-2 text-sm font-medium text-muted-foreground hover:text-accent-foreground hover:bg-accent rounded-md w-full transition-colors"
-              onClick={() => {
-                setTimeout(() => {
-                  window.location.href = '/';
-                }, 50);
-              }}
-            >
-              <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
-              {t('account.signOut')}
-            </button>
-          </Form>
-        </div>
-      </div>
-    );
-  }
 }

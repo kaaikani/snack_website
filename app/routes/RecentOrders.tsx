@@ -23,7 +23,7 @@ export function RecentOrders({
     .slice(0, 10);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 xl:px-8 py-12">
+    <div className="max-w-6xl mx-auto px-4 xl:px-8 py-10">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">
         Recent Orders
       </h2>
@@ -48,6 +48,7 @@ export function RecentOrders({
               activeOrderFetcher={activeOrderFetcher}
               activeOrder={activeOrder}
               orderCount={item.orderCount}
+              isSignedIn={!!activeCustomer?.activeCustomer?.id}
             />
           </div>
         ))}

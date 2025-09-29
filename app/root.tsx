@@ -168,7 +168,7 @@ export default function App() {
           }}
         />
       </head>
-      <body>
+      <body className="bg-[#ffedc7]">
         <GoogleOAuthProvider clientId={ENV.GOOGLE_CLIENT_ID}>
           {/* <Header collections={collections} /> */}
           <Header
@@ -179,7 +179,7 @@ export default function App() {
             loyaltyPoints={loyaltyPoints}
             isSignedIn={isSignedIn}
           />
-          <main>
+          <main className="relative">
             <Outlet
               context={{
                 activeOrderFetcher,

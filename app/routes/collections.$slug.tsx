@@ -213,7 +213,7 @@ export default function CollectionSlug() {
 
   return (
     <>
-      <div className="max-w-6xl pt-[120px]  px-4 xl:w-full xl:max-w-none xl:px-8">
+      <div className="max-w-6xl px-4 xl:w-full  py-4 xl:max-w-none xl:px-8">
         {/* Show global error if exists */}
         {addItemToOrderError && (
           <div className="mb-4">
@@ -234,7 +234,7 @@ export default function CollectionSlug() {
             <h2 className="text-2xl font-light text-gray-900 text-center mb-8">
               {t('product.collections')}
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 mob:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
               {collection.children
                 .slice()
                 .sort((a, b) => {
@@ -276,6 +276,7 @@ export default function CollectionSlug() {
               activeCustomer={activeCustomer}
               activeOrderFetcher={activeOrderFetcher}
               activeOrder={activeOrder}
+              isSignedIn={isSignedIn}
             />
           </ValidatedForm>
         </div>

@@ -29,7 +29,7 @@ export default function ContentSection() {
   return (
     <div className="relative isolate overflow-hidden bg-gray-900 py-24 sm:py-32">
       <img
-        alt=""
+        alt="snacks image"
         src="snacks 5.jpg"
         className="absolute inset-0 -z-10 h-full w-full object-cover object-right md:object-center"
       />
@@ -52,7 +52,7 @@ export default function ContentSection() {
         />
       </div>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:mx-0 gap-x-4 rounded-xl bg-blue-100 p-6 ring-1 ring-inset ring-white/10">
+        <div className="mx-auto max-w-2xl lg:mx-0 gap-x-4 rounded-xl bg-white/60 shadow-lg p-6 ring-1 ring-inset ring-white/10">
           <h2 className="text-4xl font-bold tracking-tight text-black sm:text-6xl">
             Support center
           </h2>
@@ -67,11 +67,11 @@ export default function ContentSection() {
           {cards.map((card) => (
             <div
               key={card.name}
-              className="flex gap-x-4 rounded-xl bg-blue-100 p-6 ring-1 ring-inset ring-white/10"
+              className="flex gap-x-4 rounded-xl bg-white/60 shadow-lg p-6 ring-1 ring-inset ring-white/10"
             >
               <card.icon
                 aria-hidden="true"
-                className="h-7 w-5 flex-none text-indigo-400"
+                className="h-7 w-5 flex-none text-indigo-600"
               />
               <div className="text-base leading-7">
                 <h3 className="font-semibold text-black">{card.name}</h3>

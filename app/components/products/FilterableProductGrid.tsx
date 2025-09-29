@@ -22,6 +22,7 @@ export interface FilterableProductGridProps {
   activeCustomer?: ActiveCustomer;
   activeOrderFetcher: any;
   activeOrder?: any;
+  isSignedIn: boolean;
 }
 
 export function FilterableProductGrid({
@@ -36,6 +37,7 @@ export function FilterableProductGrid({
   activeCustomer,
   activeOrderFetcher,
   activeOrder,
+  isSignedIn,
 }: FilterableProductGridProps) {
   const { t } = useTranslation();
   const facetValuesTracker = useRef(new FacetFilterTracker());
@@ -56,16 +58,30 @@ export function FilterableProductGrid({
       </div>
       {result.items.length > 0 ? (
         <div className="md:col-span-3 lg:col-span-4 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-10 gap-x-6">
+          <div className="grid grid-cols-2 mob:grid-cols-3 md:grid-cols-4 gap-y-10 gap-x-6">
             {result.items.map((item: any) => (
               <ProductCard
                 key={item.productId}
-                {...item}
-                variants={item.variants}
+                productName={item.productName}
+                slug={item.slug}
+                currencyCode={item.currencyCode}
+                priceWithTax={item.priceWithTax}
+                productAsset={
+                  item.productAsset?.preview
+                    ? { preview: item.productAsset.preview }
+                    : null
+                }
+                variants={item.variants.map((variant: any) => ({
+                  ...variant,
+                  featuredAsset: variant.featuredAsset?.preview
+                    ? { preview: variant.featuredAsset.preview }
+                    : undefined,
+                }))}
                 productId={item.productId}
                 activeCustomer={activeCustomer}
                 activeOrderFetcher={activeOrderFetcher}
                 activeOrder={activeOrder}
+                isSignedIn={isSignedIn}
               />
             ))}
           </div>

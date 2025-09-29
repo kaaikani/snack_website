@@ -14,6 +14,9 @@ import { useTranslation } from 'react-i18next';
 import { useActiveOrder } from '~/utils/use-active-order';
 import { getCollections } from '~/providers/collections/collections';
 
+// Keep steps consistent with checkout flow
+const steps = ['shipping-cart', 'payment', 'confirmation'];
+
 export async function loader({ params, request }: DataFunctionArgs) {
   const collections = await getCollections(request);
   const activeCustomer = await getActiveCustomer({ request });
@@ -48,6 +51,7 @@ export default function CheckoutConfirmation() {
   const [hasRefreshed, setHasRefreshed] = useState(false);
   const { t } = useTranslation();
   const { activeOrder, refresh } = useActiveOrder();
+  const currentStep = 2; // confirmation
 
   const orderNotFound = !order && !error;
   const orderErrored = !order && error;
@@ -101,6 +105,51 @@ export default function CheckoutConfirmation() {
 
   return (
     <>
+      <div>
+        <div className="lg:max-w-7xl max-w-2xl mx-auto pt-8 pb-6 px-4 sm:px-6 lg:px-8">
+          <nav aria-label="Progress">
+            <ol role="list" className="flex items-center space-x-4">
+              {steps.map((step, index) => (
+                <li key={step} className="flex items-center">
+                  <span
+                    className={`h-6 w-6 flex items-center justify-center rounded-full ${
+                      currentStep >= index
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <span
+                    className={`ml-4 text-sm font-medium ${
+                      currentStep >= index ? 'text-blue-600' : 'text-gray-500'
+                    }`}
+                  >
+                    {step === 'shipping-cart'
+                      ? 'Shipping & Cart'
+                      : step.charAt(0).toUpperCase() + step.slice(1)}
+                  </span>
+                  {index < steps.length - 1 && (
+                    <svg
+                      className="w-4 h-4 ml-2 text-gray-300"
+                      fill="none"
+                      viewBox="0 0 6 10"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M1 1l4 4-4 4"
+                      />
+                    </svg>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+      </div>
       <main className="min-h-screen bg-white py-10 px-4 sm:px-6 lg:px-8 pt-[100px]">
         <div className="max-w-6xl mx-auto shadow-lg">
           <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-10">

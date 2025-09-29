@@ -21,8 +21,15 @@ import {
   LoyaltyPointsConfig,
   UpdateOrderPlacedAtIstMutation,
   GetFrequentlyOrderedProductsQuery,
-    AuthenticateGoogleMutation
+  AuthenticateGoogleMutation,
+  GetCollectionProductsBySlugQuery,
+  GetCollectionProductsBySlugDocument,
+  ProductVariantList,
 } from '~/generated/graphql';
+
+type CollectionWithProductVariants =
+  GetCollectionProductsBySlugQuery['collection'];
+
 import { QueryOptions, sdk, WithHeaders } from '~/graphqlWrapper';
 
 export async function getChannelList(p0: {
@@ -704,14 +711,13 @@ gql`
   }
 `;
 
-
 export async function authenticateWithGoogle(
   token: string,
-  options?: { request: Request; customHeaders?: Record<string, string> }
+  options?: { request: Request; customHeaders?: Record<string, string> },
 ): Promise<WithHeaders<AuthenticateGoogleMutation['authenticate']>> {
   const response = await sdk.AuthenticateGoogle(
     { input: { google: { token } } },
-    options
+    options,
   );
 
   return Object.assign(response.authenticate, {
@@ -719,15 +725,65 @@ export async function authenticateWithGoogle(
   });
 }
 gql`
-mutation AuthenticateGoogle($input: AuthenticationInput!) {
-  authenticate(input: $input) {
-    ... on CurrentUser {
-      id
-      identifier
-    }
-    ... on ErrorResult {
-      errorCode
-      message
+  mutation AuthenticateGoogle($input: AuthenticationInput!) {
+    authenticate(input: $input) {
+      ... on CurrentUser {
+        id
+        identifier
+      }
+      ... on ErrorResult {
+        errorCode
+        message
+      }
     }
   }
-}`
+`;
+
+export async function getCollectionProductsBySlug(
+  collectionSlug: string,
+): Promise<WithHeaders<CollectionWithProductVariants> | null> {
+  const response = await sdk.GetCollectionProductsBySlug({ collectionSlug });
+
+  if (!response.collection) {
+    return null;
+  }
+  return {
+    _headers: response._headers,
+    ...response.collection,
+  } as WithHeaders<CollectionWithProductVariants>;
+}
+
+gql`
+  query GetCollectionProductsBySlug($collectionSlug: String!) {
+    collection(slug: $collectionSlug) {
+      id
+      name
+      slug
+      featuredAsset {
+        id
+        preview
+      }
+      productVariants {
+        items {
+          product {
+            id
+            name
+            slug
+            featuredAsset {
+              id
+              preview
+            }
+            variants {
+              id
+              name
+              priceWithTax
+              currencyCode
+              stockLevel
+              sku
+            }
+          }
+        }
+      }
+    }
+  }
+`;

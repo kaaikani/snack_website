@@ -19,6 +19,8 @@ interface Banner {
 
 interface ThreeLayoutBannerProps {
   banners: Banner[];
+  topRightBannerUrls: string[];
+  bottomRightBannerUrls: string[];
 }
 
 const useWindowWidth = () => {
@@ -44,22 +46,29 @@ const useWindowWidth = () => {
   return windowWidth;
 };
 
-export function ThreeLayoutBanner({ banners }: ThreeLayoutBannerProps) {
+export function ThreeLayoutBanner({
+  banners,
+  topRightBannerUrls,
+  bottomRightBannerUrls,
+}: ThreeLayoutBannerProps) {
   // Handle missing banners safely
-  if (!banners || banners.length < 3) {
+  if (
+    !banners ||
+    banners.length < 1 ||
+    !topRightBannerUrls ||
+    topRightBannerUrls.length < 1 ||
+    !bottomRightBannerUrls ||
+    bottomRightBannerUrls.length < 1
+  ) {
     return null;
   }
 
   const windowWidth = useWindowWidth();
-  const isMobile = windowWidth < 768; // Tailwind's md breakpoint is 768px
+  const isMobile = windowWidth < 1024; // Change breakpoint to 1024px for tablet view as well
 
   const [leftBannerIndex, setLeftBannerIndex] = useState(0);
-  const [topRightBannerIndex, setTopRightBannerIndex] = useState(
-    1 % banners.length,
-  );
-  const [bottomRightBannerIndex, setBottomRightBannerIndex] = useState(
-    2 % banners.length,
-  );
+  const [topRightBannerUrlIndex, setTopRightBannerUrlIndex] = useState(0);
+  const [bottomRightBannerUrlIndex, setBottomRightBannerUrlIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-scroll effect for each banner section
@@ -69,13 +78,22 @@ export function ThreeLayoutBanner({ banners }: ThreeLayoutBannerProps) {
         setCurrentIndex((prev) => (prev + 1) % banners.length);
       } else {
         setLeftBannerIndex((prev) => (prev + 1) % banners.length);
-        setTopRightBannerIndex((prev) => (prev + 1) % banners.length);
-        setBottomRightBannerIndex((prev) => (prev + 1) % banners.length);
+        setTopRightBannerUrlIndex(
+          (prev) => (prev + 1) % topRightBannerUrls.length,
+        );
+        setBottomRightBannerUrlIndex(
+          (prev) => (prev + 1) % bottomRightBannerUrls.length,
+        );
       }
     }, 5000); // Change banner every 5 seconds
 
     return () => clearInterval(interval); // Cleanup on unmount
-  }, [banners.length, isMobile]);
+  }, [
+    banners.length,
+    isMobile,
+    topRightBannerUrls.length,
+    bottomRightBannerUrls.length,
+  ]);
 
   const goToNextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % banners.length);
@@ -87,8 +105,8 @@ export function ThreeLayoutBanner({ banners }: ThreeLayoutBannerProps) {
 
   if (isMobile) {
     return (
-      <section className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 mt-6 mb-12 relative">
-        <div className="w-full h-48 sm:h-64 overflow-hidden rounded-lg relative">
+      <section className="w-full mx-auto px-2 mt-6 mb-12 relative z-[10]">
+        <div className="w-full h-48 sm:h-64 md:h-96 overflow-hidden rounded-lg relative">
           {banners.map((banner, index) => (
             <img
               key={banner.id}
@@ -102,13 +120,13 @@ export function ThreeLayoutBanner({ banners }: ThreeLayoutBannerProps) {
         </div>
         <button
           onClick={goToPreviousSlide}
-          className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full z-10"
+          className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full"
         >
           &lt;
         </button>
         <button
           onClick={goToNextSlide}
-          className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full z-10"
+          className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full"
         >
           &gt;
         </button>
@@ -128,7 +146,7 @@ export function ThreeLayoutBanner({ banners }: ThreeLayoutBannerProps) {
   }
 
   return (
-    <section className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 mt-6 mb-12">
+    <section className="w-full mx-auto px-4 mb-12 z-[10]">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mx-auto">
         {/* Left Big Banner */}
         <div className="lg:col-span-2 h-full relative">
@@ -150,10 +168,10 @@ export function ThreeLayoutBanner({ banners }: ThreeLayoutBannerProps) {
             <div className="w-full h-full overflow-hidden rounded-lg">
               <img
                 src={
-                  banners[topRightBannerIndex].assets[0]?.source ||
+                  topRightBannerUrls[topRightBannerUrlIndex] ||
                   '/placeholder.svg'
                 }
-                alt={banners[topRightBannerIndex].assets[0]?.name || 'Banner'}
+                alt="Top Right Banner"
                 className="w-full h-full object-cover transition-opacity duration-500"
               />
             </div>
@@ -164,12 +182,10 @@ export function ThreeLayoutBanner({ banners }: ThreeLayoutBannerProps) {
             <div className="w-full h-full overflow-hidden rounded-lg">
               <img
                 src={
-                  banners[bottomRightBannerIndex].assets[0]?.source ||
+                  bottomRightBannerUrls[bottomRightBannerUrlIndex] ||
                   '/placeholder.svg'
                 }
-                alt={
-                  banners[bottomRightBannerIndex].assets[0]?.name || 'Banner'
-                }
+                alt="Bottom Right Banner"
                 className="w-full h-full object-cover transition-opacity duration-500"
               />
             </div>

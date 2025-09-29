@@ -50,7 +50,7 @@ export default function FacetFilterControls({
               leaveFrom="translate-x-0"
               leaveTo="translate-x-full"
             >
-              <Dialog.Panel className="ml-auto relative max-w-xs w-full h-full bg-white shadow-xl py-4 pb-12 flex flex-col overflow-y-auto">
+              <Dialog.Panel className="ml-auto relative max-w-xs w-full h-full  bg-white shadow-xl py-4 pb-12 flex flex-col overflow-y-auto">
                 <div className="px-4 flex items-center justify-between">
                   <h2 className="text-lg font-medium text-gray-900">
                     {t('common.filters')}
@@ -76,7 +76,7 @@ export default function FacetFilterControls({
                       {({ open }) => (
                         <>
                           <h3 className="-mx-2 -my-3 flow-root">
-                            <Disclosure.Button className="px-2 py-3 bg-white w-full flex items-center justify-between text-gray-400 hover:text-gray-500">
+                            <Disclosure.Button className="px-2 py-3 w-full flex items-center justify-between text-gray-400 hover:text-gray-500">
                               <span className="font-medium text-gray-900 uppercase">
                                 {facet.name}
                               </span>
@@ -150,7 +150,7 @@ export default function FacetFilterControls({
             {({ open }) => (
               <>
                 <h3 className="-my-3 flow-root">
-                  <Disclosure.Button className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
+                  <Disclosure.Button className="py-3 w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
                     <span className="font-medium text-gray-900 uppercase">
                       {facet.name}
                     </span>
