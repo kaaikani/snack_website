@@ -12,10 +12,13 @@ import {
   json,
   redirect,
 } from '@remix-run/server-runtime';
-import { getActiveCustomer } from '~/providers/customer/customer';
+import {
+  getActiveCustomer,
+  getActiveCustomerDetails,
+} from '~/providers/customer/customer'; // Add getActiveCustomerDetails
 import { Pagination } from '~/components/Pagination';
 import { useTranslation } from 'react-i18next';
-import AccountSidebar from '~/components/account/AccountSidebar';
+import AccountHeader from '~/components/account/AccountHeader';
 import { useState, useEffect } from 'react';
 import { ValidatedForm } from 'remix-validated-form';
 import { withZod } from '@remix-validated-form/with-zod';
@@ -30,17 +33,20 @@ export async function loader({ request }: DataFunctionArgs) {
   const limit =
     Number(url.searchParams.get('limit')) || paginationLimitMinimumDefault;
 
-  const res = await getActiveCustomer({
-    request,
-    variables: {
-      options: {
-        take: limit,
-        skip: (page - 1) * limit,
+  const [res, { activeCustomer }] = await Promise.all([
+    getActiveCustomer({
+      request,
+      variables: {
+        options: {
+          take: limit,
+          skip: (page - 1) * limit,
+        },
       },
-    },
-  });
+    }),
+    getActiveCustomerDetails({ request }), // Fetch activeCustomer
+  ]);
 
-  if (!res.activeCustomer) {
+  if (!res.activeCustomer || !activeCustomer) {
     return redirect('/sign-in');
   }
 
@@ -57,12 +63,19 @@ export async function loader({ request }: DataFunctionArgs) {
     loyaltyPointsAvailable,
     page,
     limit,
+    activeCustomer, // Add activeCustomer to loader data
   });
 }
 
 export default function AccountLoyaltyPointsTransactions() {
-  const { transactions, totalItems, loyaltyPointsAvailable, page, limit } =
-    useLoaderData<typeof loader>();
+  const {
+    transactions,
+    totalItems,
+    loyaltyPointsAvailable,
+    page,
+    limit,
+    activeCustomer,
+  } = useLoaderData<typeof loader>(); // Include activeCustomer
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -79,19 +92,12 @@ export default function AccountLoyaltyPointsTransactions() {
   const showingFrom = (page - 1) * limit + 1;
   const showingTo = Math.min(page * limit, totalItems);
 
-  const activeCustomer = {
-    firstName: '',
-    lastName: '',
-    emailAddress: '',
-    phoneNumber: '',
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex relative">
-      <AccountSidebar activeCustomer={activeCustomer} />
-
+    <div className="min-h-screen bg-gray-50">
+      <AccountHeader activeCustomer={activeCustomer} />{' '}
+      {/* Pass fetched activeCustomer */}
       {/* Main content */}
-      <div className="flex-1">
+      <div>
         {/* Page content */}
         <div className=" min-h-screen">
           {/* Header Section */}

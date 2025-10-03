@@ -1,39 +1,41 @@
 'use client';
 
 import { DialogFooter } from '~/components/ui/dialog';
-
 import type React from 'react';
 import {
   Form,
   Outlet,
   useLoaderData,
   useSearchParams,
-  NavLink,
   useLocation,
   useActionData,
   useNavigation,
+  useFetcher,
 } from '@remix-run/react';
-import {
-  type LoaderFunctionArgs,
-  json,
-  redirect,
-  type DataFunctionArgs,
-} from '@remix-run/server-runtime';
-import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useRef } from 'react';
 import { getSessionStorage } from '~/sessions';
 import { withZod } from '@remix-validated-form/with-zod';
 import { ValidatedForm, validationError } from 'remix-validated-form';
 import { z } from 'zod';
+import type { LoaderFunctionArgs, DataFunctionArgs } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import {
+  sendPhoneOtp,
+  resendPhoneOtp,
+  getChannelsByCustomerPhonenumber,
+} from '~/providers/customPlugins/customPlugin';
 import {
   requestUpdateCustomerEmailAddress,
   updateCustomer,
+  authenticate,
 } from '~/providers/account/account';
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import useToggleState from '~/utils/use-toggle-state';
 import { replaceEmptyString } from '~/utils/validation';
+import ToastNotification from '~/components/ToastNotification';
 
-// shadcn/ui imports - Fixed Button import
+// shadcn/ui imports
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -52,7 +54,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog';
-import { Avatar, AvatarFallback } from '~/components/ui/avatar';
 import {
   Select,
   SelectContent,
@@ -73,17 +74,18 @@ import {
   Edit,
   Mail,
   Phone,
-  Award,
 } from 'lucide-react';
 
-// Your existing components (keeping these as they have custom logic)
+// Your existing components
 import { ErrorMessage } from '~/components/ErrorMessage';
 import { HighlightedButton } from '~/components/HighlightedButton';
-import AccountSidebar from '~/components/account/AccountSidebar';
+import AccountHeader from '~/components/account/AccountHeader';
 
 enum FormIntent {
   UpdateEmail = 'updateEmail',
   UpdateDetails = 'updateDetails',
+  SendPhoneOtp = 'sendPhoneOtp',
+  VerifyPhoneOtp = 'verifyPhoneOtp',
 }
 
 export const validator = withZod(
@@ -91,6 +93,12 @@ export const validator = withZod(
     title: z.string(),
     firstName: z.string().min(1, { message: 'First name is required' }),
     lastName: z.string().min(1, { message: 'Last name is required' }),
+    phoneNumber: z
+      .string()
+      .min(10, { message: 'Phone number must be 10 digits' })
+      .max(10, { message: 'Phone number must be 10 digits' })
+      .regex(/^\d{10}$/, { message: 'Phone number must contain only digits' })
+      .optional(),
   }),
 );
 
@@ -101,6 +109,17 @@ const changeEmailValidator = withZod(
       .min(1, { message: 'Email is required' })
       .email('Must be a valid email'),
     password: z.string().min(1, { message: 'Password is required' }),
+  }),
+);
+
+const verifyPhoneOtpValidator = withZod(
+  z.object({
+    phoneNumber: z
+      .string()
+      .min(10, { message: 'Phone number must be 10 digits' })
+      .max(10, { message: 'Phone number must be 10 digits' })
+      .regex(/^\d{10}$/, { message: 'Phone number must contain only digits' }),
+    otp: z.string().min(1, { message: 'OTP is required' }),
   }),
 );
 
@@ -142,6 +161,18 @@ function isCustomerUpdatedResponse(
   return (response as CustomerUpdatedResponse).customerUpdated !== undefined;
 }
 
+function isPhoneOtpSentResponse(
+  response: unknown,
+): response is PhoneOtpSentResponse {
+  return (response as PhoneOtpSentResponse).otpSent !== undefined;
+}
+
+function isPhoneOtpVerifiedResponse(
+  response: unknown,
+): response is PhoneOtpVerifiedResponse {
+  return (response as PhoneOtpVerifiedResponse).phoneVerified !== undefined;
+}
+
 type FormError = {
   message: string;
   intent?: string;
@@ -155,9 +186,20 @@ type CustomerUpdatedResponse = {
   customerUpdated: true;
 };
 
+type PhoneOtpSentResponse = {
+  otpSent: boolean;
+  message: string;
+};
+
+type PhoneOtpVerifiedResponse = {
+  phoneVerified: boolean;
+  phoneNumber: string;
+};
+
 export async function action({ request }: DataFunctionArgs) {
   const body = await request.formData();
   const intent = body.get('intent') as FormIntent | null;
+  const actionType = body.get('actionType') as string | null;
 
   const formError = (formError: FormError, init?: number | ResponseInit) => {
     return json<FormError>(formError, init);
@@ -199,7 +241,6 @@ export async function action({ request }: DataFunctionArgs) {
     }
 
     const { title, firstName, lastName } = result.data;
-    // Keep the existing phoneNumber from activeCustomer
     const { activeCustomer } = await getActiveCustomerDetails({ request });
 
     if (!activeCustomer) {
@@ -207,11 +248,163 @@ export async function action({ request }: DataFunctionArgs) {
     }
 
     await updateCustomer(
-      { title, firstName, lastName, phoneNumber: activeCustomer.phoneNumber },
+      {
+        title,
+        firstName,
+        lastName,
+        phoneNumber: activeCustomer.phoneNumber,
+      },
       { request },
     );
 
     return json({ customerUpdated: true });
+  }
+
+  if (intent === FormIntent.SendPhoneOtp) {
+    const result = await validator.validate(body);
+
+    if (result.error) {
+      return validationError(result.error);
+    }
+
+    const { phoneNumber } = result.data;
+
+    if (!phoneNumber) {
+      return formError(
+        {
+          message: 'Phone number is required',
+          intent: FormIntent.SendPhoneOtp,
+        },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
+      if (channels && channels.length > 0) {
+        return formError(
+          {
+            message: 'Phone number is already registered',
+            intent: FormIntent.SendPhoneOtp,
+          },
+          { status: 400 },
+        );
+      }
+
+      const sent =
+        actionType === 'resend-otp'
+          ? await resendPhoneOtp(phoneNumber)
+          : await sendPhoneOtp(phoneNumber);
+      if (sent) {
+        return json<PhoneOtpSentResponse>({
+          otpSent: true,
+          message:
+            actionType === 'resend-otp'
+              ? 'OTP resent successfully'
+              : 'OTP sent successfully',
+        });
+      } else {
+        return formError(
+          {
+            message:
+              actionType === 'resend-otp'
+                ? 'Failed to resend OTP'
+                : 'Failed to send OTP',
+            intent: FormIntent.SendPhoneOtp,
+          },
+          { status: 500 },
+        );
+      }
+    } catch (error) {
+      console.error('Error in sendPhoneOtp:', error);
+      return formError(
+        {
+          message: 'An error occurred while sending OTP',
+          intent: FormIntent.SendPhoneOtp,
+        },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (intent === FormIntent.VerifyPhoneOtp) {
+    const result = await verifyPhoneOtpValidator.validate(body);
+
+    if (result.error) {
+      return validationError(result.error);
+    }
+
+    const { phoneNumber, otp } = result.data;
+    const { activeCustomer } = await getActiveCustomerDetails({ request });
+
+    if (!activeCustomer) {
+      return formError({ message: 'Customer not found' }, { status: 404 });
+    }
+
+    try {
+      const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
+      const selectedChannelToken = channels[0]?.token;
+
+      if (!selectedChannelToken) {
+        return formError(
+          {
+            message: 'No channel associated with this phone number',
+            intent: FormIntent.VerifyPhoneOtp,
+          },
+          { status: 403 },
+        );
+      }
+
+      const result = await authenticate(
+        {
+          phoneOtp: {
+            phoneNumber,
+            code: otp,
+          },
+        },
+        {
+          request,
+          customHeaders: { 'vendure-token': selectedChannelToken },
+        },
+      );
+
+      if (
+        '__typename' in result.result &&
+        result.result.__typename === 'CurrentUser'
+      ) {
+        await updateCustomer(
+          {
+            title: activeCustomer.title,
+            firstName: activeCustomer.firstName,
+            lastName: activeCustomer.lastName,
+            phoneNumber,
+          },
+          { request },
+        );
+
+        return json<PhoneOtpVerifiedResponse>({
+          phoneVerified: true,
+          phoneNumber,
+        });
+      }
+
+      return formError(
+        {
+          message: 'Invalid OTP',
+          intent: FormIntent.VerifyPhoneOtp,
+        },
+        { status: 401 },
+      );
+    } catch (error) {
+      console.error('Error in verifyPhoneOtp:', error);
+      return formError(
+        {
+          message: 'An error occurred during OTP verification',
+          intent: FormIntent.VerifyPhoneOtp,
+        },
+        { status: 500 },
+      );
+    }
   }
 
   return formError({ message: 'No valid form intent' }, { status: 401 });
@@ -226,19 +419,57 @@ export default function AccountDashboard() {
   const location = useLocation();
   const actionDataHook = useActionData<typeof action>();
   const { state } = useNavigation();
+  const sendOtpFetcher = useFetcher();
+  const verifyOtpFetcher = useFetcher();
+  const editFormOtpFetcher = useFetcher();
 
   // Account details state
   const [formError, setFormError] = useState<FormError>();
   const [emailSavedResponse, setEmailSavedResponse] =
     useState<EmailSavedResponse>();
+  const [phoneOtpSentResponse, setPhoneOtpSentResponse] =
+    useState<PhoneOtpSentResponse>();
+  const [phoneOtpVerifiedResponse, setPhoneOtpVerifiedResponse] =
+    useState<PhoneOtpVerifiedResponse>();
   const [showChangeEmailModal, openChangeEmailModal, closeChangeEmailModal] =
     useToggleState(false);
+  const [showChangePhoneModal, openChangePhoneModal, closeChangePhoneModal] =
+    useToggleState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [phoneNumberInput, setPhoneNumberInput] = useState('');
+  const [editPhoneNumberInput, setEditPhoneNumberInput] = useState(
+    phoneNumber || '',
+  );
   const emailInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const prevActionData = useRef<typeof actionDataHook>();
+
+  // Toast notification state
+  const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [toastTitle, setToastTitle] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
   const fullName = `${title ? title + ' ' : ''}${firstName} ${lastName}`;
   const isAccountDetailsPage = location.pathname === '/account';
+
+  const showNotification = (
+    type: 'success' | 'error',
+    title: string,
+    message: string,
+  ) => {
+    if (!showToast) {
+      setToastType(type);
+      setToastTitle(title);
+      setToastMessage(message);
+      setShowToast(true);
+    }
+  };
+
+  const closeToast = () => {
+    setShowToast(false);
+  };
 
   useEffect(() => {
     if (searchParams.get('reload') === 'true') {
@@ -250,37 +481,83 @@ export default function AccountDashboard() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!actionDataHook) {
+    if (!actionDataHook || actionDataHook === prevActionData.current) {
       return;
     }
+
+    prevActionData.current = actionDataHook;
 
     if (isEmailSavedResponse(actionDataHook)) {
       setEmailSavedResponse(actionDataHook);
       closeChangeEmailModal();
+      showNotification(
+        'success',
+        'Email Updated',
+        'Email address updated successfully.',
+      );
       return;
     }
 
     if (isCustomerUpdatedResponse(actionDataHook)) {
       setIsEditing(false);
       setFormError(undefined);
+      showNotification(
+        'success',
+        'Details Updated',
+        'Your details have been updated.',
+      );
+      return;
+    }
+
+    if (isPhoneOtpSentResponse(actionDataHook)) {
+      setPhoneOtpSentResponse(actionDataHook);
+      setPhoneNumberInput(editPhoneNumberInput);
+      openChangePhoneModal();
+      showNotification('success', 'OTP Sent', actionDataHook.message);
+      return;
+    }
+
+    if (isPhoneOtpVerifiedResponse(actionDataHook)) {
+      setPhoneOtpSentResponse(undefined);
+      setPhoneOtpVerifiedResponse(actionDataHook);
+      setEditPhoneNumberInput(actionDataHook.phoneNumber);
+      closeChangePhoneModal();
+      showNotification(
+        'success',
+        'Phone Number Updated',
+        'Phone number verified and updated successfully.',
+      );
       return;
     }
 
     if (isFormError(actionDataHook)) {
       setFormError(actionDataHook);
+      showNotification('error', 'Error', actionDataHook.message);
       return;
     }
-  }, [actionDataHook]);
+  }, [actionDataHook, openChangePhoneModal]);
 
   useEffect(() => {
     formRef.current?.reset();
-  }, [isEditing]);
+    setEditPhoneNumberInput(phoneNumber || '');
+  }, [isEditing, phoneNumber]);
 
   return (
     <>
+      {/* Toast Notification */}
+      {showToast && (
+        <ToastNotification
+          show={showToast}
+          type={toastType}
+          title={toastTitle}
+          message={toastMessage}
+          onClose={closeToast}
+        />
+      )}
+
       {/* Email Change Modal */}
       <Dialog open={showChangeEmailModal} onOpenChange={closeChangeEmailModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="bg-white sm:max-w-md">
           <ValidatedForm validator={changeEmailValidator} method="post">
             <DialogHeader>
               <DialogTitle>{t('account.changeEmailModal.title')}</DialogTitle>
@@ -356,29 +633,199 @@ export default function AccountDashboard() {
         </DialogContent>
       </Dialog>
 
-      <div className="min-h-screen bg-gray-50 flex relative">
-        <AccountSidebar
+      {/* Phone Number Change Modal */}
+      <Dialog open={showChangePhoneModal} onOpenChange={closeChangePhoneModal}>
+        <DialogContent className="bg-white sm:max-w-md">
+          {!phoneOtpSentResponse ? (
+            <ValidatedForm
+              validator={validator}
+              method="post"
+              formRef={formRef}
+              onSubmit={() =>
+                sendOtpFetcher.submit(formRef.current, { method: 'post' })
+              }
+            >
+              <DialogHeader>
+                <DialogTitle>Change Phone Number</DialogTitle>
+                <DialogDescription>
+                  Enter your new phone number to receive an OTP.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value={FormIntent.SendPhoneOtp}
+                  />
+                  <Label htmlFor="phoneNumber">New Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    value={phoneNumberInput}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/\D/g, '');
+                      setPhoneNumberInput(cleaned.slice(0, 10));
+                    }}
+                    ref={phoneInputRef}
+                    autoFocus
+                    required
+                    placeholder="Enter new phone number"
+                  />
+                  {phoneNumberInput && phoneNumberInput.length !== 10 && (
+                    <p className="text-sm text-red-600">
+                      Please enter a valid 10-digit phone number.
+                    </p>
+                  )}
+                </div>
+
+                {formError && formError.intent === FormIntent.SendPhoneOtp && (
+                  <div className="p-3 bg-destructive/15 border border-destructive/20 rounded-md">
+                    <p className="text-sm text-destructive">
+                      {formError.message}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeChangePhoneModal}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <HighlightedButton
+                  type="submit"
+                  isSubmitting={sendOtpFetcher.state !== 'idle'}
+                  disabled={phoneNumberInput.length !== 10}
+                >
+                  {sendOtpFetcher.state !== 'idle' ? 'Sending...' : 'Send OTP'}
+                </HighlightedButton>
+              </DialogFooter>
+            </ValidatedForm>
+          ) : (
+            <ValidatedForm
+              validator={verifyPhoneOtpValidator}
+              method="post"
+              formRef={formRef}
+              onSubmit={() =>
+                verifyOtpFetcher.submit(formRef.current, { method: 'post' })
+              }
+            >
+              <DialogHeader>
+                <DialogTitle>Verify OTP</DialogTitle>
+                <DialogDescription>
+                  Enter the OTP sent to {phoneNumberInput}.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value={FormIntent.VerifyPhoneOtp}
+                  />
+                  <input
+                    type="hidden"
+                    name="phoneNumber"
+                    value={phoneNumberInput}
+                  />
+                  <Label htmlFor="otp">OTP</Label>
+                  <Input
+                    id="otp"
+                    name="otp"
+                    type="text"
+                    required
+                    placeholder="Enter OTP"
+                  />
+                </div>
+
+                {formError &&
+                  formError.intent === FormIntent.VerifyPhoneOtp && (
+                    <div className="p-3 bg-destructive/15 border border-destructive/20 rounded-md">
+                      <p className="text-sm text-destructive">
+                        {formError.message}
+                      </p>
+                    </div>
+                  )}
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeChangePhoneModal}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    sendOtpFetcher.submit(
+                      {
+                        phoneNumber: phoneNumberInput,
+                        intent: FormIntent.SendPhoneOtp,
+                        actionType: 'resend-otp',
+                      },
+                      { method: 'post' },
+                    )
+                  }
+                  disabled={sendOtpFetcher.state !== 'idle'}
+                >
+                  {sendOtpFetcher.state !== 'idle'
+                    ? 'Resending...'
+                    : 'Resend OTP'}
+                </Button>
+                <HighlightedButton
+                  type="submit"
+                  isSubmitting={verifyOtpFetcher.state !== 'idle'}
+                >
+                  {verifyOtpFetcher.state !== 'idle'
+                    ? 'Verifying...'
+                    : 'Verify OTP'}
+                </HighlightedButton>
+              </DialogFooter>
+            </ValidatedForm>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <div className="min-h-screen bg-gray-50">
+        <AccountHeader
           activeCustomer={{
             ...activeCustomer,
-            phoneNumber: activeCustomer.phoneNumber || null,
+            phoneNumber:
+              phoneOtpVerifiedResponse?.phoneNumber || phoneNumber || null,
           }}
         />
 
-        {/* Main content */}
-        <div className="flex-1">
-          {/* Page content */}
+        <div>
           {isAccountDetailsPage ? (
             <AccountDetailsContent
-              activeCustomer={activeCustomer}
+              activeCustomer={{
+                ...activeCustomer,
+                phoneNumber:
+                  phoneOtpVerifiedResponse?.phoneNumber || phoneNumber,
+              }}
               fullName={fullName}
               isEditing={isEditing}
               setIsEditing={setIsEditing}
               emailSavedResponse={emailSavedResponse}
               openChangeEmailModal={openChangeEmailModal}
+              openChangePhoneModal={openChangePhoneModal}
               formError={formError}
               formRef={formRef}
               state={state}
               t={t}
+              editPhoneNumberInput={editPhoneNumberInput}
+              setEditPhoneNumberInput={setEditPhoneNumberInput}
+              editFormOtpFetcher={editFormOtpFetcher}
             />
           ) : (
             <Outlet />
@@ -396,10 +843,14 @@ function AccountDetailsContent({
   setIsEditing,
   emailSavedResponse,
   openChangeEmailModal,
+  openChangePhoneModal,
   formError,
   formRef,
   state,
   t,
+  editPhoneNumberInput,
+  setEditPhoneNumberInput,
+  editFormOtpFetcher,
 }: {
   activeCustomer: any;
   fullName: string;
@@ -407,25 +858,20 @@ function AccountDetailsContent({
   setIsEditing: (editing: boolean) => void;
   emailSavedResponse: EmailSavedResponse | undefined;
   openChangeEmailModal: () => void;
+  openChangePhoneModal: () => void;
   formError: FormError | undefined;
   formRef: React.RefObject<HTMLFormElement>;
   state: string;
   t: any;
+  editPhoneNumberInput: string;
+  setEditPhoneNumberInput: (value: string) => void;
+  editFormOtpFetcher: ReturnType<typeof useFetcher>;
 }) {
   const { firstName, lastName, title, phoneNumber, emailAddress } =
     activeCustomer;
 
   return (
-    <div className=" min-h-screen">
-      {/* Header Section */}
-      <div className="px-6 py-8 border-b">
-        <h1 className="text-3xl font-bold">My Account</h1>
-        <p className="text-muted-foreground mt-2">
-          Welcome back, {firstName} {lastName}
-        </p>
-      </div>
-
-      {/* Main Content */}
+    <div className="min-h-screen">
       <div className="p-6 space-y-6">
         {/* Contact Information Card */}
         <Card className="overflow-visible">
@@ -450,6 +896,7 @@ function AccountDetailsContent({
                     title: title ?? 'None',
                     firstName,
                     lastName,
+                    phoneNumber: phoneNumber || '',
                   }}
                 >
                   <input
@@ -499,6 +946,53 @@ function AccountDetailsContent({
                         defaultValue={lastName || ''}
                       />
                     </div>
+
+                    <div>
+                      <Label htmlFor="phoneNumber">Phone Number</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="phoneNumber"
+                          name="phoneNumber"
+                          type="tel"
+                          className="mt-1"
+                          value={editPhoneNumberInput}
+                          onChange={(e) => {
+                            const cleaned = e.target.value.replace(/\D/g, '');
+                            setEditPhoneNumberInput(cleaned.slice(0, 10));
+                          }}
+                        />
+                        {editPhoneNumberInput &&
+                          editPhoneNumberInput !== phoneNumber && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() =>
+                                editFormOtpFetcher.submit(
+                                  {
+                                    phoneNumber: editPhoneNumberInput,
+                                    intent: FormIntent.SendPhoneOtp,
+                                  },
+                                  { method: 'post' },
+                                )
+                              }
+                              disabled={
+                                editPhoneNumberInput.length !== 10 ||
+                                editFormOtpFetcher.state !== 'idle'
+                              }
+                            >
+                              {editFormOtpFetcher.state !== 'idle'
+                                ? 'Sending...'
+                                : 'Send OTP'}
+                            </Button>
+                          )}
+                      </div>
+                      {editPhoneNumberInput &&
+                        editPhoneNumberInput.length !== 10 && (
+                          <p className="text-sm text-red-600 mt-1">
+                            Please enter a valid 10-digit phone number.
+                          </p>
+                        )}
+                    </div>
                   </div>
 
                   {formError &&
@@ -522,7 +1016,10 @@ function AccountDetailsContent({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setIsEditing(false)}
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditPhoneNumberInput(phoneNumber || '');
+                      }}
                     >
                       Cancel
                     </Button>
@@ -545,7 +1042,7 @@ function AccountDetailsContent({
                       Phone Number
                     </Label>
                     <p className="text-sm mt-1">
-                      {replaceEmptyString(phoneNumber) || '+1 (555) 123-4567'}
+                      {replaceEmptyString(phoneNumber) || 'Not provided'}
                     </p>
                   </div>
                 </div>
@@ -566,7 +1063,7 @@ function AccountDetailsContent({
         </Card>
 
         {/* Email Address Card */}
-        {/* <Card>
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
@@ -589,7 +1086,7 @@ function AccountDetailsContent({
               </Button>
             </div>
           </CardContent>
-        </Card> */}
+        </Card>
 
         {/* Phone Number Card */}
         <Card>
@@ -603,13 +1100,18 @@ function AccountDetailsContent({
             <div className="flex items-center justify-between">
               <div className="space-x-3 flex">
                 <p className="font-medium">{phoneNumber || 'Not provided'}</p>
-                <Badge
-                  variant="secondary"
-                  className="bg-green-100 text-green-800 hover:bg-green-100"
-                >
-                  Verified
-                </Badge>
+                {phoneNumber && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-100 text-green-800 hover:bg-green-100"
+                  >
+                    Verified
+                  </Badge>
+                )}
               </div>
+              <Button variant="outline" onClick={openChangePhoneModal}>
+                Change Phone Number
+              </Button>
             </div>
           </CardContent>
         </Card>

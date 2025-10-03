@@ -27,7 +27,7 @@ import type { LoaderFunctionArgs } from '@remix-run/router';
 import { useNavigate } from '@remix-run/react';
 
 import { HighlightedButton } from '~/components/HighlightedButton';
-import AccountSidebar from '~/components/account/AccountSidebar';
+import AccountHeader from '~/components/account/AccountHeader';
 import { MapPin } from 'lucide-react';
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -257,8 +257,8 @@ export default function AccountAddresses() {
   return (
     <>
       <Outlet />
-      <div className="min-h-screen bg-gray-50 flex relative">
-        <AccountSidebar
+      <div className="min-h-screen bg-gray-50">
+        <AccountHeader
           activeCustomer={
             activeCustomer || {
               firstName: '',
@@ -270,7 +270,7 @@ export default function AccountAddresses() {
         />
 
         {/* Main content */}
-        <div className="flex-1">
+        <div>
           {/* Page content */}
           <div className=" min-h-screen">
             {/* Header Section */}

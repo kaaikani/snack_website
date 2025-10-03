@@ -1,3 +1,4 @@
+// history.tsx
 'use client';
 
 import {
@@ -15,7 +16,10 @@ import {
   type ActionFunctionArgs,
 } from '@remix-run/server-runtime';
 import OrderHistoryItem from '~/components/account/OrderHistoryItem';
-import { getActiveCustomerOrderList } from '~/providers/customer/customer';
+import {
+  getActiveCustomerOrderList,
+  getActiveCustomerDetails,
+} from '~/providers/customer/customer'; // Add getActiveCustomerDetails
 import { cancelOrderOnClientRequest } from '~/providers/customPlugins/customPlugin';
 import { type OrderListOptions, SortOrder } from '~/generated/graphql';
 import { Pagination } from '~/components/Pagination';
@@ -28,10 +32,9 @@ import {
 } from '~/utils/pagination';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-
 import { useState } from 'react';
 import { HighlightedButton } from '~/components/HighlightedButton';
-import AccountSidebar from '~/components/account/AccountSidebar';
+import AccountHeader from '~/components/account/AccountHeader';
 
 const paginationLimitMinimumDefault = 10;
 const allowedPaginationLimits = new Set<number>([
@@ -97,22 +100,30 @@ export async function loader({ request }: DataFunctionArgs) {
     filter: { active: { eq: false } },
   };
 
-  const res = await getActiveCustomerOrderList(orderListOptions, { request });
-  if (!res.activeCustomer) {
+  const [res, { activeCustomer }] = await Promise.all([
+    getActiveCustomerOrderList(orderListOptions, { request }),
+    getActiveCustomerDetails({ request }), // Fetch activeCustomer
+  ]);
+
+  if (!res.activeCustomer || !activeCustomer) {
     return redirect('/sign-in');
   }
 
-  // Type assertion to ensure the data matches the component's expected type
   return json({
     orderList: res.activeCustomer.orders,
     appliedPaginationLimit: zodResult.data.limit,
     appliedPaginationPage: zodResult.data.page,
+    activeCustomer, // Add activeCustomer to loader data
   });
 }
 
 export default function AccountHistory() {
-  const { orderList, appliedPaginationLimit, appliedPaginationPage } =
-    useLoaderData<typeof loader>();
+  const {
+    orderList,
+    appliedPaginationLimit,
+    appliedPaginationPage,
+    activeCustomer,
+  } = useLoaderData<typeof loader>(); // Include activeCustomer
   const submit = useSubmit();
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -127,20 +138,12 @@ export default function AccountHistory() {
   );
   const location = useLocation();
 
-  // Dummy activeCustomer for sidebar (replace with real data if available)
-  const activeCustomer = {
-    firstName: '',
-    lastName: '',
-    emailAddress: '',
-    phoneNumber: '',
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex relative">
-      <AccountSidebar activeCustomer={activeCustomer} />
-
+    <div className="min-h-screen bg-gray-50">
+      <AccountHeader activeCustomer={activeCustomer} />{' '}
+      {/* Pass fetched activeCustomer */}
       {/* Main content */}
-      <div className="flex-1">
+      <div>
         {/* Page content */}
         <div className="min-h-screen">
           {/* Header Section */}
@@ -177,7 +180,7 @@ export default function AccountHistory() {
             {orderList.items?.map((item) => (
               <OrderHistoryItem
                 key={item.code}
-                order={item as any} // Type assertion to resolve the type mismatch
+                order={item as any}
                 isInitiallyExpanded={true}
                 className="mb-10"
               />
