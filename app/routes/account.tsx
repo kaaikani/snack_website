@@ -71,6 +71,15 @@ export const validator = withZod(
   }),
 );
 
+export const phoneNumberValidator = withZod(
+  z.object({
+    phoneNumber: z
+      .string()
+      .min(1, { message: 'Phone number is required' })
+      .regex(/^\+?[1-9]\d{1,14}$/, { message: 'Invalid phone number format' }),
+  }),
+);
+
 const changeEmailValidator = withZod(
   z.object({
     email: z
@@ -83,17 +92,19 @@ const changeEmailValidator = withZod(
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
+    const sessionStorage = await getSessionStorage();
+    const session = await sessionStorage.getSession(
+      request.headers.get('Cookie'),
+    );
+    const authToken = session.get('authToken');
+    const channelToken = session.get('channelToken');
+    console.log('Session tokens:', { authToken, channelToken });
+
     const { activeCustomer } = await getActiveCustomerDetails({ request });
 
     if (!activeCustomer) {
-      const sessionStorage = await getSessionStorage();
-      const session = await sessionStorage.getSession(
-        request.headers.get('Cookie'),
-      );
-
       session.unset('authToken');
       session.unset('channelToken');
-
       return redirect('/sign-in', {
         headers: {
           'Set-Cookie': await sessionStorage.commitSession(session),
@@ -128,6 +139,46 @@ export async function action({ request }: DataFunctionArgs) {
   const formError = (formError: FormError, init?: number | ResponseInit) => {
     return json<FormError>(formError, init);
   };
+
+  if (intent === FormIntent.UpdatePhone) {
+    const result = await phoneNumberValidator.validate(body);
+    if (result.error) return validationError(result.error);
+
+    const { phoneNumber } = result.data;
+
+    try {
+      await updateCustomer({ phoneNumber }, { request });
+      return json<CustomerUpdatedResponse>(
+        { customerUpdated: true },
+        { status: 200 },
+      );
+    } catch (error: any) {
+      console.error('Update phone error:', error);
+      if (
+        error.message.includes('401') ||
+        error.message.includes('Unauthorized')
+      ) {
+        const sessionStorage = await getSessionStorage();
+        const session = await sessionStorage.getSession(
+          request.headers.get('Cookie'),
+        );
+        session.unset('authToken');
+        session.unset('channelToken');
+        return redirect('/sign-in', {
+          headers: {
+            'Set-Cookie': await sessionStorage.commitSession(session),
+          },
+        });
+      }
+      return formError(
+        {
+          message: error.message || 'Failed to update phone number',
+          intent: FormIntent.UpdatePhone,
+        },
+        { status: 400 },
+      );
+    }
+  }
 
   if (intent === FormIntent.UpdateEmail) {
     const result = await changeEmailValidator.validate(body);
@@ -168,6 +219,7 @@ export async function action({ request }: DataFunctionArgs) {
         { status: 200 },
       );
     } catch (error: any) {
+      console.error('Update details error:', error);
       return formError(
         {
           message: 'Failed to update customer details',
