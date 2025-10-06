@@ -18,11 +18,13 @@ import { useTranslation } from 'react-i18next';
 type EditAddressProps = {
   address: Address;
   isActive?: boolean;
+  className?: string; // Added className prop
 };
 
 export default function EditAddressCard({
   address,
   isActive = false,
+  className,
 }: EditAddressProps) {
   const setShipping = useFetcher();
   const setBilling = useFetcher();
@@ -84,6 +86,7 @@ export default function EditAddressCard({
             'border-primary': isActive,
             'border-gray-200': !isActive,
           },
+          className,
         )}
       >
         <div className="flex justify-between gap-4">

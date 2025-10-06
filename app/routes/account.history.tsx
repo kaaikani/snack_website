@@ -1,4 +1,3 @@
-// history.tsx
 'use client';
 
 import {
@@ -19,7 +18,7 @@ import OrderHistoryItem from '~/components/account/OrderHistoryItem';
 import {
   getActiveCustomerOrderList,
   getActiveCustomerDetails,
-} from '~/providers/customer/customer'; // Add getActiveCustomerDetails
+} from '~/providers/customer/customer';
 import { cancelOrderOnClientRequest } from '~/providers/customPlugins/customPlugin';
 import { type OrderListOptions, SortOrder } from '~/generated/graphql';
 import { Pagination } from '~/components/Pagination';
@@ -30,11 +29,18 @@ import {
   translatePaginationTo,
   paginationValidationSchema,
 } from '~/utils/pagination';
-import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { useState } from 'react';
 import { HighlightedButton } from '~/components/HighlightedButton';
 import AccountHeader from '~/components/account/AccountHeader';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '~/components/ui/card';
+import { ShoppingBag } from 'lucide-react';
 
 const paginationLimitMinimumDefault = 10;
 const allowedPaginationLimits = new Set<number>([
@@ -102,7 +108,7 @@ export async function loader({ request }: DataFunctionArgs) {
 
   const [res, { activeCustomer }] = await Promise.all([
     getActiveCustomerOrderList(orderListOptions, { request }),
-    getActiveCustomerDetails({ request }), // Fetch activeCustomer
+    getActiveCustomerDetails({ request }),
   ]);
 
   if (!res.activeCustomer || !activeCustomer) {
@@ -113,7 +119,7 @@ export async function loader({ request }: DataFunctionArgs) {
     orderList: res.activeCustomer.orders,
     appliedPaginationLimit: zodResult.data.limit,
     appliedPaginationPage: zodResult.data.page,
-    activeCustomer, // Add activeCustomer to loader data
+    activeCustomer,
   });
 }
 
@@ -123,10 +129,9 @@ export default function AccountHistory() {
     appliedPaginationLimit,
     appliedPaginationPage,
     activeCustomer,
-  } = useLoaderData<typeof loader>(); // Include activeCustomer
+  } = useLoaderData<typeof loader>();
   const submit = useSubmit();
   const navigation = useNavigation();
-  const { t } = useTranslation();
   const showingOrdersFrom = translatePaginationFrom(
     appliedPaginationPage,
     appliedPaginationLimit,
@@ -139,82 +144,76 @@ export default function AccountHistory() {
   const location = useLocation();
 
   return (
-
-    <div className="min-h-screen bg-gray-50">
-
-      <AccountHeader activeCustomer={activeCustomer} />{' '}
-      {/* Pass fetched activeCustomer */}
-      {/* Main content */}
-      <div>
-        {/* Page content */}
-        <div className="min-h-screen">
-          {/* Header Section */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-8 border-b ">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">
-                {t('account.purchaseHistory')}
-              </h1>
-              <p className="text-muted-foreground mt-1 text-sm">
-                {t(
-                  'account.purchaseHistorySubheading',
-                  'View and manage your past orders',
-                )}
-              </p>
+    <div className="min-h-screen bg-[#ffedc7] pt-10">
+      <AccountHeader activeCustomer={activeCustomer} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <Card className="bg-white rounded-xl shadow-md border border-gray-100">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <ShoppingBag className="h-5 w-5 text-blue-700" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-semibold text-gray-900">
+                  Purchase History
+                </CardTitle>
+                <CardDescription className="text-sm text-gray-600">
+                  View your past orders
+                </CardDescription>
+              </div>
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="p-6">
-            {/* Loading-Overlay */}
+          </CardHeader>
+          <CardContent className="p-6">
             {navigation.state !== 'idle' && (
-              <div className="absolute top-0 left-0 w-full h-full z-50 bg-opacity-75"></div>
-            )}
-
-            {orderList.items.length === 0 && (
-              <div className="py-16 text-3xl text-center italic text-black select-none flex justify-center items-center">
-                {orderList.totalItems === 0
-                  ? t('order.historyEmpty')
-                  : t('order.historyEnd')}
+              <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
+                <div className="animate-spin h-8 w-8 border-4 border-[#FF4D4D] border-t-transparent rounded-full" />
               </div>
             )}
-
-            {/* The actual orders */}
-            {orderList.items?.map((item) => (
-              <OrderHistoryItem
-                key={item.code}
-                order={item as any}
-                isInitiallyExpanded={true}
-                className="mb-10"
-              />
-            ))}
-
-            {/* Pagination */}
-            <div className="flex flex-row justify-between items-center gap-4">
-              <span className="self-start text-gray-500 text-sm ml-4 lg:ml-6 mt-2">
-                Showing orders {showingOrdersFrom} to {showingOrdersTo} of{' '}
-                {orderList.totalItems}
-              </span>
-
-              <ValidatedForm
-                validator={withZod(
-                  paginationValidationSchema(allowedPaginationLimits),
-                )}
-                method="get"
-                onChange={(e) =>
-                  submit(e.currentTarget, { preventScrollReset: true })
-                }
-                preventScrollReset
-              >
-                <Pagination
-                  appliedPaginationLimit={appliedPaginationLimit}
-                  allowedPaginationLimits={allowedPaginationLimits}
-                  totalItems={orderList.totalItems}
-                  appliedPaginationPage={appliedPaginationPage}
-                />
-              </ValidatedForm>
-            </div>
-          </div>
-        </div>
+            {orderList.items.length === 0 ? (
+              <div className="py-16 text-center text-gray-600 italic">
+                {orderList.totalItems === 0
+                  ? 'No orders found'
+                  : 'No more orders to show'}
+              </div>
+            ) : (
+              <>
+                <div className="space-y-6">
+                  {orderList.items.map((item) => (
+                    <OrderHistoryItem
+                      key={item.code}
+                      order={item as any}
+                      isInitiallyExpanded={true}
+                      className="bg-gray-50 rounded-lg p-4"
+                    />
+                  ))}
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+                  <span className="text-sm text-gray-600">
+                    Showing {showingOrdersFrom} to {showingOrdersTo} of{' '}
+                    {orderList.totalItems} orders
+                  </span>
+                  <ValidatedForm
+                    validator={withZod(
+                      paginationValidationSchema(allowedPaginationLimits),
+                    )}
+                    method="get"
+                    onChange={(e) =>
+                      submit(e.currentTarget, { preventScrollReset: true })
+                    }
+                    preventScrollReset
+                  >
+                    <Pagination
+                      appliedPaginationLimit={appliedPaginationLimit}
+                      allowedPaginationLimits={allowedPaginationLimits}
+                      totalItems={orderList.totalItems}
+                      appliedPaginationPage={appliedPaginationPage}
+                    />
+                  </ValidatedForm>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

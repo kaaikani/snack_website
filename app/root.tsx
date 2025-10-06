@@ -178,6 +178,7 @@ export default function App() {
             isCartOpen={open}
             loyaltyPoints={loyaltyPoints}
             isSignedIn={isSignedIn}
+            alwaysVisible={true}
           />
           <main className="relative">
             <Outlet
@@ -199,7 +200,7 @@ export default function App() {
               removeItem={removeItem}
             />
           )}
-          <Footer isSignedIn={isSignedIn} />
+          <Footer />
         </GoogleOAuthProvider>
         <ScrollRestoration />
         <Scripts />

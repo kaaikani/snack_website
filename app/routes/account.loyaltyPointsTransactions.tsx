@@ -15,15 +15,21 @@ import {
 import {
   getActiveCustomer,
   getActiveCustomerDetails,
-} from '~/providers/customer/customer'; // Add getActiveCustomerDetails
+} from '~/providers/customer/customer';
 import { Pagination } from '~/components/Pagination';
-import { useTranslation } from 'react-i18next';
 import AccountHeader from '~/components/account/AccountHeader';
-
 import { useState, useEffect } from 'react';
 import { ValidatedForm } from 'remix-validated-form';
 import { withZod } from '@remix-validated-form/with-zod';
 import { paginationValidationSchema } from '~/utils/pagination';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '~/components/ui/card';
+import { Award } from 'lucide-react';
 
 const paginationLimitMinimumDefault = 10;
 const allowedPaginationLimits = new Set<number>([10, 20, 30]);
@@ -44,7 +50,7 @@ export async function loader({ request }: DataFunctionArgs) {
         },
       },
     }),
-    getActiveCustomerDetails({ request }), // Fetch activeCustomer
+    getActiveCustomerDetails({ request }),
   ]);
 
   if (!res.activeCustomer || !activeCustomer) {
@@ -64,7 +70,7 @@ export async function loader({ request }: DataFunctionArgs) {
     loyaltyPointsAvailable,
     page,
     limit,
-    activeCustomer, // Add activeCustomer to loader data
+    activeCustomer,
   });
 }
 
@@ -76,9 +82,8 @@ export default function AccountLoyaltyPointsTransactions() {
     page,
     limit,
     activeCustomer,
-  } = useLoaderData<typeof loader>(); // Include activeCustomer
+  } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
-  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -94,130 +99,109 @@ export default function AccountLoyaltyPointsTransactions() {
   const showingTo = Math.min(page * limit, totalItems);
 
   return (
-
-    <div className="min-h-screen bg-[#ffedc7]">
-
-      <AccountHeader activeCustomer={activeCustomer} />{' '}
-      {/* Pass fetched activeCustomer */}
-      {/* Main content */}
-      <div>
-        {/* Page content */}
-        <div className=" min-h-screen">
-          {/* Header Section */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-8 border-b">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">
-                Loyalty Points Transactions
-              </h1>
-              <p className="text-muted-foreground mt-1 text-sm">
-                View your loyalty points history. Available points:{' '}
-                {loyaltyPointsAvailable}
-              </p>
+    <div className="min-h-screen bg-[#ffedc7] pt-10">
+      <AccountHeader activeCustomer={activeCustomer} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <Card className="bg-white rounded-xl shadow-md border border-gray-100">
+          <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 rounded-full">
+                <Award className="h-5 w-5 text-emerald-700" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-semibold text-gray-900">
+                  Loyalty Points
+                </CardTitle>
+                <CardDescription className="text-sm text-gray-600">
+                  Your available points: {loyaltyPointsAvailable}
+                </CardDescription>
+              </div>
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="p-6">
-            {/* Loading-Overlay */}
+          </CardHeader>
+          <CardContent className="p-6">
             {navigation.state !== 'idle' && (
-              <div className="absolute top-0 left-0 w-full h-full z-50 bg-opacity-75"></div>
-            )}
-
-            {totalItems === 0 && (
-              <div className="py-16 text-3xl text-center italic text-black select-none flex justify-center items-center">
-                No loyalty points transactions yet.
+              <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
+                <div className="animate-spin h-8 w-8 border-4 border-[#FF4D4D] border-t-transparent rounded-full" />
               </div>
             )}
-
-            {/* Transactions Table */}
-            {transactions.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Date
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Description
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Points
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Order Code
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {transactions.map((tx: any) => (
-                      <tr key={tx.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(tx.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {tx.note}
-                        </td>
-                        <td
-                          className={`px-6 py-4 whitespace-nowrap text-sm ${
-                            tx.value > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}
-                        >
-                          {tx.value}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {tx.order ? (
-                            <td className="text-blue-600">{tx.order.code}</td>
-                          ) : (
-                            '-'
-                          )}
-                        </td>
+            {totalItems === 0 ? (
+              <div className="py-16 text-center text-gray-600 italic">
+                No loyalty points available
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          Points
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          Order Code
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {transactions.map((tx: any) => (
+                        <tr
+                          key={tx.id}
+                          className="hover:bg-gray-50 transition-all duration-200"
+                        >
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {new Date(tx.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {tx.note}
+                          </td>
+                          <td
+                            className={`px-6 py-4 text-sm font-medium ${
+                              tx.value > 0 ? 'text-green-600' : 'text-red-600'
+                            }`}
+                          >
+                            {tx.value}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-blue-600">
+                            {tx.order ? tx.order.code : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+                  <span className="text-sm text-gray-600">
+                    Showing {showingFrom} to {showingTo} of {totalItems}{' '}
+                    transactions
+                  </span>
+                  <ValidatedForm
+                    validator={withZod(
+                      paginationValidationSchema(allowedPaginationLimits),
+                    )}
+                    method="get"
+                    onChange={(e) =>
+                      setSearchParams(new FormData(e.currentTarget) as any)
+                    }
+                    preventScrollReset
+                  >
+                    <Pagination
+                      appliedPaginationLimit={limit}
+                      allowedPaginationLimits={allowedPaginationLimits}
+                      totalItems={totalItems}
+                      appliedPaginationPage={page}
+                    />
+                  </ValidatedForm>
+                </div>
+              </>
             )}
-
-            {/* Pagination */}
-            <div className="flex flex-row justify-between items-center gap-4 mt-6">
-              <span className="self-start text-gray-500 text-sm ml-4 lg:ml-6 mt-2">
-                Showing {showingFrom} to {showingTo} of {totalItems}
-              </span>
-
-              <ValidatedForm
-                validator={withZod(
-                  paginationValidationSchema(allowedPaginationLimits),
-                )}
-                method="get"
-                onChange={(e) => {
-                  const formData = new FormData(e.currentTarget);
-                  setSearchParams(formData as any);
-                }}
-                preventScrollReset
-              >
-                <Pagination
-                  appliedPaginationLimit={limit}
-                  allowedPaginationLimits={allowedPaginationLimits}
-                  totalItems={totalItems}
-                  appliedPaginationPage={page}
-                />
-              </ValidatedForm>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

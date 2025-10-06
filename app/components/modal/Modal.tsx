@@ -32,7 +32,7 @@ const Modal: React.FC<PropsWithChildren<ModalProps>> & {
           afterEnter={afterOpen}
           afterLeave={afterClose}
         >
-          <div className="fixed inset-0 bg-gray-700 bg-opacity-75 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-gray-700 bg-black/70 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">

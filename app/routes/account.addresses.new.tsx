@@ -13,13 +13,12 @@ import CustomerAddressForm, {
 } from '~/components/account/CustomerAddressForm';
 import { createCustomerAddress } from '~/providers/account/account';
 import { getActiveCustomerDetails } from '~/providers/customer/customer';
-import { getFixedT } from '~/i18next.server';
 import type { ErrorResult } from '~/generated/graphql';
 import { ErrorCode } from '~/generated/graphql';
 import { validationError } from 'remix-validated-form';
 import { getSessionStorage } from '~/sessions';
+import { X } from 'lucide-react';
 
-// Define the expected activeCustomer type for CustomerAddressForm
 type ActiveCustomerFormType =
   | {
       firstName?: string | undefined;
@@ -53,19 +52,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     phoneNumber: activeCustomer.phoneNumber ?? undefined,
   };
 
-  // const phoneNumber = transformedActiveCustomer.phoneNumber;
-  // let channelCode = '';
-  // if (phoneNumber) {
-  //   const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
-  //   channelCode = channels[0]?.code || '';
-  // }
-
-  // const channelPostalcodes = await getChannelPostalcodes();
-
   return json({
     activeCustomer: transformedActiveCustomer,
-    // channelCode,
-    // channelPostalcodes,
   });
 }
 
@@ -78,7 +66,6 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const data = result.data;
-  const t = await getFixedT(request);
 
   const addressData = {
     fullName: data.fullName,
@@ -103,7 +90,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json<ErrorResult>(
         {
           errorCode: ErrorCode.UnknownError,
-          message: t('address.createError'),
+          message: 'Failed to create address',
         },
         { status: 400 },
       );
@@ -113,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return json<ErrorResult>(
       {
         errorCode: ErrorCode.UnknownError,
-        message: t('address.createError'),
+        message: 'Failed to create address',
       },
       { status: 500 },
     );
@@ -126,7 +113,6 @@ export default function NewAddress() {
   const submit = useSubmit();
   const formRef = useRef<HTMLFormElement>(null);
 
-  // ⛔ Prevent page scroll while modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -144,36 +130,23 @@ export default function NewAddress() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative w-full max-w-2xl rounded-lg bg-white shadow-xl">
-        {/* Scrollable body inside modal */}
-        <div className="relative max-h-[90vh] overflow-y-auto p-6">
-          <button
-            onClick={() => navigate('/account/addresses')}
-            className="absolute right-4 top-4 z-10 rounded-full p-2 text-gray-400 hover:text-gray-600"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6">
+        <button
+          onClick={() => navigate('/account/addresses')}
+          className="absolute right-4 top-4 p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100"
+        >
+          <X className="h-6 w-6" />
+        </button>
+        <div className="max-h-[80vh] overflow-y-auto">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Add New Address
+          </h2>
           <CustomerAddressForm
             formRef={formRef}
             submit={handleSubmit}
             isEditing={false}
             activeCustomer={activeCustomer}
-            // channelCode={channelCode}
-            // channelPostalcodes={channelPostalcodes}
           />
         </div>
       </div>

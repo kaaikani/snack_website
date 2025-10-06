@@ -23,10 +23,6 @@ import CustomerAddressForm, {
 import { updateCustomerAddress } from '~/providers/account/account';
 import { getAvailableCountries } from '~/providers/checkout/checkout';
 import { getActiveCustomerAddresses } from '~/providers/customer/customer';
-import { useTranslation } from 'react-i18next';
-// import { ChannelPostalcode, getChannelPostalcodes } from '~/lib/hygraph';
-// import { getChannelsByCustomerPhonenumber } from '~/providers/customPlugins/customPlugin';
-import { getActiveCustomerDetails } from '~/providers/customer/customer';
 
 type AddressUpdateInput = {
   id: string;
@@ -53,22 +49,10 @@ export async function loader({ request, params }: DataFunctionArgs) {
     return redirect('/account/addresses');
   }
 
-  const { activeCustomer: detailedCustomer } = await getActiveCustomerDetails({
-    request,
-  });
-  // const phoneNumber = detailedCustomer?.phoneNumber ?? undefined;
-  // let channelCode = '';
-  // if (phoneNumber) {
-  //   const channels = await getChannelsByCustomerPhonenumber(phoneNumber);
-  //   channelCode = channels[0]?.code || '';
-  // }
-
-  // const channelPostalcodes = await getChannelPostalcodes();
-
   const { availableCountries } = await getAvailableCountries({ request });
   return json({
     address,
-    availableCountries /*, channelCode, channelPostalcodes */,
+    availableCountries,
   });
 }
 
@@ -122,10 +106,8 @@ export default function EditAddress() {
   const navigate = useNavigate();
   const { state, close } = useToggleState(true);
   const formRef = useRef<HTMLFormElement>(null);
-  const { t } = useTranslation();
   const submit = useSubmit();
 
-  // Prevent background scroll when modal is open
   useEffect(() => {
     if (state) {
       document.body.style.overflow = 'hidden';
@@ -160,7 +142,7 @@ export default function EditAddress() {
   return (
     <div>
       <Modal isOpen={state} close={customClose} afterClose={afterClose}>
-        <Modal.Title></Modal.Title>
+        <Modal.Title>Edit Address</Modal.Title>
         <Modal.Body>
           <div className="max-h-[80vh] overflow-y-auto">
             <CustomerAddressForm
@@ -169,8 +151,6 @@ export default function EditAddress() {
               formRef={formRef}
               submit={submitForm}
               isEditing={true}
-              // channelCode={channelCode}
-              // channelPostalcodes={channelPostalcodes}
             />
           </div>
         </Modal.Body>

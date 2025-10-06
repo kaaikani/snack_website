@@ -8,8 +8,11 @@ import {
   Form,
   useLocation,
 } from '@remix-run/react';
-import { type ActionFunctionArgs, json } from '@remix-run/server-runtime';
-import { useTranslation } from 'react-i18next';
+import {
+  type ActionFunctionArgs,
+  json,
+  redirect,
+} from '@remix-run/server-runtime';
 import { useState } from 'react';
 import EditAddressCard from '~/components/account/EditAddressCard';
 import { type Address, ErrorCode, type ErrorResult } from '~/generated/graphql';
@@ -22,29 +25,51 @@ import {
   getActiveCustomerAddresses,
   getActiveCustomerDetails,
 } from '~/providers/customer/customer';
-import { getFixedT } from '~/i18next.server';
 import type { LoaderFunctionArgs } from '@remix-run/router';
 import { useNavigate } from '@remix-run/react';
-
 import { HighlightedButton } from '~/components/HighlightedButton';
-// import AccountSidebar from '~/components/account/AccountSidebar';
 import { MapPin } from 'lucide-react';
 import AccountHeader from '~/components/account/AccountHeader';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '~/components/ui/card';
+
+// Define the expected type for activeCustomer to match AccountHeaderProps
+interface ActiveCustomer {
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+  phoneNumber?: string | null | undefined;
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const res = await getActiveCustomerAddresses({ request });
   const activeCustomerAddresses = res.activeCustomer;
 
-  // Also get customer details for sidebar
   const { activeCustomer } = await getActiveCustomerDetails({ request });
 
-  return json({ activeCustomerAddresses, activeCustomer });
+  if (!activeCustomer) {
+    return redirect('/sign-in');
+  }
+
+  return json({
+    activeCustomerAddresses,
+    activeCustomer: {
+      firstName: activeCustomer.firstName,
+      lastName: activeCustomer.lastName,
+      emailAddress: activeCustomer.emailAddress,
+      phoneNumber: activeCustomer.phoneNumber,
+    } as ActiveCustomer,
+  });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
-  const t = await getFixedT(request);
 
   // Handle creating a new address
   if (intent === 'createAddress') {
@@ -65,14 +90,13 @@ export async function action({ request }: ActionFunctionArgs) {
     try {
       const result = await createCustomerAddress(addressData, { request });
 
-      // Check if result is an Address object (success) or has an error
       if (result && result.__typename === 'Address') {
-        return json({ success: true, message: t('address.created') });
+        return json({ success: true, message: 'Address created successfully' });
       } else {
         return json<ErrorResult>(
           {
             errorCode: ErrorCode.UnknownError,
-            message: t('address.createError'),
+            message: 'Failed to create address',
           },
           { status: 400 },
         );
@@ -82,7 +106,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json<ErrorResult>(
         {
           errorCode: ErrorCode.UnknownError,
-          message: t('address.createError'),
+          message: 'Failed to create address',
         },
         { status: 500 },
       );
@@ -96,7 +120,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json<ErrorResult>(
         {
           errorCode: ErrorCode.IdentifierChangeTokenInvalidError,
-          message: t('address.idError'),
+          message: 'Invalid address ID',
         },
         { status: 400 },
       );
@@ -122,14 +146,13 @@ export async function action({ request }: ActionFunctionArgs) {
         { request },
       );
 
-      // Check if result is an Address object (success) or has an error
       if (result && result.__typename === 'Address') {
-        return json({ success: true, message: t('address.updated') });
+        return json({ success: true, message: 'Address updated successfully' });
       } else {
         return json<ErrorResult>(
           {
             errorCode: ErrorCode.UnknownError,
-            message: t('address.updateError'),
+            message: 'Failed to update address',
           },
           { status: 400 },
         );
@@ -139,7 +162,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json<ErrorResult>(
         {
           errorCode: ErrorCode.UnknownError,
-          message: t('address.updateError'),
+          message: 'Failed to update address',
         },
         { status: 500 },
       );
@@ -150,12 +173,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const id = formData.get('id') as string | null;
   const _action = formData.get('_action');
 
-  // Verify that id is set for existing actions
   if (!id || id.length === 0) {
     return json<ErrorResult>(
       {
         errorCode: ErrorCode.IdentifierChangeTokenInvalidError,
-        message: t('address.idError'),
+        message: 'Invalid address ID',
       },
       {
         status: 400,
@@ -175,7 +197,7 @@ export async function action({ request }: ActionFunctionArgs) {
         return json<ErrorResult>(
           {
             errorCode: ErrorCode.UnknownError,
-            message: t('address.updateError'),
+            message: 'Failed to update address',
           },
           { status: 400 },
         );
@@ -184,7 +206,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json<ErrorResult>(
         {
           errorCode: ErrorCode.UnknownError,
-          message: t('address.updateError'),
+          message: 'Failed to update address',
         },
         { status: 500 },
       );
@@ -203,7 +225,7 @@ export async function action({ request }: ActionFunctionArgs) {
         return json<ErrorResult>(
           {
             errorCode: ErrorCode.UnknownError,
-            message: t('address.updateError'),
+            message: 'Failed to update address',
           },
           { status: 400 },
         );
@@ -212,7 +234,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json<ErrorResult>(
         {
           errorCode: ErrorCode.UnknownError,
-          message: t('address.updateError'),
+          message: 'Failed to update address',
         },
         { status: 500 },
       );
@@ -222,14 +244,13 @@ export async function action({ request }: ActionFunctionArgs) {
   if (_action === 'deleteAddress') {
     try {
       const result = await deleteCustomerAddress(id, { request });
-      // Assuming deleteCustomerAddress returns a boolean or similar success indicator
       return json({ success: true }, { status: 200 });
     } catch (error) {
       console.error('Delete address error:', error);
       return json<ErrorResult>(
         {
           errorCode: ErrorCode.UnknownError,
-          message: t('address.deleteError'),
+          message: 'Failed to delete address',
         },
         { status: 400 },
       );
@@ -238,7 +259,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   return json<ErrorResult>(
     {
-      message: t('common.unknowError'),
+      message: 'An unknown error occurred',
       errorCode: ErrorCode.UnknownError,
     },
     {
@@ -247,81 +268,68 @@ export async function action({ request }: ActionFunctionArgs) {
   );
 }
 
-// Rest of your component code remains the same...
 export default function AccountAddresses() {
   const { activeCustomerAddresses, activeCustomer } =
     useLoaderData<typeof loader>();
-  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
 
   return (
-    <>
-      <Outlet />
-      <div className="min-h-screen bg-gray-50 flex relative">
-        {/* <AccountSidebar
-          activeCustomer={
-            activeCustomer || {
-              firstName: '',
-              lastName: '',
-              emailAddress: '',
-              phoneNumber: null,
-            }
-          }
-        /> */}
-
-        {/* Main content */}
-        <div>
-          {/* Page content */}
-          <div className=" min-h-screen">
-            {/* Header Section */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-8 border-b">
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold">My Addresses</h1>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Manage your shipping and billing addresses
-                </p>
+    <div className="min-h-screen bg-[#ffedc7] pt-10">
+      <AccountHeader activeCustomer={activeCustomer} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <Card className="bg-white rounded-xl shadow-md border border-gray-100">
+          <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 rounded-full">
+                  <MapPin className="h-5 w-5 text-emerald-700" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-gray-900">
+                    Addresses
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-600">
+                    Manage your shipping and billing addresses
+                  </CardDescription>
+                </div>
               </div>
               <HighlightedButton
                 type="button"
-                className="self-start lg:self-auto "
+                className="h-10 px-4 bg-[#FF4D4D] hover:bg-[#FF6B6B] text-white"
                 onClick={() => navigate('/account/addresses/new')}
               >
-                Add Address
+                Add New Address
               </HighlightedButton>
             </div>
-
-            {/* Main Content */}
-            <div className="p-6">
+          </CardHeader>
+          <CardContent className="p-6">
+            {!activeCustomerAddresses?.addresses ||
+            activeCustomerAddresses.addresses.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="h-8 w-8 text-emerald-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Addresses Found
+                </h3>
+                <p className="text-gray-600">Add an address to get started</p>
+              </div>
+            ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Existing Addresses */}
-                {activeCustomerAddresses?.addresses?.map((address) => (
+                {activeCustomerAddresses.addresses.map((address) => (
                   <EditAddressCard
                     address={address as Address}
                     key={address.id}
+                    className="bg-gray-50 rounded-lg p-4"
                   />
                 ))}
               </div>
-
-              {/* Empty state */}
-              {(!activeCustomerAddresses?.addresses ||
-                activeCustomerAddresses.addresses.length === 0) && (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MapPin className="h-8 w-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No addresses yet
-                  </h3>
-                  <p className="text-gray-500 mb-6">
-                    Add your first address to get started with faster checkout
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </>
+      <Outlet />
+    </div>
   );
 }
