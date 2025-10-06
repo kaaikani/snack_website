@@ -140,6 +140,12 @@ export function Header({
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center space-x-8">
+         <Link
+             to="/"
+             className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
+            >
+             Home
+            </Link>
             <div
               className="relative"
               onMouseEnter={() => setIsCollectionsOpen(true)}
@@ -187,12 +193,6 @@ export function Header({
               className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
             >
               About us
-            </Link>
-            <Link
-              to="/contact"
-              className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
-            >
-              Contact Us
             </Link>
           </nav>
 
