@@ -27,8 +27,9 @@ import type { LoaderFunctionArgs } from '@remix-run/router';
 import { useNavigate } from '@remix-run/react';
 
 import { HighlightedButton } from '~/components/HighlightedButton';
-import AccountHeader from '~/components/account/AccountHeader';
+// import AccountSidebar from '~/components/account/AccountSidebar';
 import { MapPin } from 'lucide-react';
+import AccountHeader from '~/components/account/AccountHeader';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const res = await getActiveCustomerAddresses({ request });
@@ -257,8 +258,8 @@ export default function AccountAddresses() {
   return (
     <>
       <Outlet />
-      <div className="min-h-screen bg-gray-50">
-        <AccountHeader
+      <div className="min-h-screen bg-gray-50 flex relative">
+        {/* <AccountSidebar
           activeCustomer={
             activeCustomer || {
               firstName: '',
@@ -267,7 +268,7 @@ export default function AccountAddresses() {
               phoneNumber: null,
             }
           }
-        />
+        /> */}
 
         {/* Main content */}
         <div>
@@ -283,7 +284,7 @@ export default function AccountAddresses() {
               </div>
               <HighlightedButton
                 type="button"
-                className="self-start lg:self-auto"
+                className="self-start lg:self-auto "
                 onClick={() => navigate('/account/addresses/new')}
               >
                 Add Address
@@ -306,7 +307,7 @@ export default function AccountAddresses() {
               {(!activeCustomerAddresses?.addresses ||
                 activeCustomerAddresses.addresses.length === 0) && (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
                     <MapPin className="h-8 w-8 text-gray-400" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">

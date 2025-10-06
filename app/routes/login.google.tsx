@@ -4,8 +4,8 @@ import { json, redirect } from '@remix-run/node';
 import { authenticate } from '~/providers/account/account';
 import { getSessionStorage } from '~/sessions';
 
-// Import the correct channel token from your SDK
-const CHANNEL_TOKEN = 'ind-madurai'; // ✅ Use the same token as in sdk.ts
+// ✅ IMPORTANT: Use the EXACT same token as in graphqlWrapper.ts
+const CHANNEL_TOKEN = 'Ind-Snacks';
 
 // Type guard functions
 function isCurrentUser(
@@ -70,8 +70,8 @@ export async function action({ request }: ActionFunctionArgs) {
       request.headers.get('Cookie'),
     );
 
-    // ✅ Use the correct channel token that exists in your Vendure server
-    const channelToken = session.get('channelToken') || CHANNEL_TOKEN;
+    // ✅ Use the FIXED channel token that matches graphqlWrapper.ts
+    const channelToken = CHANNEL_TOKEN;
     console.log('Using channel token:', channelToken);
 
     // Use the same authenticate function as phone OTP, but with Google auth data
@@ -102,16 +102,16 @@ export async function action({ request }: ActionFunctionArgs) {
           result.result.identifier,
         );
 
-        // ✅ Save both authToken and channelToken (exactly like phone OTP)
+        // ✅ Save both authToken and channelToken
         session.set('authToken', vendureToken);
-        session.set('channelToken', channelToken); // This will now be 'ind-madurai'
+        session.set('channelToken', channelToken);
         session.set('userId', result.result.id);
         session.set('identifier', result.result.identifier);
         session.set('rememberMe', true);
 
         const cookieHeaders = await sessionStorage.commitSession(session);
 
-        // ✅ Redirect to home with success parameters (exactly like phone OTP)
+        // ✅ Redirect to home with success parameters
         const url = new URL('/', request.url);
         const protocol =
           request.headers.get('X-Forwarded-Proto') || url.protocol;

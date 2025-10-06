@@ -364,7 +364,7 @@ export async function authenticate(
   {
     request,
     customHeaders,
-  }: { request: Request; customHeaders: { 'vendure-token': string } },
+  }: { request: Request; customHeaders: { 'vendure-token': string } }
 ): Promise<{ result: CurrentUser | ErrorResult; headers: Headers }> {
   const vendureApiUrl = process.env.VENDURE_API_URL;
   console.log('authenticate:', authenticate);
@@ -404,9 +404,7 @@ export async function authenticate(
     }),
   });
 
-  const json = (await response.json()) as {
-    data: { authenticate: CurrentUser | ErrorResult };
-  };
+  const json = await response.json() as { data: { authenticate: CurrentUser | ErrorResult } };
   return {
     result: json.data.authenticate,
     headers: response.headers,

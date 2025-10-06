@@ -50,7 +50,7 @@ import {
   getLoyaltyPointsConfig,
 } from '~/providers/customPlugins/customPlugin';
 import PaymentStep from './checkout.payment';
-import classNames from 'classnames'; // Added classNames import
+import { classNames } from '~/utils/class-names';
 
 // Define AddressType interface based on your data structure
 interface AddressType {

@@ -713,11 +713,11 @@ gql`
 
 export async function authenticateWithGoogle(
   token: string,
-  options?: { request: Request; customHeaders?: Record<string, string> },
+  options?: { request: Request; customHeaders?: Record<string, string> }
 ): Promise<WithHeaders<AuthenticateGoogleMutation['authenticate']>> {
   const response = await sdk.AuthenticateGoogle(
     { input: { google: { token } } },
-    options,
+    options
   );
 
   return Object.assign(response.authenticate, {
@@ -725,19 +725,18 @@ export async function authenticateWithGoogle(
   });
 }
 gql`
-  mutation AuthenticateGoogle($input: AuthenticationInput!) {
-    authenticate(input: $input) {
-      ... on CurrentUser {
-        id
-        identifier
-      }
-      ... on ErrorResult {
-        errorCode
-        message
-      }
+mutation AuthenticateGoogle($input: AuthenticationInput!) {
+  authenticate(input: $input) {
+    ... on CurrentUser {
+      id
+      identifier
+    }
+    ... on ErrorResult {
+      errorCode
+      message
     }
   }
-`;
+}`
 
 export async function getCollectionProductsBySlug(
   collectionSlug: string,

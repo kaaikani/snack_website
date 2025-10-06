@@ -1,76 +1,51 @@
-// app/components/GoogleLoginButton.tsx
+// app/components/Google/GoogleLoginButton.tsx
+
 import { GoogleLogin } from '@react-oauth/google';
 import { useFetcher } from '@remix-run/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export function GoogleLoginButton() {
   const fetcher = useFetcher();
 
-  const [buttonSize, setButtonSize] = useState<'small' | 'medium'>('medium');
-  const [buttonText, setButtonText] = useState<'signin' | 'signin_with'>(
-    'signin_with',
-  );
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        // Assuming 768px as the breakpoint for mobile
-        setButtonSize('small');
-        setButtonText('signin');
-      } else {
-        setButtonSize('medium');
-        setButtonText('signin_with');
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Call once on mount to set initial size
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Handle the response from the server
+  // This effect can show alerts or toasts based on the backend response
   useEffect(() => {
     const data = fetcher.data as { error?: string };
     if (data?.error) {
-      console.error('Google login error:', data.error);
       alert(`Login failed: ${data.error}`);
     }
   }, [fetcher.data]);
 
   return (
-    <div>
+    <div className="relative">
       <GoogleLogin
         onSuccess={(credentialResponse) => {
-          console.log('Google login success:', credentialResponse);
-          const token = credentialResponse.credential;
+          const token = credentialResponse.credential; // This is the correct ID Token (JWT)
           if (token) {
             fetcher.submit(
-              { token },
+              { token }, // Sending the field named "token"
               {
                 method: 'post',
-                action: '/login/google', // Changed from '/' to '/login/google'
+                action: '/login/google',
               },
             );
-          } else {
-            console.error('No token received from Google');
-            alert('No token received from Google');
           }
         }}
         onError={() => {
           console.error('Google login failed');
-          alert('Google login failed');
         }}
-        useOneTap={false}
         theme="outline"
-        size={buttonSize}
-        text={buttonText}
+        size="medium"
+        text="signin"
         shape="rectangular"
-        // width="100%"
       />
+
+      {/* Loading overlay */}
       {fetcher.state === 'submitting' && (
-        <div className="mt-2 text-center text-sm text-gray-600">
-          Signing in...
+        <div className="absolute inset-0 bg-white/80 rounded flex items-center justify-center">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+            <span>Signing in...</span>
+          </div>
         </div>
       )}
     </div>

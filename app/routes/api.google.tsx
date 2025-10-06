@@ -1,4 +1,4 @@
-// app/routes/login.google.tsx
+// app/routes/api.google.tsx
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { authenticateWithGoogle } from '~/providers/customPlugins/customPlugin';

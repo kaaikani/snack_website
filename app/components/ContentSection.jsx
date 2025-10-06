@@ -2,6 +2,8 @@ import {
   LifebuoyIcon,
   NewspaperIcon,
   PhoneIcon,
+  StarIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/20/solid';
 
 const cards = [
@@ -10,77 +12,118 @@ const cards = [
     description:
       'Delicious snacks at unbeatable prices. Bulk orders made simple and affordable.',
     icon: PhoneIcon,
+    color: 'from-[#FF4D4D] to-[#FF6B6B]',
+    bgColor: 'bg-[#ffedc7]/80',
+    borderColor: 'border-[#FF4D4D]/30',
   },
   {
     name: 'Technical Support',
     description:
-      'We’re here to help anytime. Quick support for all your snacking needs.',
+      "We're here to help anytime. Quick support for all your snacking needs.",
     icon: LifebuoyIcon,
+    color: 'from-[#fb6331] to-[#fbc531]',
+    bgColor: 'bg-[#ffedc7]/80',
+    borderColor: 'border-[#fb6331]/30',
   },
   {
     name: 'Orders',
     description:
       'Order fresh, tasty snacks in just a click. Fast delivery right to your door',
     icon: NewspaperIcon,
+    color: 'from-[#FFD93D] to-[#fbc531]',
+    bgColor: 'bg-[#ffedc7]/80',
+    borderColor: 'border-[#FFD93D]/30',
   },
+];
+
+const features = [
+  '24/7 Customer Support',
+  'Fast & Reliable Delivery',
+  'Premium Quality Snacks',
+  'Bulk Order Discounts',
 ];
 
 export default function ContentSection() {
   return (
-    <div className="relative isolate overflow-hidden bg-gray-900 py-24 sm:py-32">
-      <img
-        alt="snacks image"
-        src="snacks 5.jpg"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-right md:object-center"
-      />
-      <div className="hidden sm:absolute sm:-top-10 sm:right-1/2 sm:-z-10 sm:mr-10 sm:block sm:transform-gpu sm:blur-3xl">
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-tr from-[#ff4694] to-[#776fff] opacity-20"
+    <section className="relative overflow-hidden py-20 sm:py-32">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
+        <img
+          alt="snacks image"
+          src="snacks 5.jpg"
+          className="h-full w-full object-cover object-right md:object-center"
         />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/85 to-white/90" />
       </div>
-      <div className="absolute -top-52 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl sm:top-[-28rem] sm:ml-16 sm:translate-x-0 sm:transform-gpu">
-        <div
-          style={{
-            clipPath:
-              'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-          }}
-          className="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-tr from-[#ff4694] to-[#776fff] opacity-20"
-        />
+      
+      {/* Subtle Pattern Overlay */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f3f4f6' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
       </div>
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:mx-0 gap-x-4 rounded-xl bg-white/60 shadow-lg p-6 ring-1 ring-inset ring-white/10">
-          <h2 className="text-4xl font-bold tracking-tight text-black sm:text-6xl">
-            Support center
+      
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        {/* Header Section */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold tracking-tight text-[#1F0322] sm:text-6xl mb-6">
+            Your Snack Journey
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF4D4D] to-[#fb6331]">
+              Starts Here
+            </span>
           </h2>
-          <p className="mt-6 text-lg leading-8 text-black">
-            Our support center is dedicated to ensuring smooth and hassle-free
-            service. From bulk snack orders to delivery updates, our team is
-            here to assist you. Reach out anytime, and we’ll provide quick,
-            reliable solutions..
+          
+          <p className="text-xl text-[#1F0322]/80 max-w-3xl mx-auto leading-relaxed">
+            Experience the perfect blend of quality, convenience, and exceptional service. 
+            From premium snacks to lightning-fast delivery, we've got your cravings covered.
           </p>
         </div>
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-8">
+
+        {/* Features List */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          {features.map((feature) => (
+            <div
+              key={feature}
+              className="flex items-center gap-2 p-3 rounded-lg bg-[#ffedc7]/90 backdrop-blur-sm border border-[#FF4D4D]/20 shadow-sm"
+            >
+              <CheckCircleIcon className="h-5 w-5 text-[#FF4D4D] flex-shrink-0" />
+              <span className="text-sm font-medium text-[#1F0322]">{feature}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Main Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {cards.map((card) => (
             <div
               key={card.name}
-              className="flex gap-x-4 rounded-xl bg-white/60 shadow-lg p-6 ring-1 ring-inset ring-white/10"
+              className={`relative overflow-hidden rounded-2xl ${card.bgColor} border-2 ${card.borderColor} p-8`}
             >
-              <card.icon
-                aria-hidden="true"
-                className="h-7 w-5 flex-none text-indigo-600"
-              />
-              <div className="text-base leading-7">
-                <h3 className="font-semibold text-black">{card.name}</h3>
-                <p className="mt-2 text-black">{card.description}</p>
+              {/* Card Background Pattern */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-400 to-transparent rounded-2xl" />
+              </div>
+              
+              {/* Icon Container */}
+              <div className="relative mb-6">
+                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${card.color} shadow-lg`}>
+                  <card.icon className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="relative">
+                <h3 className="text-2xl font-bold text-[#1F0322] mb-4">
+                  {card.name}
+                </h3>
+                <p className="text-[#1F0322]/80 leading-relaxed">
+                  {card.description}
+                </p>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

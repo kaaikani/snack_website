@@ -19,6 +19,7 @@ import {
 import { Pagination } from '~/components/Pagination';
 import { useTranslation } from 'react-i18next';
 import AccountHeader from '~/components/account/AccountHeader';
+
 import { useState, useEffect } from 'react';
 import { ValidatedForm } from 'remix-validated-form';
 import { withZod } from '@remix-validated-form/with-zod';
@@ -93,7 +94,9 @@ export default function AccountLoyaltyPointsTransactions() {
   const showingTo = Math.min(page * limit, totalItems);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+
+    <div className="min-h-screen bg-[#ffedc7]">
+
       <AccountHeader activeCustomer={activeCustomer} />{' '}
       {/* Pass fetched activeCustomer */}
       {/* Main content */}
@@ -121,7 +124,7 @@ export default function AccountLoyaltyPointsTransactions() {
             )}
 
             {totalItems === 0 && (
-              <div className="py-16 text-3xl text-center italic text-gray-300 select-none flex justify-center items-center">
+              <div className="py-16 text-3xl text-center italic text-black select-none flex justify-center items-center">
                 No loyalty points transactions yet.
               </div>
             )}

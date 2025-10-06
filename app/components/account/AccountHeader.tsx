@@ -37,7 +37,7 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
   ];
 
   return (
-    <header className="shadow-sm top-0 z-50">
+    <header className="shadow-sm top-0 z-50 bg-[#ffedc7]">
       {/* Mobile header */}
       <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b">
         <h1 className="text-lg font-semibold text-center w-full">
@@ -45,7 +45,7 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
         </h1>
         <button
           type="button"
-          className="p-2 rounded-md text-gray-700 hover:bg-gray-100 ml-2 shrink-0"
+          className="p-2 rounded-md text-red-700 hover:bg-red-100 ml-2 shrink-0"
           onClick={() => setMenuOpen(!menuOpen)}
         >
           {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -54,7 +54,7 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="lg:hidden bg-white border-b">
+        <div className="lg:hidden border-b">
           <nav className="flex flex-col px-4 py-4 space-y-2">
             {navigation.map((item) =>
               item.isSignOut ? (
@@ -126,8 +126,8 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
                 className={({ isActive }) =>
                   `flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-red-50 text-black'
+                      : 'text-black hover:bg-red-50 hover:text-red-900'
                   }`
                 }
               >

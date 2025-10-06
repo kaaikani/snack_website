@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import { Price } from './Price';
-import { PriceRange } from './Price';
+import { Price, PriceRange } from './Price';
 import {
   HeartIcon as HeartSolidIcon,
   CheckIcon,
@@ -13,7 +12,6 @@ import { CurrencyCode, type Order, type OrderLine } from '~/generated/graphql';
 import { useTranslation } from 'react-i18next';
 import { StockLevelLabel } from '~/components/products/StockLevelLabel';
 import { SignInPromptModal } from '~/components/modal/SignInPromptModal';
-// import { useActiveOrder } from '~/utils/use-active-order';
 
 export interface ActiveCustomer {
   activeCustomer?: {
@@ -46,6 +44,7 @@ export interface ProductCardProps {
   onFavoriteToggle?: (productId: string, isFavorited: boolean) => void;
   orderCount?: number;
   isSignedIn: boolean;
+  showAsVariantCard?: boolean; // 👈 new prop
 }
 
 export function ProductCard({
@@ -62,6 +61,7 @@ export function ProductCard({
   onFavoriteToggle,
   orderCount,
   isSignedIn,
+  showAsVariantCard = false, // 👈 default false
 }: ProductCardProps) {
   const { t } = useTranslation();
   const [selectedVariantId, setSelectedVariantId] = useState(
@@ -70,12 +70,9 @@ export function ProductCard({
   const selectedVariant =
     variants?.find((v) => v.id === selectedVariantId) || null;
 
-  // const [isSignedIn, setIsSignedIn] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
-
-  // const { adjustOrderLine, refresh } = useActiveOrder();
 
   useEffect(() => {
     setIsHydrated(true);
@@ -95,7 +92,6 @@ export function ProductCard({
     }
   }, [activeCustomer, productId, isHydrated]);
 
-  // ✅ Active order line lookup (now properly typed)
   const orderLine = activeOrder?.lines.find(
     (l: OrderLine) => l.productVariant.id === selectedVariantId,
   );
@@ -197,10 +193,12 @@ export function ProductCard({
       <div className="h-2" />
 
       {/* ✅ Product Name */}
-      <div className="text-sm text-gray-700">{productName}</div>
+      <div className="text-sm text-gray-700 text-center font-medium">
+        {productName}
+      </div>
 
       {/* ✅ Price */}
-      <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+      <div className="text-sm font-medium text-gray-900 flex items-center justify-center gap-2 mt-1">
         <Price
           priceWithTax={selectedVariant?.priceWithTax || priceWithTax}
           currencyCode={selectedVariant?.currencyCode || currencyCode}
@@ -208,8 +206,8 @@ export function ProductCard({
         <StockLevelLabel stockLevel={selectedVariant?.stockLevel} />
       </div>
 
-      {/* ✅ Variant Selector */}
-      {variants && variants.length > 1 ? (
+      {/* ✅ Variant Selector (hidden if showAsVariantCard) */}
+      {!showAsVariantCard && variants && variants.length > 1 ? (
         <select
           className="mt-2 border rounded px-1 py-1 text-xs"
           value={selectedVariantId || ''}
@@ -225,7 +223,7 @@ export function ProductCard({
         <div className="mt-2 h-7" />
       )}
 
-      {/* ✅ Add to Cart Button */}
+      {/* ✅ Add to Cart */}
       {qtyInCart === 0 ? (
         <button
           type="button"
@@ -237,7 +235,7 @@ export function ProductCard({
           {t('product.addToCart')}
         </button>
       ) : (
-        <div className="flex mt-1 items-center justify-center w-full  mx-auto  rounded-lg">
+        <div className="flex mt-1 items-center justify-center w-full mx-auto rounded-lg">
           <button
             type="button"
             onClick={() =>

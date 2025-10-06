@@ -139,7 +139,9 @@ export default function AccountHistory() {
   const location = useLocation();
 
   return (
+
     <div className="min-h-screen bg-gray-50">
+
       <AccountHeader activeCustomer={activeCustomer} />{' '}
       {/* Pass fetched activeCustomer */}
       {/* Main content */}
@@ -169,7 +171,7 @@ export default function AccountHistory() {
             )}
 
             {orderList.items.length === 0 && (
-              <div className="py-16 text-3xl text-center italic text-gray-300 select-none flex justify-center items-center">
+              <div className="py-16 text-3xl text-center italic text-black select-none flex justify-center items-center">
                 {orderList.totalItems === 0
                   ? t('order.historyEmpty')
                   : t('order.historyEnd')}
