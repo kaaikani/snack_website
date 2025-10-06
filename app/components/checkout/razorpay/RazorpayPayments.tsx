@@ -273,7 +273,7 @@ export function RazorpayPayments({
         disabled={!scriptLoaded || isProcessing}
         className={classNames(
           scriptLoaded && !isProcessing
-            ? 'bg-black border hover:bg-white hover:text-black hover:border-black text-white'
+            ? 'bg-amber-800 border-2 border-amber-950 text-white'
             : 'bg-gray-300 text-gray-600 cursor-not-allowed',
           'rounded-md py-3 px-4 text-base font-medium w-full transition-colors duration-200',
         )}

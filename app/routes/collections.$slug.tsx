@@ -213,7 +213,7 @@ export default function CollectionSlug() {
 
   return (
     <>
-      <div className="max-w-6xl px-4 xl:w-full  py-4 xl:max-w-none xl:px-8">
+      <div className="max-w-7xl mx-auto mt-20 px-4 xl:w-full  py-4 xl:max-w-none xl:px-8">
         {/* Show global error if exists */}
         {addItemToOrderError && (
           <div className="mb-4">

@@ -67,70 +67,85 @@ export default function Footer() {
       </style>
 
       {/* Main Footer Content */}
-      <div className="relative z-10 pt-32 md:pt-44 ">
-        <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="relative z-10 pt-32 md:pt-44">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Footer Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-12">
             {/* Brand Section */}
             <div className="space-y-4">
-              <h3 className="font-serif text-2xl font-bold">Your Brand</h3>
-              <p className="text-sm text-amber-100 leading-relaxed">
+              <div className="p-2 bg-amber-900/30 rounded-lg inline-block">
+                <img 
+                  src="https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/southmithai(1).png" 
+                  alt="SOUTH MITTHAI LOGO" 
+                  className="h-14 w-auto"
+                />
+              </div>
+              <p className="text-sm text-amber-100 leading-relaxed max-w-xs">
                 Creating amazing experiences for our customers with quality and care.
               </p>
             </div>
 
             {/* Quick Links */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200">Quick Links</h4>
-              <nav className="flex flex-col gap-3">
-                <a href="#" className="text-amber-100 hover:text-white transition-colors text-sm">
+              <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">Quick Links</h4>
+              <nav className="space-y-3">
+                <a href="/" className="block text-amber-100 hover:text-white transition-colors text-sm">
                   Home
                 </a>
-                <a href="#" className="text-amber-100 hover:text-white transition-colors text-sm">
+                <a href="/about" className="block text-amber-100 hover:text-white transition-colors text-sm">
                   About Us
                 </a>
-                <a href="#" className="text-amber-100 hover:text-white transition-colors text-sm">
+                {/* <a href="/" className="block text-amber-100 hover:text-white transition-colors text-sm">
                   Services
-                </a>
-              
+                </a> */}
               </nav>
             </div>
 
             {/* Support */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200">Support</h4>
-              <nav className="flex flex-col gap-3">
-                <a href="#" className="text-amber-100 hover:text-white transition-colors text-sm">
+              <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">Support</h4>
+              <nav className="space-y-3">
+                {/* <a href="#" className="block text-amber-100 hover:text-white transition-colors text-sm">
                   Help Center
-                </a>
-                <a href="#" className="text-amber-100 hover:text-white transition-colors text-sm">
+                </a> */}
+                <a href="/privacy-policy" className="block text-amber-100 hover:text-white transition-colors text-sm">
                   Privacy Policy
                 </a>
-                <a href="#" className="text-amber-100 hover:text-white transition-colors text-sm">
+                <a href="/terms-and-conditions" className="block text-amber-100 hover:text-white transition-colors text-sm">
                   Terms of Service
                 </a>
-                <a href="#" className="text-amber-100 hover:text-white transition-colors text-sm">
+                {/* <a href="#" className="block text-amber-100 hover:text-white transition-colors text-sm">
                   FAQ
-                </a>
+                </a> */}
               </nav>
             </div>
 
             {/* Contact */}
             <div id="contact" className="space-y-4">
-              <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200">Get in Touch</h4>
-              <div className="flex flex-col gap-3 text-sm text-amber-100">
-                <p>123 Business Street</p>
-                <p>City, State 12345</p>
-                <p>contact@example.com</p>
-                <p>(123) 456-7890</p>
-              </div>
+              <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">Get in Touch</h4>
+              <address className="not-italic space-y-3 text-sm text-amber-100">
+                <p className="leading-normal">No.4d-1, Montfort Nagar,<br />
+                Dindigul main road,<br />
+                Pirattiyur,<br />
+                Trichy - 620009</p>
+                <p className="mt-2">
+                  <a href="mailto:southmithai@gmail.com" className="hover:text-white transition-colors">
+                    southmithai@gmail.com
+                  </a>
+                </p>
+                <p>
+                  <a href="tel:18003094983" className="hover:text-white transition-colors">
+                    1800 309 4983
+                  </a>
+                </p>
+              </address>
             </div>
           </div>
 
           {/* Bottom Bar */}
-          <div className="pt-8 border-t border-amber-700/30">
+          <div className="pt-8 mt-8 border-t border-amber-700/30">
             <p className="text-center text-sm text-amber-200">
-              © {new Date().getFullYear()} Your Brand. All rights reserved.
+              © {new Date().getFullYear()} South Mithai. All rights reserved.
             </p>
           </div>
         </div>

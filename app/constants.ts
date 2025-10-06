@@ -1,4 +1,4 @@
-export const APP_META_TITLE = 'Snackshop';
+export const APP_META_TITLE = 'SouthMithai.com';
 export const APP_META_DESCRIPTION = '';
 
 export const DEMO_API_URL = 'http://localhost:3000/shop-api';

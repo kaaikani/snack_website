@@ -1,10 +1,9 @@
 'use client';
 
 import type React from 'react';
-
 import { useState } from 'react';
 import { useFetcher } from '@remix-run/react';
-import { useTranslation } from 'react-i18next';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
 
 interface OrderInstructionsProps {
   orderId: string;
@@ -18,14 +17,11 @@ export function OrderInstructions({
   disabled = false,
 }: OrderInstructionsProps) {
   const [instructions, setInstructions] = useState(initialValue);
-  const [isSaving, setIsSaving] = useState(false);
   const fetcher = useFetcher();
-  const { t } = useTranslation();
 
-  const handleSave = async () => {
+  const handleSave = () => {
+    // Only save if there's a change
     if (instructions.trim() === initialValue.trim()) return;
-
-    setIsSaving(true);
 
     const formData = new FormData();
     formData.append('action', 'updateOrderInstructions');
@@ -33,9 +29,6 @@ export function OrderInstructions({
     formData.append('instructions', instructions.trim());
 
     fetcher.submit(formData, { method: 'post' });
-
-    // Reset saving state after a delay
-    setTimeout(() => setIsSaving(false), 1000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -44,21 +37,24 @@ export function OrderInstructions({
       handleSave();
     }
   };
+  
+  const hasChanges = instructions.trim() !== initialValue.trim();
 
   return (
-    <div className="mt-6 pt-6 border-t border-gray-200">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-900">
+    <section className="bg-white mt-5 p-6 rounded-xl shadow-md border border-stone-200">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-stone-800 flex items-center gap-2">
+          <PencilSquareIcon className="w-6 h-6 text-amber-600" />
           Special Instructions
-        </h3>
-        {instructions.trim() !== initialValue.trim() && (
+        </h2>
+        {hasChanges && (
           <button
             type="button"
             onClick={handleSave}
-            disabled={isSaving || disabled}
-            className="text-xs bg-[#FF4D4D] text-white px-2 py-1 rounded hover:black disabled:opacity-50"
+            disabled={fetcher.state === 'submitting' || disabled}
+            className="text-xs font-semibold bg-amber-100 text-amber-800 px-3 py-1 rounded-full hover:bg-amber-200 disabled:opacity-50 transition-colors"
           >
-            {isSaving ? t('common.saving') : t('common.save')}
+            {fetcher.state === 'submitting' ? 'Saving...' : 'Save'}
           </button>
         )}
       </div>
@@ -70,19 +66,15 @@ export function OrderInstructions({
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          placeholder=""
-          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 text-sm resize-none disabled:bg-gray-50 disabled:text-gray-500"
+          placeholder="Add a note for the seller..."
+          className="w-full p-3 border border-stone-200 rounded-lg bg-stone-50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm resize-none disabled:bg-stone-100 disabled:text-stone-500 transition-colors"
           rows={3}
           maxLength={500}
         />
-        <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+        <div className="absolute bottom-2 right-3 text-xs text-stone-400">
           {instructions.length}/500
         </div>
       </div>
-
-      {/* {fetcher.data?.success && <div className="mt-2 text-xs text-green-600">{t("checkout.instructionsSaved")}</div>}
-
-      {fetcher.data?.error && <div className="mt-2 text-xs text-red-600">{fetcher.data.error}</div>} */}
-    </div>
+    </section>
   );
 }

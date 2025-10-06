@@ -3,7 +3,6 @@ import { XMarkIcon } from '@heroicons/react/24/solid';
 import clsx from 'clsx';
 import React, { Fragment, PropsWithChildren } from 'react';
 import { Link } from '@remix-run/react';
-import { ModalProvider, useModal } from './modal-context';
 
 type SignInPromptModalProps = {
   isOpen: boolean;
@@ -15,10 +14,11 @@ type SignInPromptModalProps = {
 
 export const SignInPromptModal: React.FC<
   PropsWithChildren<SignInPromptModalProps>
-> = ({ isOpen, close, size = 'small', children, afterClose, afterOpen }) => {
+> = ({ isOpen, close, size = 'small', afterClose, afterOpen }) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-[75]" onClose={close}>
+        {/* The overlay */}
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -30,7 +30,7 @@ export const SignInPromptModal: React.FC<
           afterEnter={afterOpen}
           afterLeave={afterClose}
         >
-          <div className="fixed inset-0 bg-gray-700 bg-opacity-75 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -44,9 +44,10 @@ export const SignInPromptModal: React.FC<
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
+              {/* --- THE FIX IS HERE: Styling is applied directly to Dialog.Panel --- */}
               <Dialog.Panel
                 className={clsx(
-                  'flex flex-col justify-start w-full h-full overflow-auto transform bg-white p-10 text-left align-middle shadow-xl transition-all',
+                  'w-full transform overflow-hidden rounded-xl bg-stone-50 p-6 text-left align-middle shadow-xl transition-all',
                   {
                     'max-w-md': size === 'small',
                     'max-w-xl': size === 'medium',
@@ -54,35 +55,38 @@ export const SignInPromptModal: React.FC<
                   },
                 )}
               >
-                <ModalProvider close={close}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900">
-                      Sign In Required
-                    </h3>
-                    <button
-                      type="button"
-                      className="text-gray-400 hover:text-gray-500"
-                      onClick={close}
-                    >
-                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                    </button>
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      You need to be signed in to add items to your cart or view
-                      your cart.
-                    </p>
-                  </div>
-                  <div className="mt-5 sm:mt-6">
-                    <Link
-                      to="/"
-                      className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm"
-                      onClick={close}
-                    >
-                      ok
-                    </Link>
-                  </div>
-                </ModalProvider>
+                <div className="flex justify-between items-start mb-2">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-semibold text-stone-800"
+                  >
+                    Sign In Required
+                  </Dialog.Title>
+                  <button
+                    type="button"
+                    className="text-stone-400 hover:text-amber-600 transition-colors"
+                    onClick={close}
+                  >
+                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                </div>
+
+                <div className="mt-2">
+                  <p className="text-base text-stone-600">
+                    You need to be signed in to add items to your cart or view
+                    your cart.
+                  </p>
+                </div>
+
+                <div className="mt-6">
+                  <Link
+                    to="/" // Or link to your sign-in page: to="/sign-in"
+                    className="inline-flex justify-center w-full rounded-lg shadow-sm px-4 py-2 bg-amber-500 text-base font-semibold text-black hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 sm:text-sm transition-colors"
+                    onClick={close}
+                  >
+                    OK
+                  </Link>
+                </div>
               </Dialog.Panel>
             </Transition.Child>
           </div>

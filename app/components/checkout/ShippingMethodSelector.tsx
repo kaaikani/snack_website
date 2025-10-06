@@ -1,12 +1,15 @@
 import { RadioGroup } from '@headlessui/react';
-import { classNames } from '~/utils/class-names';
 import { Price } from '~/components/products/Price';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import {
   CurrencyCode,
   EligibleShippingMethodsQuery,
 } from '~/generated/graphql';
-import { useTranslation } from 'react-i18next';
+
+// Helper for joining class names
+function classNames(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 export function ShippingMethodSelector({
   eligibleShippingMethods,
@@ -19,62 +22,60 @@ export function ShippingMethodSelector({
   onChange: (value?: string) => void;
   currencyCode?: CurrencyCode;
 }) {
-  const { t } = useTranslation();
-
   return (
     <RadioGroup value={shippingMethodId} onChange={onChange}>
-      <RadioGroup.Label className="text-lg font-medium text-gray-900">
-        {t('checkout.deliveryMethod')}
-      </RadioGroup.Label>
-
-      <div className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 ">
         {eligibleShippingMethods.map((shippingMethod) => (
           <RadioGroup.Option
             key={shippingMethod.id}
             value={shippingMethod.id}
-            className={({ checked, active }) =>
+            className={({ active, checked }) =>
               classNames(
-                checked ? 'border-transparent' : 'border-gray-300',
-                active ? 'ring-2 ring-primary-500' : '',
-                'relative bg-white border rounded-lg shadow-sm p-4 flex cursor-pointer focus:outline-none',
+                'relative flex cursor-pointer rounded-lg p-4 transition-all duration-200 ease-in-out',
+                'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-amber-50 focus:ring-amber-500',
+                checked
+                  ? 'bg-amber-800 text-white shadow-lg ring-2 ring-amber-500' // Selected state
+                  : 'bg-white text-black hover:bg-amber-600', // Default state
               )
             }
           >
-            {({ checked, active }) => (
+            {({ checked }) => (
               <>
-                <span className="flex-1 flex">
+                <span className="flex flex-1">
                   <span className="flex flex-col">
                     <RadioGroup.Label
                       as="span"
-                      className="block text-sm font-medium text-gray-900"
+                      className={classNames(
+                        'block text-sm font-semibold',
+                        checked ? 'text-stone-100' : 'text-amber-100', // Text color changes on selection
+                      )}
                     >
                       {shippingMethod.name}
                     </RadioGroup.Label>
                     <RadioGroup.Description
                       as="span"
-                      className="mt-6 text-sm font-medium text-gray-900"
+                      className={classNames(
+                        'mt-1 flex items-center text-sm',
+                        checked ? 'text-stone-600' : 'text-stone-300', // Text color changes on selection
+                      )}
                     >
-                      <Price
-                        priceWithTax={shippingMethod.priceWithTax}
-                        currencyCode={currencyCode}
-                      ></Price>
+                      {shippingMethod.priceWithTax === 0 ? (
+                        <span className="font-semibold text-green-500">Free</span>
+                      ) : (
+                        <Price
+                          priceWithTax={shippingMethod.priceWithTax}
+                          currencyCode={currencyCode}
+                        />
+                      )}
                     </RadioGroup.Description>
                   </span>
                 </span>
-                {checked ? (
+                {checked && (
                   <CheckCircleIcon
-                    className="h-5 w-5 text-primary-600"
+                    className="h-6 w-6 text-amber-600"
                     aria-hidden="true"
                   />
-                ) : null}
-                <span
-                  className={classNames(
-                    active ? 'border' : 'border-2',
-                    checked ? 'border-primary-500' : 'border-transparent',
-                    'absolute -inset-px rounded-lg pointer-events-none',
-                  )}
-                  aria-hidden="true"
-                />
+                )}
               </>
             )}
           </RadioGroup.Option>

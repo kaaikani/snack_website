@@ -23,7 +23,7 @@ export function ShippingAddressSelector({
 }) {
   return (
     <RadioGroup value={selectedAddressIndex} onChange={onChange}>
-      <div className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+      <div className=" grid grid-cols-1  sm:grid-cols-2 sm:gap-x-4">
         {(addresses || []).map((address, index) => (
           <RadioGroup.Option
             key={index}

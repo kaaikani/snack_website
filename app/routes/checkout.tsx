@@ -1,21 +1,28 @@
 'use client';
-import { type FormEvent, useState, useEffect, useRef } from 'react';
+
+import { type FormEvent, useState, useEffect } from 'react';
 import {
   Form,
   useLoaderData,
-  useNavigate,
+  useOutletContext,
   useFetcher,
-  useRevalidator,
+  useNavigate,
 } from '@remix-run/react';
-import type { DataFunctionArgs } from '@remix-run/server-runtime';
-import { Link } from '@remix-run/react';
-import { json, redirect } from '@remix-run/server-runtime';
+import type { OutletContext } from '~/types';
+import {
+  type DataFunctionArgs,
+  json,
+  redirect,
+} from '@remix-run/server-runtime';
 import {
   getAvailableCountries,
   getEligibleShippingMethods,
   getEligiblePaymentMethods,
   createStripePaymentIntent,
   generateBraintreeClientToken,
+  getNextOrderStates,
+  transitionOrderToState,
+  addPaymentToOrder,
 } from '~/providers/checkout/checkout';
 import {
   getCouponCodeList,
@@ -30,43 +37,37 @@ import {
   getActiveCustomerAddresses,
   getActiveCustomer,
 } from '~/providers/customer/customer';
+import { ShippingMethodSelector } from '~/components/checkout/ShippingMethodSelector';
+import { ShippingAddressSelector } from '~/components/checkout/ShippingAddressSelector';
 import { getActiveOrder } from '~/providers/orders/order';
 import { useTranslation } from 'react-i18next';
-import { getCollections } from '~/providers/collections/collections';
+import { ErrorCode, type ErrorResult } from '~/generated/graphql';
 import { CartContents } from '~/components/cart/CartContents';
 import { CartTotals } from '~/components/cart/CartTotals';
 import { ApplyLoyaltyPoints } from '~/components/cart/ApplyLoyaltyPoints';
-import { AddressForm } from '~/components/account/AddressForm';
-import { ShippingMethodSelector } from '~/components/checkout/ShippingMethodSelector';
-import { ShippingAddressSelector } from '~/components/checkout/ShippingAddressSelector';
-import AddAddressCard from '~/components/account/AddAddressCard';
+import { Link } from '@remix-run/react';
+import { RazorpayPayments } from '~/components/checkout/razorpay/RazorpayPayments';
 import { OrderInstructions } from '~/components/checkout/OrderInstructions';
-import { CouponModal } from '~/components/couponcode/CouponModal';
-import ToastNotification from '~/components/ToastNotification';
 import {
   otherInstructions,
   applyLoyaltyPoints,
   removeLoyaltyPoints,
   getLoyaltyPointsConfig,
+  updateOrderPlacedAtISTMutation,
 } from '~/providers/customPlugins/customPlugin';
-import PaymentStep from './checkout.payment';
-import { classNames } from '~/utils/class-names';
+import { Header } from '~/components/header/Header';
+import { getCollections } from '~/providers/collections/collections';
+import Footer from '~/components/footer/Footer';
+import { CouponModal } from '~/components/couponcode/CouponModal';
+import ToastNotification from '~/components/ToastNotification';
 
-// Define AddressType interface based on your data structure
-interface AddressType {
-  id: string;
-  fullName: string;
-  phoneNumber: string;
-  streetLine1: string;
-  streetLine2?: string;
-  city: string;
-  province?: string;
-  postalCode: string;
-  country: { code: string; name: string };
-  defaultShippingAddress: boolean;
+interface CouponFetcherData {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  orderTotal?: number;
+  appliedCoupon?: string | null;
 }
-
-const steps = ['shipping-cart', 'payment', 'confirmation'];
 
 export async function loader({ request }: DataFunctionArgs) {
   const session = await getSessionStorage().then((sessionStorage) =>
@@ -85,14 +86,103 @@ export async function loader({ request }: DataFunctionArgs) {
     return redirect('/');
   }
 
+  // Fetch loyalty points configuration
+  const loyaltyConfig = await getLoyaltyPointsConfig({ request });
+  const pointsPerRupee = loyaltyConfig?.pointsPerRupee ?? 100; // Fallback to 100 if undefined
+
+  // Coupon removal logic
+  if (activeOrder?.couponCodes && activeOrder.couponCodes.length > 0) {
+    const appliedCouponCode = activeOrder.couponCodes[0];
+    const appliedCouponDetails = couponCodes.find(
+      (c: any) => c.couponCode === appliedCouponCode,
+    );
+
+    if (appliedCouponDetails) {
+      const couponProductVariantIds: string[] = [];
+      let hasProductVariantCondition = false;
+
+      for (const condition of appliedCouponDetails.conditions) {
+        const variantArg = condition.args.find(
+          (arg: any) => arg.name === 'productVariantIds',
+        );
+        if (variantArg && variantArg.value) {
+          hasProductVariantCondition = true;
+          try {
+            let parsedIds: string[] | string = variantArg.value;
+            if (variantArg.value.startsWith('[')) {
+              parsedIds = JSON.parse(variantArg.value);
+            } else {
+              parsedIds = [variantArg.value];
+            }
+            if (Array.isArray(parsedIds)) {
+              couponProductVariantIds.push(
+                ...parsedIds.map((id) => id.toString()),
+              );
+            } else if (typeof parsedIds === 'string') {
+              couponProductVariantIds.push(parsedIds);
+            }
+          } catch (e) {
+            console.error(
+              'Failed to parse productVariantIds:',
+              variantArg.value,
+              e,
+            );
+          }
+        }
+      }
+
+      // Only remove the coupon if it has a productVariantIds condition and no matching products are found
+      if (hasProductVariantCondition) {
+        const hasCouponProducts = activeOrder.lines.some((line) =>
+          couponProductVariantIds.includes(line.productVariant.id),
+        );
+
+        const hasNonCouponProducts = activeOrder.lines.some(
+          (line) => !couponProductVariantIds.includes(line.productVariant.id),
+        );
+
+        if (
+          !hasCouponProducts &&
+          hasNonCouponProducts &&
+          activeOrder.lines.length > 0
+        ) {
+          console.log(
+            'No coupon products remaining in cart, removing coupon:',
+            appliedCouponCode,
+          );
+          try {
+            await removeCouponCode(appliedCouponCode, { request });
+            console.log('Coupon removed successfully');
+          } catch (error) {
+            console.error('Failed to remove coupon:', error);
+          }
+        }
+      }
+    }
+  }
+
   const { availableCountries } = await getAvailableCountries({ request });
   const { eligibleShippingMethods } = await getEligibleShippingMethods({
     request,
   });
   const { activeCustomer } = await getActiveCustomerAddresses({ request });
+
+  // Fetch loyalty points for signed-in user
+  let loyaltyPoints = null;
+  try {
+    const activeCustomerResponse = await getActiveCustomer({ request });
+    loyaltyPoints =
+      activeCustomerResponse.activeCustomer?.customFields
+        ?.loyaltyPointsAvailable ?? null;
+  } catch (err) {
+    loyaltyPoints = null;
+  }
+
   const { eligiblePaymentMethods } = await getEligiblePaymentMethods({
     request,
   });
+
+  const error = session.get('activeOrderError');
 
   let stripePaymentIntent: string | undefined;
   let stripePublishableKey: string | undefined;
@@ -112,6 +202,9 @@ export async function loader({ request }: DataFunctionArgs) {
         !Array.isArray(intentDataRaw)
       ) {
         intentData = intentDataRaw as Record<string, any>;
+      }
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Stripe intentData keys:', Object.keys(intentData));
       }
       stripePaymentIntent =
         intentData['paymentIntent'] ?? intentData['clientSecret'] ?? '';
@@ -140,24 +233,12 @@ export async function loader({ request }: DataFunctionArgs) {
   }
 
   const orderInstructions = activeOrder?.customFields?.otherInstructions || '';
-  const loyaltyConfig = await getLoyaltyPointsConfig({ request });
-  const pointsPerRupee = loyaltyConfig?.pointsPerRupee ?? 100;
-
-  let loyaltyPoints = null;
-  try {
-    const activeCustomerResponse = await getActiveCustomer({ request });
-    loyaltyPoints =
-      activeCustomerResponse.activeCustomer?.customFields
-        ?.loyaltyPointsAvailable ?? null;
-  } catch (err) {
-    loyaltyPoints = null;
-  }
 
   return json({
     availableCountries,
     eligibleShippingMethods,
     activeCustomer,
-    error: session.get('activeOrderError'),
+    error,
     activeOrder,
     collections,
     eligiblePaymentMethods,
@@ -178,6 +259,79 @@ export async function action({ request }: DataFunctionArgs) {
   const action = body.get('action');
   const activeOrder = await getActiveOrder({ request });
 
+  if (action === 'applyLoyaltyPoints') {
+    const amount = Number(body.get('amount'));
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return json(
+        { success: false, error: 'Invalid points amount.' },
+        { status: 400 },
+      );
+    }
+    try {
+      const result = await applyLoyaltyPoints(amount, { request });
+      if (result && result.id) {
+        return json({ success: true });
+      } else {
+        return json(
+          { success: false, error: 'Failed to apply loyalty points.' },
+          { status: 400 },
+        );
+      }
+    } catch (e: any) {
+      return json(
+        {
+          success: false,
+          error: e?.message || 'Error applying loyalty points.',
+        },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (action === 'removeLoyaltyPoints') {
+    try {
+      const result = await removeLoyaltyPoints({ request });
+      if (result && result.__typename === 'Order' && result.id) {
+        return json({ success: true });
+      } else {
+        return json(
+          {
+            success: false,
+            error:
+              (result as any)?.message || 'Failed to remove loyalty points.',
+          },
+          { status: 400 },
+        );
+      }
+    } catch (e: any) {
+      return json(
+        {
+          success: false,
+          error: e?.message || 'Error removing loyalty points.',
+        },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (action === 'setOrderCustomer' || action === 'setCheckoutShipping') {
+    return json({ success: true });
+  }
+
+  if (action === 'updateOrderInstructions') {
+    const orderId = body.get('orderId');
+    const instructions = body.get('instructions');
+    if (typeof orderId === 'string' && typeof instructions === 'string') {
+      try {
+        await otherInstructions(orderId, instructions, { request });
+        return json({ success: true });
+      } catch (error) {
+        return json({ success: false, error: 'Failed to save instructions' });
+      }
+    }
+    return json({ success: false, error: 'Invalid data' });
+  }
+
   if (action === 'applyCoupon') {
     const couponCode = body.get('couponCode') as string;
     if (!couponCode) {
@@ -189,7 +343,9 @@ export async function action({ request }: DataFunctionArgs) {
 
     const couponCodes = await getCouponCodeList({ request });
     const coupon = couponCodes.find((c: any) => c.couponCode === couponCode);
+
     if (!coupon || !coupon.couponCode) {
+      console.error(`Invalid coupon code: ${couponCode}`);
       return json(
         { success: false, error: 'Invalid coupon code.' },
         { status: 400 },
@@ -197,6 +353,9 @@ export async function action({ request }: DataFunctionArgs) {
     }
 
     if (activeOrder?.couponCodes && activeOrder.couponCodes.length > 0) {
+      console.error(
+        `Another coupon already applied: ${activeOrder.couponCodes}`,
+      );
       return json(
         {
           success: false,
@@ -207,22 +366,26 @@ export async function action({ request }: DataFunctionArgs) {
       );
     }
 
-    // Minimum order amount validation
     const minAmountCondition = coupon.conditions.find(
       (c: any) =>
         c.code === 'minimum_order_amount' ||
         c.code === 'minimumOrderAmount' ||
         c.code === 'minimumAmount',
     );
+
     if (minAmountCondition) {
       const amountArg =
         minAmountCondition.args.find((a: any) => a.name === 'amount') ??
         minAmountCondition.args[0];
       const minAmountPaise = Number.parseInt(amountArg.value, 10) || 0;
       const totalWithTaxPaise = activeOrder?.totalWithTax ?? 0;
+
       if (totalWithTaxPaise < minAmountPaise) {
         const diffPaise = minAmountPaise - totalWithTaxPaise;
         const diffRupees = (diffPaise / 100).toFixed(2);
+        console.error(
+          `Order total too low: ${totalWithTaxPaise} < ${minAmountPaise}`,
+        );
         return json(
           {
             success: false,
@@ -235,9 +398,9 @@ export async function action({ request }: DataFunctionArgs) {
       }
     }
 
-    // Extract productVariantIds if present
     let hasProductVariant = false;
     const productVariantIds: string[] = [];
+
     for (const condition of coupon.conditions) {
       const variantArg = condition.args.find(
         (arg: any) => arg.name === 'productVariantIds',
@@ -257,6 +420,11 @@ export async function action({ request }: DataFunctionArgs) {
             productVariantIds.push(parsedIds);
           }
         } catch (e) {
+          console.error(
+            'Failed to parse productVariantIds:',
+            variantArg.value,
+            e,
+          );
           return json(
             {
               success: false,
@@ -269,33 +437,74 @@ export async function action({ request }: DataFunctionArgs) {
       }
     }
 
-    // Apply coupon
+    console.log(`Applying coupon: ${couponCode}`);
     const couponResult = await applyCouponCode(couponCode, { request });
-    if ((couponResult as any)?.__typename !== 'Order') {
-      const message =
-        (couponResult as any)?.message || 'Failed to apply coupon.';
-      return json({ success: false, error: message }, { status: 400 });
+    console.log('applyCouponCode result:', couponResult);
+
+    if (couponResult?.__typename !== 'Order') {
+      if (couponResult.__typename === 'CouponCodeExpiredError') {
+        const message = (couponResult as any).message ?? 'Coupon has expired.';
+        console.error(message);
+        return json({ success: false, error: message }, { status: 400 });
+      } else if (couponResult.__typename === 'CouponCodeInvalidError') {
+        const message =
+          (couponResult as any).message ?? 'Coupon code is invalid.';
+        console.error(message);
+        return json({ success: false, error: message }, { status: 400 });
+      } else if (couponResult.__typename === 'CouponCodeLimitError') {
+        const message =
+          (couponResult as any).message ?? 'Coupon usage limit reached.';
+        console.error(message);
+        return json({ success: false, error: message }, { status: 400 });
+      }
+      console.error('Unexpected response from applyCouponCode');
+      return json(
+        { success: false, error: 'Unexpected response from server.' },
+        { status: 500 },
+      );
     }
 
-    // Add coupon products if any
+    const order = couponResult as any;
+    const cartItems = activeOrder?.lines ?? [];
+    console.log('Current cart items:', cartItems);
+
     if (hasProductVariant && productVariantIds.length > 0) {
+      console.log(`Calling addCouponProductToCart for ${couponCode}`);
       try {
-        await addCouponProductToCart(couponCode, { request });
-      } catch (error: any) {
+        const addResult = await addCouponProductToCart(couponCode, { request });
+        console.log('addCouponProductToCart result:', addResult);
+      } catch (error) {
+        console.error('Failed to add products, removing coupon:', couponCode);
         await removeCouponCode(couponCode, { request });
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Failed to add products to cart: ${errorMessage}`);
         return json(
           {
             success: false,
-            error: `Failed to add products to cart: ${
-              error?.message || 'Unknown error'
-            }`,
+            error: `Failed to add products to cart: ${errorMessage}`,
           },
           { status: 400 },
         );
       }
+    } else {
+      console.log(
+        `No productVariantIds for coupon ${couponCode}, skipping product addition`,
+      );
     }
 
-    return json({ success: true, appliedCoupon: couponCode });
+    return json({
+      success: true,
+      message: hasProductVariant
+        ? `Coupon "${couponCode}" applied and ${
+            productVariantIds.length
+          } product${
+            productVariantIds.length > 1 ? 's' : ''
+          } added to your order!`
+        : `Coupon "${couponCode}" applied to your order!`,
+      orderTotal: order.totalWithTax,
+      appliedCoupon: couponCode,
+    });
   }
 
   if (action === 'removeCoupon') {
@@ -309,115 +518,185 @@ export async function action({ request }: DataFunctionArgs) {
 
     const couponCodes = await getCouponCodeList({ request });
     const coupon = couponCodes.find((c: any) => c.couponCode === couponCode);
+
     if (!coupon || !coupon.couponCode) {
+      console.error(`Invalid coupon code for removal: ${couponCode}`);
       return json(
         { success: false, error: 'Invalid coupon code.' },
         { status: 400 },
       );
     }
+
     if (!activeOrder?.couponCodes?.includes(couponCode)) {
+      console.error(`Coupon ${couponCode} not applied to order`);
       return json(
         { success: false, error: 'Coupon code is not applied to the order.' },
         { status: 400 },
       );
     }
 
-    // If coupon has productVariantIds, remove those items first
     let hasProductVariant = false;
+    const productVariantIds: string[] = [];
+
     for (const condition of coupon.conditions) {
       const variantArg = condition.args.find(
         (arg: any) => arg.name === 'productVariantIds',
       );
       if (variantArg && variantArg.value) {
         hasProductVariant = true;
+        try {
+          let parsedIds: string[] | string = variantArg.value;
+          if (variantArg.value.startsWith('[')) {
+            parsedIds = JSON.parse(variantArg.value);
+          } else {
+            parsedIds = [variantArg.value];
+          }
+          if (Array.isArray(parsedIds)) {
+            productVariantIds.push(...parsedIds.map((id) => id.toString()));
+          } else if (typeof parsedIds === 'string') {
+            productVariantIds.push(parsedIds);
+          }
+        } catch (e) {
+          console.error(
+            'Failed to parse productVariantIds:',
+            variantArg.value,
+            e,
+          );
+          return json(
+            {
+              success: false,
+              error: `Invalid productVariantIds format for coupon ${couponCode}`,
+            },
+            { status: 400 },
+          );
+        }
         break;
       }
     }
+
     if (hasProductVariant) {
+      console.log(`Adjusting coupon product quantities for: ${couponCode}`);
       try {
         await removeCouponProductFromCart(couponCode, { request });
+        console.log('Coupon product quantities adjusted successfully');
       } catch (error) {
-        // proceed even if this fails
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        console.error(
+          `Failed to adjust product quantities in cart: ${errorMessage}`,
+        );
       }
+    } else {
+      console.log(
+        `No productVariantIds for coupon ${couponCode}, skipping product quantity adjustment`,
+      );
     }
 
+    console.log(`Removing coupon: ${couponCode}`);
     const result = await removeCouponCode(couponCode, { request });
-    if ((result as any)?.__typename === 'Order' || (result as any)?.id) {
-      return json({ success: true, appliedCoupon: null });
-    }
-    return json(
-      {
-        success: false,
-        error: (result as any)?.message || 'Failed to remove coupon.',
-      },
-      { status: 400 },
-    );
-  }
+    console.log('removeCouponCode result:', result);
 
-  if (action === 'applyLoyaltyPoints') {
-    const amount = Number(body.get('amount'));
-    if (!amount || isNaN(amount) || amount <= 0) {
+    if (result?.__typename === 'Order') {
+      const order = result as any;
+      return json({
+        success: true,
+        message: hasProductVariant
+          ? `Coupon removed and ${productVariantIds.length} product${
+              productVariantIds.length > 1 ? 's' : ''
+            } quantity adjusted in your order.`
+          : 'Coupon removed from your order.',
+        orderTotal: order.totalWithTax,
+        appliedCoupon: null,
+      });
+    } else {
+      console.error('Failed to remove coupon');
       return json(
-        { success: false, error: 'Invalid points amount.' },
+        { success: false, error: 'Failed to remove coupon.' },
         { status: 400 },
       );
     }
-    try {
-      const result = await applyLoyaltyPoints(amount, { request });
-      if (result && result.id) {
-        return json({ success: true });
+  }
+
+  const paymentMethodCode = body.get('paymentMethodCode');
+  const paymentNonce = body.get('paymentNonce');
+
+  if (typeof paymentMethodCode === 'string') {
+    const { nextOrderStates } = await getNextOrderStates({
+      request,
+    });
+
+    if (nextOrderStates.includes('ArrangingPayment')) {
+      const transitionResult = await transitionOrderToState(
+        'ArrangingPayment',
+        { request },
+      );
+      if (transitionResult.transitionOrderToState?.__typename !== 'Order') {
+        throw new Response('Not Found', {
+          status: 400,
+          statusText: transitionResult.transitionOrderToState?.message,
+        });
       }
-      return json(
-        { success: false, error: 'Failed to apply loyalty points.' },
-        { status: 400 },
-      );
-    } catch (e: any) {
-      return json(
-        {
-          success: false,
-          error: e?.message || 'Error applying loyalty points.',
-        },
-        { status: 400 },
-      );
     }
-  }
 
-  if (action === 'removeLoyaltyPoints') {
-    try {
-      const result = await removeLoyaltyPoints({ request });
-      if (result && result.__typename === 'Order' && result.id) {
-        return json({ success: true });
-      }
-      return json(
-        {
-          success: false,
-          error: (result as any)?.message || 'Failed to remove loyalty points.',
-        },
-        { status: 400 },
-      );
-    } catch (e: any) {
-      return json(
-        {
-          success: false,
-          error: e?.message || 'Error removing loyalty points.',
-        },
-        { status: 400 },
-      );
-    }
-  }
-
-  if (action === 'updateOrderInstructions') {
-    const orderId = body.get('orderId');
-    const instructions = body.get('instructions');
-    if (typeof orderId === 'string' && typeof instructions === 'string') {
+    let metadata = {};
+    if (paymentMethodCode === 'online' && paymentNonce) {
       try {
-        await otherInstructions(orderId, instructions, { request });
-        return json({ success: true });
-      } catch (error) {
-        return json({ success: false, error: 'Failed to save instructions' });
+        const paymentData = JSON.parse(paymentNonce as string);
+        metadata = {
+          method: 'online',
+          amount: (Number(paymentData.amount) / 100).toFixed(2) || 0,
+          currencyCode: paymentData.currencyCode || 'INR',
+          razorpay_payment_id: paymentData.razorpay_payment_id,
+          razorpay_order_id: paymentData.razorpay_order_id,
+          razorpay_signature: paymentData.razorpay_signature,
+          orderCode: paymentData.orderCode,
+        };
+      } catch (e) {
+        console.error('Error parsing payment nonce:', e);
+        metadata = { nonce: paymentNonce };
       }
+    } else if (paymentMethodCode === 'offline') {
+      metadata = {
+        method: 'offline',
+        amount: Number(((activeOrder?.totalWithTax || 0) / 100).toFixed(2)),
+        currencyCode: activeOrder?.currencyCode || 'INR',
+      };
     }
-    return json({ success: false, error: 'Invalid data' });
+
+    console.log('Adding payment to order with:', {
+      method: paymentMethodCode,
+      metadata,
+    });
+
+    const result = await addPaymentToOrder(
+      { method: paymentMethodCode, metadata },
+      { request },
+    );
+
+    if (result.addPaymentToOrder.__typename === 'Order') {
+      // Call UpdateOrderPlacedAtIST after successful payment
+      try {
+        await updateOrderPlacedAtISTMutation(result.addPaymentToOrder.id, {
+          request,
+        });
+        console.log(
+          'OrderPlacedAtIST updated successfully for order:',
+          result.addPaymentToOrder.id,
+        );
+      } catch (error: any) {
+        console.error('Failed to update OrderPlacedAtIST:', error);
+        // Optionally handle the error (e.g., log it, but proceed with redirect)
+      }
+
+      return redirect(
+        `/checkout/confirmation/${result.addPaymentToOrder.code}`,
+      );
+    } else {
+      throw new Response('Not Found', {
+        status: 400,
+        statusText: result.addPaymentToOrder?.message,
+      });
+    }
   }
 
   return json({ success: false });
@@ -426,6 +705,7 @@ export async function action({ request }: DataFunctionArgs) {
 export default function CheckoutPage() {
   const loaderData = useLoaderData<typeof loader>();
   const {
+    collections,
     availableCountries,
     eligibleShippingMethods,
     activeCustomer,
@@ -437,156 +717,37 @@ export default function CheckoutPage() {
     loyaltyPoints,
     pointsPerRupee,
   } = loaderData;
-  const [currentStep, setCurrentStep] = useState(0);
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const isSignedIn = !!activeCustomer?.id;
 
-  const nextStep = () =>
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
+  const {
+    activeOrderFetcher,
+    removeItem: originalRemoveItem,
+    adjustOrderLine: originalAdjustOrderLine,
+  } = useOutletContext<OutletContext>();
 
-  useEffect(() => {
-    if (!activeOrder || activeOrder.lines.length === 0) {
-      navigate('/');
-    }
-  }, [activeOrder, navigate]);
-
-  const renderStep = () => {
-    switch (steps[currentStep]) {
-      case 'shipping-cart':
-        return (
-          <ShippingCartStep
-            availableCountries={availableCountries}
-            eligibleShippingMethods={eligibleShippingMethods}
-            activeCustomer={activeCustomer}
-            activeOrder={activeOrder}
-            error={error}
-            orderInstructions={orderInstructions}
-            couponCodes={couponCodes}
-            loyaltyPoints={loyaltyPoints}
-            pointsPerRupee={pointsPerRupee}
-            onNext={nextStep}
-          />
-        );
-      case 'payment':
-        return (
-          <PaymentStep
-            eligiblePaymentMethods={eligiblePaymentMethods}
-            activeOrder={activeOrder}
-            stripePaymentIntent={loaderData.stripePaymentIntent}
-            stripePublishableKey={loaderData.stripePublishableKey}
-            stripeError={loaderData.stripeError}
-            brainTreeKey={loaderData.brainTreeKey}
-            brainTreeError={loaderData.brainTreeError}
-            onNext={nextStep}
-            onPrev={prevStep}
-          />
-        );
-      default:
-        return null; // Confirmation step will be handled separately
-    }
-  };
-
-  return (
-    <div>
-      <div className="lg:max-w-7xl max-w-2xl mx-auto pt-8 pb-24 px-4 sm:px-6 lg:px-8">
-        <nav aria-label="Progress">
-          <ol role="list" className="flex items-center space-x-4">
-            {steps.map((step, index) => (
-              <li key={step} className="flex items-center">
-                <span
-                  className={`h-6 w-6 flex items-center justify-center rounded-full ${
-                    currentStep >= index
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-500'
-                  }`}
-                >
-                  {index + 1}
-                </span>
-                <span
-                  className={`ml-4 text-sm font-medium ${
-                    currentStep >= index ? 'text-blue-600' : 'text-gray-500'
-                  }`}
-                >
-                  {step === 'shipping-cart'
-                    ? 'Shipping & Cart'
-                    : step.charAt(0).toUpperCase() + step.slice(1)}
-                </span>
-                {index < steps.length - 1 && (
-                  <svg
-                    className="w-4 h-4 ml-2 text-gray-300"
-                    fill="none"
-                    viewBox="0 0 6 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M1 1l4 4-4 4"
-                    />
-                  </svg>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
-        {renderStep()}
-      </div>
-    </div>
-  );
-}
-
-function ShippingCartStep({
-  availableCountries,
-  eligibleShippingMethods,
-  activeCustomer,
-  activeOrder,
-  error,
-  orderInstructions,
-  couponCodes,
-  loyaltyPoints,
-  pointsPerRupee,
-  onNext,
-}: {
-  availableCountries: any[];
-  eligibleShippingMethods: any[];
-  activeCustomer: any;
-  activeOrder: any;
-  error: any;
-  orderInstructions: string;
-  couponCodes: any[];
-  loyaltyPoints: number | null;
-  pointsPerRupee: number;
-  onNext: () => void;
-}) {
   const [customerFormChanged, setCustomerFormChanged] = useState(false);
   const [addressFormChanged, setAddressFormChanged] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
+  const [paymentMode, setPaymentMode] = useState<'online' | 'offline' | null>(
+    null,
+  );
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [showAllCartItems, setShowAllCartItems] = useState(false);
+  const [shouldRefreshAfterCouponRemoval, setShouldRefreshAfterCouponRemoval] =
+    useState(false);
+  const [isNavigatingToHome, setIsNavigatingToHome] = useState(false);
   const [showAddressToast, setShowAddressToast] = useState(false);
-  const couponFetcher = useFetcher();
-  const orderFetcher = useFetcher();
+
+  const couponFetcher = useFetcher<CouponFetcherData>();
+  const navigate = useNavigate();
   const { t } = useTranslation();
-  const revalidator = useRevalidator();
-  const didSubmitOrderRef = useRef(false);
-  const didCloseCouponModalRef = useRef(false);
-  const didSubmitCouponRemoveRef = useRef(false);
 
   const { customer, shippingAddress } = activeOrder ?? {};
   const isSignedIn = !!activeCustomer?.id;
   const addresses = activeCustomer?.addresses ?? [];
+
   const defaultFullName =
     shippingAddress?.fullName ??
-    (customer ? `${customer.firstName} ${customer.lastName}` : '');
-  const canProceedToPayment =
-    customer &&
-    ((shippingAddress?.streetLine1 && shippingAddress?.postalCode) ||
-      selectedAddressIndex != null) &&
-    activeOrder?.shippingLines?.length &&
-    activeOrder?.lines?.length;
+    (customer ? `${customer.firstName} ${customer.lastName}` : ``);
 
   const submitCustomerForm = (event: FormEvent<HTMLFormElement>) => {
     const formData = new FormData(event.currentTarget);
@@ -594,6 +755,7 @@ function ShippingCartStep({
       formData.entries(),
     );
     const isValid = event.currentTarget.checkValidity();
+
     if (
       customerFormChanged &&
       isValid &&
@@ -601,7 +763,10 @@ function ShippingCartStep({
       firstName &&
       lastName
     ) {
-      console.log('Submitting customer form:', formData);
+      activeOrderFetcher.submit(formData, {
+        method: 'post',
+        action: '/api/active-order',
+      });
       setCustomerFormChanged(false);
     }
   };
@@ -630,60 +795,209 @@ function ShippingCartStep({
 
   function setShippingAddress(formData: FormData) {
     if (shippingFormDataIsValid(formData)) {
-      console.log('Submitting address form:', formData);
+      activeOrderFetcher.submit(formData, {
+        method: 'post',
+        action: '/api/active-order',
+      });
       setAddressFormChanged(false);
     }
   }
 
   const submitSelectedShippingMethod = (value?: string) => {
     if (value) {
-      const formData = new FormData();
-      formData.append('action', 'setShippingMethod');
-      formData.append('shippingMethodId', value);
-      didSubmitOrderRef.current = true;
-      orderFetcher.submit(formData, {
-        method: 'post',
-        action: '/api/active-order',
-      });
+      activeOrderFetcher.submit(
+        {
+          action: 'setShippingMethod',
+          shippingMethodId: value,
+        },
+        {
+          method: 'post',
+          action: '/api/active-order',
+        },
+      );
     }
   };
 
-  const handleOpenCouponModal = () => {
-    setIsCouponModalOpen(true);
-  };
+  const paymentError = getPaymentError(error);
+
+  useEffect(() => {
+    if (
+      isSignedIn &&
+      activeCustomer?.addresses?.length &&
+      !addressFormChanged &&
+      !shippingAddress?.streetLine1
+    ) {
+      const defaultShippingAddress = activeCustomer.addresses.find(
+        (addr) => addr.defaultShippingAddress,
+      );
+      const addressToShow =
+        defaultShippingAddress || activeCustomer.addresses[0];
+      if (addressToShow) {
+        const formData = new FormData();
+        Object.keys(addressToShow).forEach((key) =>
+          formData.append(key, (addressToShow as any)[key]),
+        );
+        formData.append('countryCode', addressToShow.country.code);
+        formData.append('action', 'setCheckoutShipping');
+        setShippingAddress(formData);
+      }
+    }
+  }, [
+    isSignedIn,
+    activeCustomer?.addresses,
+    addressFormChanged,
+    shippingAddress?.streetLine1,
+  ]);
+
+  const isShippingMethodSelected =
+    !!activeOrder?.shippingLines?.[0]?.shippingMethod;
+
+  const [open, setOpen] = useState(false);
 
   const appliedCouponCode = activeOrder?.couponCodes?.[0];
   const appliedCouponDetails = appliedCouponCode
     ? couponCodes.find((c: any) => c.couponCode === appliedCouponCode)
     : null;
 
+  const couponProductVariantIds = (
+    appliedCouponDetails?.conditions || []
+  ).flatMap((condition: any) => {
+    const arg = condition.args.find((a: any) => a.name === 'productVariantIds');
+    if (arg && arg.value) {
+      try {
+        if (arg.value.startsWith('[')) {
+          return JSON.parse(arg.value);
+        } else {
+          return [arg.value];
+        }
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  function handleRemoveItem(lineId: string) {
+    const line = activeOrder?.lines.find((l) => l.id === lineId);
+    const isCouponProduct =
+      line &&
+      couponProductVariantIds
+        .map(String)
+        .includes(String(line.productVariant.id));
+
+    console.log(
+      'Removing line:',
+      lineId,
+      'isCouponProduct:',
+      isCouponProduct,
+      'appliedCouponCode:',
+      appliedCouponCode,
+    );
+
+    const isLastItem = activeOrder?.lines.length === 1;
+    if (isLastItem) {
+      setIsNavigatingToHome(true);
+    }
+
+    originalRemoveItem(lineId);
+
+    if (isCouponProduct && appliedCouponCode) {
+      couponFetcher.submit(
+        {
+          action: 'removeCoupon',
+          couponCode: appliedCouponCode,
+        },
+        { method: 'post' },
+      );
+      setShouldRefreshAfterCouponRemoval(true);
+    }
+  }
+
+  function handleAdjustOrderLine(lineId: string, quantity: number) {
+    const isLastItem = activeOrder?.lines.length === 1;
+    const willBeEmpty = isLastItem && quantity <= 0;
+
+    if (willBeEmpty) {
+      setIsNavigatingToHome(true);
+    }
+
+    originalAdjustOrderLine(lineId, quantity);
+  }
+
+  const handleOpenCouponModal = () => {
+    setTimeout(() => {
+      setIsCouponModalOpen(true);
+    }, 50);
+  };
+
+  useEffect(() => {
+    if (
+      couponFetcher.data?.success &&
+      couponFetcher.data?.appliedCoupon === null &&
+      shouldRefreshAfterCouponRemoval
+    ) {
+      activeOrderFetcher.load('/api/active-order');
+      setShouldRefreshAfterCouponRemoval(false);
+    }
+  }, [couponFetcher.data, shouldRefreshAfterCouponRemoval, activeOrderFetcher]);
+
+  useEffect(() => {
+    if (activeOrder && activeOrder.lines.length === 0 && isNavigatingToHome) {
+      const timer = setTimeout(() => {
+        navigate('/');
+        setIsNavigatingToHome(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [activeOrder, isNavigatingToHome, navigate]);
+
+  useEffect(() => {
+    if (
+      (!activeOrder || activeOrder.lines.length === 0) &&
+      !isNavigatingToHome
+    ) {
+      const timer = setTimeout(() => {
+        navigate('/');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeOrder, isNavigatingToHome, navigate]);
+
   const allLines = activeOrder?.lines ?? [];
   const visibleLines = showAllCartItems ? allLines : allLines.slice(0, 3);
 
-  // Revalidate only after a submit we initiated has completed
-  useEffect(() => {
-    if (orderFetcher.state === 'idle' && didSubmitOrderRef.current) {
-      didSubmitOrderRef.current = false;
-      revalidator.revalidate();
-    }
-  }, [orderFetcher.state, revalidator]);
+  if (isNavigatingToHome) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to home...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Revalidate after coupon removal submit completes
-  useEffect(() => {
-    if (couponFetcher.state === 'idle' && didSubmitCouponRemoveRef.current) {
-      didSubmitCouponRemoveRef.current = false;
-      revalidator.revalidate();
-    }
-  }, [couponFetcher.state, revalidator]);
+  if (!activeOrder || activeOrder.lines.length === 0) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to home...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="mt-20 bg-amber-100">
+    
       <div className="lg:max-w-7xl max-w-2xl mx-auto pt-8 pb-24 px-4 sm:px-6 lg:px-8">
+                  <h1 className="mt-3 text-center mb-10 text-amber-800 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
+                    Checkout Page
+</h1>
         <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
           <div>
-            <div>
-              <h2 className="text-lg font-medium text-black">Details Title</h2>
-            </div>
+           
             <Form
               method="post"
               action="/api/active-order"
@@ -691,13 +1005,13 @@ function ShippingCartStep({
               onChange={() => setAddressFormChanged(true)}
             >
               <input type="hidden" name="action" value="setCheckoutShipping" />
-              <div className="mt-10"></div>
+              <div className=""></div>
               {isSignedIn && activeCustomer.addresses?.length ? (
-                <div className="mt-4 bg-white border rounded-lg shadow-sm p-4">
+                <div className=" bg-white border rounded-lg shadow-sm p-4">
                   {(() => {
                     const defaultShippingAddress =
                       activeCustomer.addresses.find(
-                        (addr: AddressType) => addr.defaultShippingAddress,
+                        (addr) => addr.defaultShippingAddress,
                       );
                     const addressToShow =
                       defaultShippingAddress || activeCustomer.addresses[0];
@@ -738,7 +1052,7 @@ function ShippingCartStep({
                     );
                   })()}
                   {addressFormChanged && (
-                    <div className="mt-6 pt-6 border-t border-black">
+                    <div className=" border-t border-black">
                       <h3 className="text-sm font-medium text-black mb-4">
                         Select Another Address
                       </h3>
@@ -763,13 +1077,17 @@ function ShippingCartStep({
               )}
             </Form>
             {activeOrder?.id && (
-              <OrderInstructions
+              <div className='my-5'>
+ <OrderInstructions
                 orderId={activeOrder.id}
                 initialValue={orderInstructions}
                 disabled={false}
+                
               />
+              </div>
+             
             )}
-            <div className="mt-10 border-t border-black pt-10">
+            <div className="">
               <ShippingMethodSelector
                 eligibleShippingMethods={eligibleShippingMethods}
                 currencyCode={activeOrder?.currencyCode}
@@ -785,6 +1103,37 @@ function ShippingCartStep({
                 }}
               />
             </div>
+              <div className="mt-10 ">
+                <h2 className="text-lg font-medium text-black mb-6">
+                  Payment Method
+                </h2>
+                <div className="flex flex-col items-center divide-black divide-y space-y-6">
+                  <div className="w-full">
+                    {isShippingMethodSelected && (
+                      <div className="flex space-x-4 mb-6">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMode('online')}
+                          className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-colors duration-200 ${
+                            paymentMode === 'online'
+                              ? 'bg-amber-800 border-2 border-amber-950 text-white'
+                              : 'bg-white text-black border border-black hover:bg-gray-100'
+                          }`}
+                        >
+                          Online Payment
+                        </button>
+                        
+                      </div>
+                    )}
+                  </div>
+                 
+                </div>
+                {paymentError && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-800">{paymentError}</p>
+                  </div>
+                )}
+              </div>
             {eligibleShippingMethods.length === 0 && (
               <div className="mt-10 border-t border-black pt-10">
                 <p className="text-sm text-red-800">
@@ -794,8 +1143,9 @@ function ShippingCartStep({
             )}
           </div>
           <div className="mt-10 lg:mt-0">
-            <h2 className="text-lg font-medium text-black mb-6">Summary</h2>
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white bg-transparent  p-6 rounded-lg shadow-sm border">
+                          <h2 className="text-lg font-medium text-black mb-6">Summary</h2>
+
               {loyaltyPoints && activeOrder?.id ? (
                 <ApplyLoyaltyPoints
                   availablePoints={loyaltyPoints}
@@ -808,25 +1158,8 @@ function ShippingCartStep({
                 orderLines={visibleLines}
                 currencyCode={activeOrder?.currencyCode!}
                 editable={true}
-                adjustOrderLine={(lineId, quantity) => {
-                  const fd = new FormData();
-                  fd.append('action', 'adjustItem');
-                  fd.append('lineId', lineId);
-                  fd.append('quantity', String(quantity));
-                  orderFetcher.submit(fd, {
-                    method: 'post',
-                    action: '/api/active-order',
-                  });
-                }}
-                removeItem={(lineId) => {
-                  const fd = new FormData();
-                  fd.append('action', 'removeItem');
-                  fd.append('lineId', lineId);
-                  orderFetcher.submit(fd, {
-                    method: 'post',
-                    action: '/api/active-order',
-                  });
-                }}
+                removeItem={handleRemoveItem}
+                adjustOrderLine={handleAdjustOrderLine}
               />
               {allLines.length > 3 && !showAllCartItems && (
                 <div className="flex justify-center mt-2">
@@ -898,9 +1231,7 @@ function ShippingCartStep({
                       />
                       <button
                         type="submit"
-                        onClick={() => {
-                          didSubmitCouponRemoveRef.current = true;
-                        }}
+                        onClick={() => setShouldRefreshAfterCouponRemoval(true)}
                         className="ml-2 px-3 py-1 rounded-full bg-red-100 text-red-700 font-semibold text-xs hover:bg-red-200 transition-colors duration-200"
                         title="Remove coupon"
                         disabled={couponFetcher.state === 'submitting'}
@@ -918,7 +1249,7 @@ function ShippingCartStep({
                   <button
                     type="button"
                     onClick={handleOpenCouponModal}
-                    className="w-full bg-black text-white font-medium py-2 px-4 hover:text-black rounded-md border hover:border-black hover:bg-white transition-colors duration-200"
+                    className="w-full bg-amber-800 border-2 border-amber-950 text-white font-medium py-2 px-4  rounded-md  hover:border-black  transition-colors duration-200"
                   >
                     Apply Coupon
                   </button>
@@ -927,15 +1258,101 @@ function ShippingCartStep({
             </div>
           </div>
         </div>
+         <div className="py-6 w-full">
+                    <h3 className="text-base font-medium text-black mb-4">
+                      Review
+                    </h3>
+                    <p className="text-sm text-black mb-4">
+                                    By clicking the Place Order button, you
+                                    confirm that you have read, understand and
+                                    accept our Terms of Use, Terms of Sale and
+                                    Returns Policy and acknowledge that you have
+                                    read SouthMithai Store's Privacy Policy.
+                                  </p>
+                    {isShippingMethodSelected && paymentMode && (
+                      <>
+                        {eligiblePaymentMethods
+                          .filter((method) => method.code === paymentMode)
+                          .map((method) => (
+                            <div key={method.id}>
+                              {method.code === 'online' ? (
+                                <>
+                                  
+                                  <RazorpayPayments
+                                    orderCode={activeOrder?.code ?? ''}
+                                    amount={activeOrder?.totalWithTax ?? 0}
+                                    currencyCode={
+                                      activeOrder?.currencyCode ?? 'INR'
+                                    }
+                                    customerEmail={customer?.emailAddress ?? ''}
+                                    customerName={`${
+                                      customer?.firstName ?? ''
+                                    } ${customer?.lastName ?? ''}`.trim()}
+                                    customerPhone={
+                                      shippingAddress?.phoneNumber ?? ''
+                                    }
+                                  />
+                                </>
+                              ) : method.code === 'offline' ? (
+                                <Form method="post">
+                                  <input
+                                    type="hidden"
+                                    name="paymentMethodCode"
+                                    value="offline"
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="paymentNonce"
+                                    value={JSON.stringify({
+                                      method: 'offline',
+                                      status: 'pending',
+                                      amount: activeOrder?.totalWithTax || 0,
+                                      currencyCode:
+                                        activeOrder?.currencyCode || 'INR',
+                                      orderCode: activeOrder?.code || '',
+                                    })}
+                                  />
+                                  <div className="w-full">
+                                    <p className="text-sm text-black mb-4">
+                                      By clicking the Place Order button, you
+                                      confirm that you have read, understand and
+                                      accept our Terms of Use, Terms of Sale and
+                                      Returns Policy and acknowledge that you
+                                      have read KaaiKani Store's Privacy Policy.
+                                    </p>
+                                    <button
+                                      type="submit"
+                                      className="w-full bg-black border hover:bg-white hover:text-black hover:border-black rounded-md py-3 px-4 text-base font-medium text-white"
+                                    >
+                                      Place Order
+                                    </button>
+                                  </div>
+                                </Form>
+                              ) : (
+                                <div className="text-sm text-black">
+                                  Payment method "{method.code}" not supported
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        {!eligiblePaymentMethods.find(
+                          (m) => m.code === paymentMode,
+                        ) && (
+                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                            <p className="text-sm text-yellow-800">
+                              {paymentMode === 'online'
+                                ? 'Online payment is not available. Please contact support if you need to pay online.'
+                                : 'Offline payment is not available. Please contact support for assistance.'}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
       </div>
       <CouponModal
         isOpen={isCouponModalOpen}
-        onClose={() => {
-          setIsCouponModalOpen(false);
-          // Revalidate once after successful apply in modal
-          didCloseCouponModalRef.current = true;
-          revalidator.revalidate();
-        }}
+        onClose={() => setIsCouponModalOpen(false)}
         coupons={couponCodes}
         activeOrder={activeOrder as any}
         appliedCoupon={activeOrder?.couponCodes?.[0] || null}
@@ -947,19 +1364,21 @@ function ShippingCartStep({
         message="Address is required to place an order."
         onClose={() => setShowAddressToast(false)}
       />
-      <button
-        type="button"
-        disabled={!canProceedToPayment}
-        onClick={onNext}
-        className={classNames(
-          canProceedToPayment
-            ? 'bg-primary-600 hover:bg-primary-700'
-            : 'bg-gray-400',
-          'flex w-full items-center justify-center space-x-2 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500',
-        )}
-      >
-        <span>{t('checkout.goToPayment')}</span>
-      </button>
     </div>
   );
+}
+
+function getPaymentError(error?: ErrorResult): string | undefined {
+  if (!error || !error.errorCode) {
+    return undefined;
+  }
+  switch (error.errorCode) {
+    case ErrorCode.OrderPaymentStateError:
+    case ErrorCode.IneligiblePaymentMethodError:
+    case ErrorCode.PaymentFailedError:
+    case ErrorCode.PaymentDeclinedError:
+    case ErrorCode.OrderStateTransitionError:
+    case ErrorCode.NoActiveOrderError:
+      return error.message;
+  }
 }
