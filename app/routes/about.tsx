@@ -115,7 +115,7 @@ export default function AboutUs() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 bg-white">
+      {/* <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-12">
             <span className="inline-block px-4 py-1 bg-[#e63946]/10 text-[#e63946] rounded-full text-sm font-medium mb-4">TESTIMONIALS</span>
@@ -151,7 +151,7 @@ export default function AboutUs() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Values Section */}
       <section className="py-16 bg-[#f8f9fa]">
