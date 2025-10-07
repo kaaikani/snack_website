@@ -6,7 +6,8 @@ import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
 } from '@remix-run/server-runtime';
-import { useLoaderData, useNavigate, useSubmit } from '@remix-run/react';
+// 1. Import useLocation to read URL params in the component
+import { useLoaderData, useNavigate, useSubmit, useLocation } from '@remix-run/react';
 import { useEffect, useRef } from 'react';
 import CustomerAddressForm, {
   validator,
@@ -58,6 +59,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // --- KEY CHANGE 1: Read the redirectTo parameter from the request URL ---
+  const url = new URL(request.url);
+  const redirectTo = url.searchParams.get('redirectTo');
+
   const formData = await request.formData();
   const result = await validator.validate(formData);
 
@@ -85,7 +90,8 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await createCustomerAddress(addressData, { request });
 
     if (result && result.__typename === 'Address') {
-      return redirect('/account/addresses');
+      // Use the redirectTo parameter if it exists, otherwise default to '/account/addresses'
+      return redirect(redirectTo || '/account/addresses');
     } else {
       return json<ErrorResult>(
         {
@@ -112,6 +118,11 @@ export default function NewAddress() {
   const navigate = useNavigate();
   const submit = useSubmit();
   const formRef = useRef<HTMLFormElement>(null);
+  
+  // --- KEY CHANGE 2: Get the redirectTo param for the cancel button ---
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get('redirectTo');
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -133,7 +144,8 @@ export default function NewAddress() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl p-6">
         <button
-          onClick={() => navigate('/account/addresses')}
+          // Use the dynamic path for the cancel button as well
+          onClick={() => navigate(redirectTo || '/account/addresses')}
           className="absolute right-4 top-4 p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100"
         >
           <X className="h-6 w-6" />

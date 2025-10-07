@@ -60,6 +60,10 @@ import { getCollections } from '~/providers/collections/collections';
 import Footer from '~/components/footer/Footer';
 import { CouponModal } from '~/components/couponcode/CouponModal';
 import ToastNotification from '~/components/ToastNotification';
+import { Card, CardContent, CardHeader } from '~/components/ui/card';
+import { RadioGroup } from '@headlessui/react';
+import { classNames } from '~/utils/class-names';
+import { CheckCircleIcon, CreditCardIcon } from 'lucide-react';
 
 interface CouponFetcherData {
   success?: boolean;
@@ -1018,9 +1022,9 @@ export default function CheckoutPage() {
                     return (
                       <>
                         <div className="flex justify-between items-start mb-4">
-                          <h3 className="text-sm font-medium text-black">
+                          <h3 className="text-lg uppercase font-bold text-amber-900">
                             {defaultShippingAddress
-                              ? 'Default Shipping Address'
+                              ? ' Shipping to'
                               : 'Saved Address'}
                           </h3>
                           <Link
@@ -1103,37 +1107,84 @@ export default function CheckoutPage() {
                 }}
               />
             </div>
-              <div className="mt-10 ">
-                <h2 className="text-lg font-medium text-black mb-6">
-                  Payment Method
-                </h2>
-                <div className="flex flex-col items-center divide-black divide-y space-y-6">
-                  <div className="w-full">
-                    {isShippingMethodSelected && (
-                      <div className="flex space-x-4 mb-6">
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMode('online')}
-                          className={`flex-1 py-3 px-4 rounded-md text-base font-medium transition-colors duration-200 ${
-                            paymentMode === 'online'
-                              ? 'bg-amber-800 border-2 border-amber-950 text-white'
-                              : 'bg-white text-black border border-black hover:bg-gray-100'
-                          }`}
-                        >
-                          Online Payment
-                        </button>
-                        
-                      </div>
+            <div className="mt-8">
+  {/* 1. Using the same consistent header style */}
+  <h3 className="text-lg font-semibold text-stone-800 border-b pb-2 mb-4">
+    Payment Method
+  </h3>
+
+  {/* 2. Switched to RadioGroup for consistency and scalability */}
+  <RadioGroup value={paymentMode} onChange={setPaymentMode}>
+    <div className="space-y-4">
+      <RadioGroup.Option
+        value="online"
+        className={({ checked }) =>
+          classNames(
+            'relative flex cursor-pointer rounded-lg p-4 border-2 transition-all duration-200 ease-in-out',
+            'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500',
+            // 3. Applying the same styles as the shipping method
+            checked
+              ? 'bg-amber-50 border-amber-600 shadow-md' // Selected state
+              : 'bg-white border-stone-200 hover:border-amber-500', // Default state
+          )
+        }
+      >
+        {({ checked }) => (
+          <>
+            <div className="flex w-full items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <CreditCardIcon
+                  className={classNames(
+                    'h-8 w-8',
+                    checked ? 'text-amber-700' : 'text-stone-400',
+                  )}
+                />
+                <div className="flex flex-col">
+                  <RadioGroup.Label
+                    as="span"
+                    className={classNames(
+                      'block text-sm font-semibold',
+                      checked ? 'text-amber-900' : 'text-stone-800',
                     )}
-                  </div>
-                 
+                  >
+                    Online Payment
+                  </RadioGroup.Label>
+                  {/* 4. Added a helpful description */}
+                  <RadioGroup.Description
+                    as="span"
+                    className={classNames(
+                      'text-xs',
+                      checked ? 'text-amber-800' : 'text-stone-500',
+                    )}
+                  >
+                    Pay with UPI, Cards, Net Banking, etc.
+                  </RadioGroup.Description>
                 </div>
-                {paymentError && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-sm text-red-800">{paymentError}</p>
-                  </div>
-                )}
               </div>
+              {checked && (
+                <CheckCircleIcon
+                  className="h-6 w-6 text-amber-600"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+          </>
+        )}
+      </RadioGroup.Option>
+      
+      {/* You can easily add other payment methods like COD here in the future */}
+      
+    </div>
+  </RadioGroup>
+
+  {paymentError && (
+    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+      <p className="text-sm text-red-800">{paymentError}</p>
+    </div>
+  )}
+</div>
+
+
             {eligibleShippingMethods.length === 0 && (
               <div className="mt-10 border-t border-black pt-10">
                 <p className="text-sm text-red-800">
