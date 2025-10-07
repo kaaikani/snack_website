@@ -285,12 +285,10 @@ export default function Index() {
        
 
         <div className="text-center my-10 px-4 sm:px-6 lg:px-8 z-[-10]">
-          <h1 className="text-4xl sm:text-5xl font-semibold uppercase text-gray-800">
-            Dried Fruits
-          </h1>
-          <h2 className="text-base sm:text-lg italic font-normal text-gray-600 mt-1">
-            Natural and Nutritious Snacks
-          </h2>
+          <h1 className="text-3xl sm:text-5xl font-semibold uppercase text-amber-400 drop-shadow-[0_0_20px_rgba(245,158,11,0.45)]">
+Taste of Tradition          </h1>
+          <h2 className="text-base sm:text-lg italic font-normal text-gray-900 mt-1">
+Explore our exquisite range of South Indian sweets and snacks.          </h2>
         </div>
 
         {/* <div className="mt-4 z-[-10]">
@@ -308,7 +306,7 @@ export default function Index() {
         </div> */}
 
          <div className="w-full">
-          <div className="grid grid-cols-2 sm:grid-cols-3   gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3   gap-6">
             {collections.map((collection) => (
               <div
                 key={collection.id}

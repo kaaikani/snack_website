@@ -48,11 +48,11 @@ export default function ContentSection() {
     <section className="relative overflow-hidden py-20 sm:py-32">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
-        <img
+        {/* <img
           alt="snacks image"
           src="snacks 5.jpg"
           className="h-full w-full object-cover object-right md:object-center"
-        />
+        /> */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/85 to-white/90" />
       </div>
       
@@ -66,12 +66,12 @@ export default function ContentSection() {
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold tracking-tight text-[#1F0322] sm:text-6xl mb-6">
+          <h1 className="text-3xl sm:text-5xl font-semibold uppercase text-amber-400 drop-shadow-[0_0_20px_rgba(245,158,11,0.45)]">
             Your Snack Journey
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF4D4D] to-[#fb6331]">
               Starts Here
             </span>
-          </h2>
+          </h1>
           
           <p className="text-xl text-[#1F0322]/80 max-w-3xl mx-auto leading-relaxed">
             Experience the perfect blend of quality, convenience, and exceptional service. 

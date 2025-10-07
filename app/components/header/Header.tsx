@@ -124,10 +124,10 @@ export function Header({
         isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[100rem] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex-shrink-0">
-            <Link to="/" className="text-xl font-semibold text-white">
+            <a href="/" className="text-xl font-semibold text-white">
               <img
                 src="https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/southmithai(1).png"
                 alt="Kaaikani Logo"
@@ -135,66 +135,76 @@ export function Header({
                 height={96}
                 className="h-16 w-full"
               />
-            </Link>
+            </a>
           </div>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center space-x-8">
-         <Link
-             to="/"
-             className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
-            >
-             Home
-            </Link>
-            <div
-              className="relative"
-              onMouseEnter={() => setIsCollectionsOpen(true)}
-              onMouseLeave={() => setIsCollectionsOpen(false)}
-            >
-              <button className="text-amber-100 hover:text-white flex items-center text-sm font-medium transition-colors">
-                Shop All
-                <ChevronDownIcon className="w-4 h-4 ml-1" />
-              </button>
-              <div
-                className={`absolute top-full left-1/2 -translate-x-1/2 w-[900px] bg-white shadow-lg rounded-lg p-6 mt-4 transition-all duration-300 ease-in-out transform origin-top ${
-                  isCollectionsOpen
-                    ? 'opacity-100 translate-y-0 visible'
-                    : 'opacity-0 -translate-y-2 invisible'
-                }`}
-              >
-                <div className="grid grid-cols-4 gap-6">
-                  {collections?.map((collection) => (
-                    <Link
-                      key={collection.id}
-                      to={`/collections/${collection.slug}`}
-                      onClick={() => setIsCollectionsOpen(false)}
-                      className="group flex items-center space-x-3 p-2 rounded-lg hover:bg-amber-50"
-                    >
-                      <div className="w-14 h-14 overflow-hidden rounded-md flex-shrink-0">
-                        <img
-                          src={
-                            collection.featuredAsset?.preview ??
-                            '/placeholder.svg'
-                          }
-                          alt={collection.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                        />
-                      </div>
-                      <span className="text-stone-700 text-sm font-medium group-hover:text-amber-700">
-                        {collection.name}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+         <nav className="hidden lg:flex items-center space-x-8">
             <Link
-              to="/about"
-              className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
-            >
-              About us
-            </Link>
-          </nav>
+    to="/"
+    className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
+  >
+Home  </Link>
+  {/* The "Shop All" Dropdown */}
+<div className="relative group">
+  {/* The trigger button */}
+  <button className="text-amber-100 hover:text-white flex items-center text-sm font-medium transition-colors">
+Products    <ChevronDownIcon className="w-4 h-4 ml-1" />
+  </button>
+
+  {/* The Mega Menu Dropdown Panel (Themed) */}
+  <div
+    className="absolute top-full left-1/2 -translate-x-1/2 mt-4
+               w-[900px] max-w-[95vw] p-6 rounded-2xl shadow-2xl
+               bg-amber-950/95 backdrop-blur-lg border border-amber-800
+               invisible opacity-0 scale-95 group-hover:visible group-hover:opacity-100 group-hover:scale-100
+               transition-all duration-300 ease-out z-50"
+  >
+    <div className="grid grid-cols-4 gap-6">
+      {collections?.map((collection) => (
+        <Link
+          key={collection.id}
+          to={`/collections/${collection.slug}`}
+          className="group/card flex flex-col p-4 rounded-xl
+                     bg-amber-900/50 hover:bg-amber-900 border border-amber-800/50
+                     transition-all duration-200"
+        >
+          {/* Image Container */}
+          <div className="w-full h-32 overflow-hidden rounded-lg mb-3 border border-amber-700">
+            <img
+              src={
+                collection.featuredAsset?.preview ??
+                '/placeholder.svg'
+              }
+              alt={collection.name}
+              className="w-full h-full object-cover 
+                         transition-transform duration-300 group-hover/card:scale-105"
+            />
+          </div>
+          {/* Text Content */}
+          <div>
+            <h3 className="text-base font-semibold text-amber-100 group-hover/card:text-white">
+              {collection.name}
+            </h3>
+            {/* <p className="text-sm text-amber-200 mt-1">
+              Explore Collection 
+            </p> */}
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+</div>
+
+  {/* Other Navigation Links */}
+  <Link
+    to="/about"
+    className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
+  >
+    About us
+  </Link>
+
+</nav>
+       
 
           {/* Icons & Mobile */}
           <div className="flex items-center space-x-2 sm:space-x-3">

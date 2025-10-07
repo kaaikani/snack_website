@@ -7,7 +7,7 @@ export function CollectionCard({
   collection: CollectionsQuery['collections']['items'][number];
 }) {
   return (
-    <div className="flex flex-col border rounded-xl relative bg-white shadow-sm  group">
+    <div className="flex flex-col border rounded-xl relative shadow-sm  group">
       <Link
         to={'/collections/' + collection.slug}
         prefetch="intent"

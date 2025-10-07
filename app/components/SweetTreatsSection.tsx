@@ -34,13 +34,14 @@ export function SweetTreatsSection({ collections }: { collections: Collection[] 
   // This smoothly moves the strip horizontally as you scroll the page vertically
 const x = useTransform(scrollYProgress, [0, 1], ['1%', '-10%']);
   return (
-    <section ref={containerRef} className="py-20 lg:py-28 overflow-hidden bg-amber-50/50">
+    <section ref={containerRef} className="py-10 lg:py-20 overflow-hidden bg-amber-50/50">
       <Reveal>
         <div className="text-center mb-12 px-4">
-          <h2 className="text-4xl sm:text-5xl font-semibold text-stone-800">Sweet Treats</h2>
-          <p className="text-base sm:text-lg text-stone-600 max-w-2xl mx-auto mt-2">
+          <h1 className="text-3xl sm:text-5xl font-semibold uppercase text-amber-400 drop-shadow-[0_0_20px_rgba(245,158,11,0.45)]">
+            Sweet Treats</h1>
+          <h2 className="text-base sm:text-lg italic font-normal text-gray-900 mt-1">
             Explore our curated collections of indulgent desserts and handcrafted candies.
-          </p>
+          </h2>
         </div>
       </Reveal>
 
