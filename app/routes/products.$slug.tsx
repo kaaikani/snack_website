@@ -199,7 +199,7 @@ export default function ProductSlug() {
 
   return (
     <div>
-      <div className="max-w-6xl mx-auto px-4  py-4 min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 mt-20  py-4 min-h-screen">
         <Breadcrumbs
           items={
             product.collections[product.collections.length - 1]?.breadcrumbs ??
@@ -277,7 +277,7 @@ export default function ProductSlug() {
                 />
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#FF4D4D]">
+              <div className="mt-6 pt-4 border-t border-amber-800 ">
                 <div className="flex items-baseline space-x-2 mb-6">
                   <span className="text-2xl font-bold text-gray-900">
                     <Price
@@ -313,8 +313,8 @@ export default function ProductSlug() {
                                 type="button"
                                 className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors duration-200 ${
                                   selectedVariantId === variant.id
-                                    ? 'bg-[#FF4D4D] text-white border-[#FF4D4D]'
-                                    : 'bg-white text-black border-[#FF4D4D]'
+                                    ? 'bg-amber-800  text-white border-amber-800 '
+                                    : 'bg-white text-black border-amber-800 '
                                 }`}
                                 onClick={() => {
                                   setSelectedVariantId(variant.id);
@@ -347,9 +347,7 @@ export default function ProductSlug() {
                         <button
                           type="button"
                           className={`w-full text-white py-2 mt-1 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 shadow-md ${
-                            isSignedIn
-                              ? 'bg-[#FF4D4D] hover:bg-[#FF6B6B]'
-                              : 'bg-gray-400'
+                            isSignedIn ? 'bg-amber-800  ' : 'bg-gray-400'
                           }`}
                           onClick={
                             isSignedIn

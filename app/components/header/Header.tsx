@@ -129,7 +129,7 @@ export function Header({
           <div className="flex-shrink-0">
             <a href="/" className="text-xl font-semibold text-white">
               <img
-                src="https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/southmithai(1).png"
+                src="https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/southmithai.png"
                 alt="Kaaikani Logo"
                 width={96}
                 height={96}
@@ -138,73 +138,72 @@ export function Header({
             </a>
           </div>
 
-         <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             <Link
-    to="/"
-    className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
-  >
-Home  </Link>
-  {/* The "Shop All" Dropdown */}
-<div className="relative group">
-  {/* The trigger button */}
-  <button className="text-amber-100 hover:text-white flex items-center text-sm font-medium transition-colors">
-Products    <ChevronDownIcon className="w-4 h-4 ml-1" />
-  </button>
+              to="/"
+              className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
+            >
+              Home{' '}
+            </Link>
+            {/* The "Shop All" Dropdown */}
+            <div className="relative group">
+              {/* The trigger button */}
+              <button className="text-amber-100 hover:text-white flex items-center text-sm font-medium transition-colors">
+                Products <ChevronDownIcon className="w-4 h-4 ml-1" />
+              </button>
 
-  {/* The Mega Menu Dropdown Panel (Themed) */}
-  <div
-    className="absolute top-full left-1/2 -translate-x-1/2 mt-4
+              {/* The Mega Menu Dropdown Panel (Themed) */}
+              <div
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-4
                w-[900px] max-w-[95vw] p-6 rounded-2xl shadow-2xl
                bg-amber-950/95 backdrop-blur-lg border border-amber-800
                invisible opacity-0 scale-95 group-hover:visible group-hover:opacity-100 group-hover:scale-100
                transition-all duration-300 ease-out z-50"
-  >
-    <div className="grid grid-cols-4 gap-6">
-      {collections?.map((collection) => (
-        <Link
-          key={collection.id}
-          to={`/collections/${collection.slug}`}
-          className="group/card flex flex-col p-4 rounded-xl
+              >
+                <div className="grid grid-cols-4 gap-6">
+                  {collections?.map((collection) => (
+                    <Link
+                      key={collection.id}
+                      to={`/collections/${collection.slug}`}
+                      className="group/card flex flex-col p-4 rounded-xl
                      bg-amber-900/50 hover:bg-amber-900 border border-amber-800/50
                      transition-all duration-200"
-        >
-          {/* Image Container */}
-          <div className="w-full h-32 overflow-hidden rounded-lg mb-3 border border-amber-700">
-            <img
-              src={
-                collection.featuredAsset?.preview ??
-                '/placeholder.svg'
-              }
-              alt={collection.name}
-              className="w-full h-full object-cover 
+                    >
+                      {/* Image Container */}
+                      <div className="w-full h-32 overflow-hidden rounded-lg mb-3 border border-amber-700">
+                        <img
+                          src={
+                            collection.featuredAsset?.preview ??
+                            '/placeholder.svg'
+                          }
+                          alt={collection.name}
+                          className="w-full h-full object-cover 
                          transition-transform duration-300 group-hover/card:scale-105"
-            />
-          </div>
-          {/* Text Content */}
-          <div>
-            <h3 className="text-base font-semibold text-amber-100 group-hover/card:text-white">
-              {collection.name}
-            </h3>
-            {/* <p className="text-sm text-amber-200 mt-1">
+                        />
+                      </div>
+                      {/* Text Content */}
+                      <div>
+                        <h3 className="text-base font-semibold text-amber-100 group-hover/card:text-white">
+                          {collection.name}
+                        </h3>
+                        {/* <p className="text-sm text-amber-200 mt-1">
               Explore Collection 
             </p> */}
-          </div>
-        </Link>
-      ))}
-    </div>
-  </div>
-</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-  {/* Other Navigation Links */}
-  <Link
-    to="/about"
-    className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
-  >
-    About us
-  </Link>
-
-</nav>
-       
+            {/* Other Navigation Links */}
+            <Link
+              to="/about"
+              className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
+            >
+              About us
+            </Link>
+          </nav>
 
           {/* Icons & Mobile */}
           <div className="flex items-center space-x-2 sm:space-x-3">

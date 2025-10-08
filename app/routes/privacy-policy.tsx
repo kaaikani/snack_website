@@ -5,7 +5,19 @@ import { getActiveCustomer } from '~/providers/customer/customer';
 import { useActiveOrder } from '~/utils/use-active-order';
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import { ArrowLeft, Shield, Eye, Lock, Database, Mail, Phone, MapPin, Users, Settings, Bell } from 'lucide-react';
+import {
+  ArrowLeft,
+  Shield,
+  Eye,
+  Lock,
+  Database,
+  Mail,
+  Phone,
+  MapPin,
+  Users,
+  Settings,
+  Bell,
+} from 'lucide-react';
 
 export async function loader({ request }: { request: Request }) {
   const collections = await getCollections(request, { take: 20 });
@@ -28,60 +40,71 @@ export default function PrivacyPolicy() {
   }, [activeCustomer]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#ffedc7] via-white to-[#ffedc7]">
+    <div className="min-h-screen mt-20 bg-gradient-to-br from-[#ffedc7] via-white to-[#ffedc7]">
       {/* Header */}
 
       <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full mb-6">
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-[#1F0322] mb-4">
             Privacy Policy
           </h1>
           <p className="text-lg text-[#1F0322]/70 max-w-2xl mx-auto">
-            Your privacy is important to us. This policy explains how we collect, use, and protect your personal information when you use our South Indian sweets and snacks platform.
+            Your privacy is important to us. This policy explains how we
+            collect, use, and protect your personal information when you use our
+            South Indian sweets and snacks platform.
           </p>
-       
         </div>
 
         {/* Main Content */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-[#FF4D4D]/10 overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-800 /10 overflow-hidden">
           <div className="p-8 sm:p-12">
             <div className="space-y-8 text-[#1F0322]">
-              
               {/* Section 1 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">1</span>
                   </div>
                   <h2 className="text-2xl font-bold">Information We Collect</h2>
                 </div>
                 <div className="ml-11 space-y-4">
                   <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-[#FF4D4D] mt-1 flex-shrink-0" />
+                    <Users className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-lg">Personal Information</h3>
+                      <h3 className="font-semibold text-lg">
+                        Personal Information
+                      </h3>
                       <p className="text-base leading-relaxed">
-                        When you create an account or place an order, we collect:
+                        When you create an account or place an order, we
+                        collect:
                       </p>
                       <ul className="list-disc list-inside space-y-1 text-base ml-4 mt-2">
-                        <li>Name and contact information (email, phone number)</li>
+                        <li>
+                          Name and contact information (email, phone number)
+                        </li>
                         <li>Delivery address and billing information</li>
-                        <li>Payment details (processed securely through third-party providers)</li>
+                        <li>
+                          Payment details (processed securely through
+                          third-party providers)
+                        </li>
                         <li>Account preferences and order history</li>
                       </ul>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-3">
-                    <Database className="w-5 h-5 text-[#FF4D4D] mt-1 flex-shrink-0" />
+                    <Database className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-lg">Usage Information</h3>
+                      <h3 className="font-semibold text-lg">
+                        Usage Information
+                      </h3>
                       <p className="text-base leading-relaxed">
-                        We automatically collect information about how you use our platform:
+                        We automatically collect information about how you use
+                        our platform:
                       </p>
                       <ul className="list-disc list-inside space-y-1 text-base ml-4 mt-2">
                         <li>Device information and browser type</li>
@@ -97,38 +120,47 @@ export default function PrivacyPolicy() {
               {/* Section 2 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">2</span>
                   </div>
-                  <h2 className="text-2xl font-bold">How We Use Your Information</h2>
+                  <h2 className="text-2xl font-bold">
+                    How We Use Your Information
+                  </h2>
                 </div>
                 <div className="ml-11 space-y-3">
                   <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-[#FF4D4D] mt-1 flex-shrink-0" />
+                    <Mail className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-lg">Order Processing & Delivery</h3>
+                      <h3 className="font-semibold text-lg">
+                        Order Processing & Delivery
+                      </h3>
                       <p className="text-base leading-relaxed">
-                        We use your information to process orders, arrange delivery, and provide customer support.
+                        We use your information to process orders, arrange
+                        delivery, and provide customer support.
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-3">
-                    <Bell className="w-5 h-5 text-[#FF4D4D] mt-1 flex-shrink-0" />
+                    <Bell className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
                     <div>
                       <h3 className="font-semibold text-lg">Communication</h3>
                       <p className="text-base leading-relaxed">
-                        We may send you order confirmations, delivery updates, promotional offers, and important service announcements.
+                        We may send you order confirmations, delivery updates,
+                        promotional offers, and important service announcements.
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-3">
-                    <Settings className="w-5 h-5 text-[#FF4D4D] mt-1 flex-shrink-0" />
+                    <Settings className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-lg">Service Improvement</h3>
+                      <h3 className="font-semibold text-lg">
+                        Service Improvement
+                      </h3>
                       <p className="text-base leading-relaxed">
-                        We analyze usage patterns to improve our platform, personalize your experience, and develop new features.
+                        We analyze usage patterns to improve our platform,
+                        personalize your experience, and develop new features.
                       </p>
                     </div>
                   </div>
@@ -138,20 +170,35 @@ export default function PrivacyPolicy() {
               {/* Section 3 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">3</span>
                   </div>
                   <h2 className="text-2xl font-bold">Information Sharing</h2>
                 </div>
                 <div className="ml-11 space-y-3">
                   <p className="text-base leading-relaxed">
-                    We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
+                    We do not sell, trade, or rent your personal information to
+                    third parties. We may share your information only in the
+                    following circumstances:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-base ml-4">
-                    <li><strong>Service Providers:</strong> With trusted partners who help us operate our platform (payment processors, delivery services, email providers)</li>
-                    <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and safety</li>
-                    <li><strong>Business Transfers:</strong> In case of merger, acquisition, or sale of business assets</li>
-                    <li><strong>Consent:</strong> When you explicitly give us permission to share your information</li>
+                    <li>
+                      <strong>Service Providers:</strong> With trusted partners
+                      who help us operate our platform (payment processors,
+                      delivery services, email providers)
+                    </li>
+                    <li>
+                      <strong>Legal Requirements:</strong> When required by law
+                      or to protect our rights and safety
+                    </li>
+                    <li>
+                      <strong>Business Transfers:</strong> In case of merger,
+                      acquisition, or sale of business assets
+                    </li>
+                    <li>
+                      <strong>Consent:</strong> When you explicitly give us
+                      permission to share your information
+                    </li>
                   </ul>
                 </div>
               </section>
@@ -159,18 +206,21 @@ export default function PrivacyPolicy() {
               {/* Section 4 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">4</span>
                   </div>
                   <h2 className="text-2xl font-bold">Data Security</h2>
                 </div>
                 <div className="ml-11 space-y-3">
                   <div className="flex items-start gap-3">
-                    <Lock className="w-5 h-5 text-[#FF4D4D] mt-1 flex-shrink-0" />
+                    <Lock className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="font-semibold text-lg">Protection Measures</h3>
+                      <h3 className="font-semibold text-lg">
+                        Protection Measures
+                      </h3>
                       <p className="text-base leading-relaxed">
-                        We implement industry-standard security measures to protect your personal information:
+                        We implement industry-standard security measures to
+                        protect your personal information:
                       </p>
                       <ul className="list-disc list-inside space-y-1 text-base ml-4 mt-2">
                         <li>SSL encryption for all data transmission</li>
@@ -180,10 +230,12 @@ export default function PrivacyPolicy() {
                       </ul>
                     </div>
                   </div>
-                  
-                  <div className="bg-[#ffedc7]/50 p-4 rounded-lg border border-[#FF4D4D]/20">
+
+                  <div className="bg-[#ffedc7]/50 p-4 rounded-lg border border-amber-800 /20">
                     <p className="text-sm font-medium text-[#1F0322]">
-                      <strong>Note:</strong> While we strive to protect your information, no method of transmission over the internet is 100% secure. We cannot guarantee absolute security.
+                      <strong>Note:</strong> While we strive to protect your
+                      information, no method of transmission over the internet
+                      is 100% secure. We cannot guarantee absolute security.
                     </p>
                   </div>
                 </div>
@@ -192,23 +244,38 @@ export default function PrivacyPolicy() {
               {/* Section 5 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">5</span>
                   </div>
                   <h2 className="text-2xl font-bold">Cookies & Tracking</h2>
                 </div>
                 <div className="ml-11 space-y-3">
                   <p className="text-base leading-relaxed">
-                    We use cookies and similar technologies to enhance your experience:
+                    We use cookies and similar technologies to enhance your
+                    experience:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-base ml-4">
-                    <li><strong>Essential Cookies:</strong> Required for basic platform functionality</li>
-                    <li><strong>Analytics Cookies:</strong> Help us understand how you use our platform</li>
-                    <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
-                    <li><strong>Marketing Cookies:</strong> Used to show relevant advertisements</li>
+                    <li>
+                      <strong>Essential Cookies:</strong> Required for basic
+                      platform functionality
+                    </li>
+                    <li>
+                      <strong>Analytics Cookies:</strong> Help us understand how
+                      you use our platform
+                    </li>
+                    <li>
+                      <strong>Preference Cookies:</strong> Remember your
+                      settings and preferences
+                    </li>
+                    <li>
+                      <strong>Marketing Cookies:</strong> Used to show relevant
+                      advertisements
+                    </li>
                   </ul>
                   <p className="text-base leading-relaxed">
-                    You can control cookie settings through your browser preferences. However, disabling certain cookies may affect platform functionality.
+                    You can control cookie settings through your browser
+                    preferences. However, disabling certain cookies may affect
+                    platform functionality.
                   </p>
                 </div>
               </section>
@@ -216,25 +283,45 @@ export default function PrivacyPolicy() {
               {/* Section 6 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">6</span>
                   </div>
                   <h2 className="text-2xl font-bold">Your Rights</h2>
                 </div>
                 <div className="ml-11 space-y-3">
                   <p className="text-base leading-relaxed">
-                    You have the following rights regarding your personal information:
+                    You have the following rights regarding your personal
+                    information:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-base ml-4">
-                    <li><strong>Access:</strong> Request a copy of your personal information</li>
-                    <li><strong>Correction:</strong> Update or correct inaccurate information</li>
-                    <li><strong>Deletion:</strong> Request deletion of your personal information</li>
-                    <li><strong>Portability:</strong> Receive your data in a structured format</li>
-                    <li><strong>Objection:</strong> Opt-out of certain data processing activities</li>
-                    <li><strong>Restriction:</strong> Limit how we process your information</li>
+                    <li>
+                      <strong>Access:</strong> Request a copy of your personal
+                      information
+                    </li>
+                    <li>
+                      <strong>Correction:</strong> Update or correct inaccurate
+                      information
+                    </li>
+                    <li>
+                      <strong>Deletion:</strong> Request deletion of your
+                      personal information
+                    </li>
+                    <li>
+                      <strong>Portability:</strong> Receive your data in a
+                      structured format
+                    </li>
+                    <li>
+                      <strong>Objection:</strong> Opt-out of certain data
+                      processing activities
+                    </li>
+                    <li>
+                      <strong>Restriction:</strong> Limit how we process your
+                      information
+                    </li>
                   </ul>
                   <p className="text-base leading-relaxed">
-                    To exercise these rights, please contact us using the information provided below.
+                    To exercise these rights, please contact us using the
+                    information provided below.
                   </p>
                 </div>
               </section>
@@ -242,14 +329,19 @@ export default function PrivacyPolicy() {
               {/* Section 7 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">7</span>
                   </div>
                   <h2 className="text-2xl font-bold">Data Retention</h2>
                 </div>
                 <div className="ml-11">
                   <p className="text-base leading-relaxed">
-                    We retain your personal information for as long as necessary to provide our services and fulfill the purposes outlined in this policy. Account information is typically retained for the duration of your account plus a reasonable period for legal and business purposes. You may request deletion of your account and associated data at any time.
+                    We retain your personal information for as long as necessary
+                    to provide our services and fulfill the purposes outlined in
+                    this policy. Account information is typically retained for
+                    the duration of your account plus a reasonable period for
+                    legal and business purposes. You may request deletion of
+                    your account and associated data at any time.
                   </p>
                 </div>
               </section>
@@ -257,14 +349,18 @@ export default function PrivacyPolicy() {
               {/* Section 8 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">8</span>
                   </div>
                   <h2 className="text-2xl font-bold">Children's Privacy</h2>
                 </div>
                 <div className="ml-11">
                   <p className="text-base leading-relaxed">
-                    Our platform is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected personal information from a child under 13, we will take steps to delete such information promptly.
+                    Our platform is not intended for children under 13 years of
+                    age. We do not knowingly collect personal information from
+                    children under 13. If we become aware that we have collected
+                    personal information from a child under 13, we will take
+                    steps to delete such information promptly.
                   </p>
                 </div>
               </section>
@@ -272,37 +368,46 @@ export default function PrivacyPolicy() {
               {/* Section 9 */}
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#FF4D4D] to-[#fb6331] rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm">9</span>
                   </div>
                   <h2 className="text-2xl font-bold">Policy Updates</h2>
                 </div>
                 <div className="ml-11">
                   <p className="text-base leading-relaxed">
-                    We may update this privacy policy from time to time to reflect changes in our practices or legal requirements. We will notify you of any material changes by posting the updated policy on this page and updating the "Last updated" date. We encourage you to review this policy periodically.
+                    We may update this privacy policy from time to time to
+                    reflect changes in our practices or legal requirements. We
+                    will notify you of any material changes by posting the
+                    updated policy on this page and updating the "Last updated"
+                    date. We encourage you to review this policy periodically.
                   </p>
                 </div>
               </section>
 
               {/* Contact Section */}
-              <section className="bg-gradient-to-r from-[#ffedc7] to-[#ffedc7]/50 p-6 rounded-xl border border-[#FF4D4D]/20">
-                <h3 className="text-xl font-bold text-[#1F0322] mb-3">Contact Us</h3>
+              <section className="bg-gradient-to-r from-[#ffedc7] to-[#ffedc7]/50 p-6 rounded-xl border border-amber-800 /20">
+                <h3 className="text-xl font-bold text-[#1F0322] mb-3">
+                  Contact Us
+                </h3>
                 <p className="text-base leading-relaxed text-[#1F0322]/80 mb-4">
-                  If you have any questions about this privacy policy or our data practices, please contact us:
+                  If you have any questions about this privacy policy or our
+                  data practices, please contact us:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[#FF4D4D] flex-shrink-0" />
-                    <span><strong>Email:</strong> support@southmithai.com</span>
+                    <Mail className="w-4 h-4 text-amber-800  flex-shrink-0" />
+                    <span>
+                      <strong>Email:</strong>southmithai@gmail.com
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-[#FF4D4D] flex-shrink-0" />
-                    <span><strong>Phone:</strong> 1800 309 4983</span>
+                    <Phone className="w-4 h-4 text-amber-800  flex-shrink-0" />
+                    <span>
+                      <strong>Phone:</strong> 1800 309 4983
+                    </span>
                   </div>
-             
                 </div>
               </section>
-
             </div>
           </div>
         </div>

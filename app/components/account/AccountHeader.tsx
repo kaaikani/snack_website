@@ -42,7 +42,7 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
           <h1 className="text-xl font-bold text-gray-900">My Account</h1>
           <button
             type="button"
-            className="p-2 rounded-full text-[#FF4D4D] hover:bg-red-50 transition-all duration-200"
+            className="p-2 rounded-full bg-amber-800 transition-all duration-200"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? (
@@ -62,13 +62,13 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
                   <Form key={item.href} method="post" action={item.href}>
                     <button
                       type="submit"
-                      className="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-red-50 hover:text-[#FF4D4D] rounded-md transition-all duration-200"
+                      className="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-red-50 hover:text-amber-800  rounded-md transition-all duration-200"
                       onClick={() => {
                         setMenuOpen(false);
                         setTimeout(() => (window.location.href = '/'), 50);
                       }}
                     >
-                      <item.icon className="h-5 w-5 mr-3 text-[#FF4D4D]" />
+                      <item.icon className="h-5 w-5 mr-3 text-amber-800" />
                       {item.name}
                     </button>
                   </Form>
@@ -80,13 +80,13 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
                     className={({ isActive }) =>
                       `flex items-center px-4 py-2 text-base font-medium rounded-md transition-all duration-200 ${
                         isActive
-                          ? 'bg-red-50 text-[#FF4D4D]'
-                          : 'text-gray-700 hover:bg-red-50 hover:text-[#FF4D4D]'
+                          ? 'bg-red-50 text-amber-800'
+                          : 'text-gray-700 hover:bg-red-50 text-amber-800'
                       }`
                     }
                     onClick={() => setMenuOpen(false)}
                   >
-                    <item.icon className="h-5 w-5 mr-3 text-[#FF4D4D]" />
+                    <item.icon className="h-5 w-5 mr-3 text-amber-800" />
                     {item.name}
                   </NavLink>
                 ),
@@ -104,12 +104,12 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
                 <Form key={item.href} method="post" action={item.href}>
                   <button
                     type="submit"
-                    className="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-red-50 hover:text-[#FF4D4D] rounded-md transition-all duration-200"
+                    className="flex items-center px-4 py-2 text-base font-medium text-gray-700  hover:text-amber-800 rounded-md transition-all duration-200"
                     onClick={() =>
                       setTimeout(() => (window.location.href = '/'), 50)
                     }
                   >
-                    <item.icon className="h-5 w-5 mr-2 text-[#FF4D4D]" />
+                    <item.icon className="h-5 w-5 mr-2 text-amber-800" />
                     {item.name}
                   </button>
                 </Form>
@@ -121,12 +121,12 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
                   className={({ isActive }) =>
                     `flex items-center px-4 py-2 text-base font-medium rounded-md transition-all duration-200 ${
                       isActive
-                        ? 'bg-red-50 text-[#FF4D4D]'
-                        : 'text-gray-700 hover:bg-red-50 hover:text-[#FF4D4D]'
+                        ? 'bg-red-50 text-amber-800'
+                        : 'text-gray-700 hover:bg-red-50 hover:text-amber-800'
                     }`
                   }
                 >
-                  <item.icon className="h-5 w-5 mr-2 text-[#FF4D4D]" />
+                  <item.icon className="h-5 w-5 mr-2 text-amber-800" />
                   {item.name}
                 </NavLink>
               ),

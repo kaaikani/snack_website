@@ -166,7 +166,7 @@ export default function AccountHistory() {
           <CardContent className="p-6">
             {navigation.state !== 'idle' && (
               <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
-                <div className="animate-spin h-8 w-8 border-4 border-[#FF4D4D] border-t-transparent rounded-full" />
+                <div className="animate-spin h-8 w-8 border-4 border-amber-800 border-t-transparent rounded-full" />
               </div>
             )}
             {orderList.items.length === 0 ? (

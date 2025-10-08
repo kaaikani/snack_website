@@ -147,7 +147,7 @@ export default function Favorites() {
 
   return (
     <>
-      <div className="max-w-6xl min-h-screen px-4 xl:w-full xl:max-w-none xl:px-8">
+      <div className="max-w-6xl min-h-screen px-4 mt-20 xl:w-full xl:max-w-none xl:px-8">
         {addItemToOrderError && (
           <div className="mb-4">
             <Alert message={addItemToOrderError} />

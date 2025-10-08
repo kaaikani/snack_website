@@ -357,7 +357,7 @@ function AccountDetailsContent({
               <Button
                 variant="default"
                 onClick={() => setIsEditing(true)}
-                className="h-10 px-4 bg-[#FF4D4D] hover:bg-[#FF6B6B] text-white rounded-md transition-all duration-200"
+                className="h-10 px-4 bg-amber-800 text-white rounded-md transition-all duration-200"
               >
                 <Edit className="h-4 w-4 mr-2" /> Edit Details
               </Button>
@@ -389,10 +389,10 @@ function AccountDetailsContent({
                     htmlFor="title"
                     className="text-sm font-semibold text-gray-700"
                   >
-                    Title <span className="text-[#FF4D4D]">*</span>
+                    Title <span className="text-amber-800 ">*</span>
                   </Label>
                   <Select name="title" defaultValue={title || 'None'}>
-                    <SelectTrigger className="h-11 border-gray-300 focus:ring-[#FF4D4D]">
+                    <SelectTrigger className="h-11 border-gray-300 focus:ring-amber-800 ">
                       <SelectValue placeholder="Select title" />
                     </SelectTrigger>
                     <SelectContent>
@@ -410,13 +410,13 @@ function AccountDetailsContent({
                     htmlFor="firstName"
                     className="text-sm font-semibold text-gray-700"
                   >
-                    First Name <span className="text-[#FF4D4D]">*</span>
+                    First Name <span className="text-amber-800 ">*</span>
                   </Label>
                   <Input
                     id="firstName"
                     name="firstName"
                     required
-                    className="h-11 border-gray-300 focus:ring-[#FF4D4D]"
+                    className="h-11 border-gray-300 focus:ring-amber-800 "
                     defaultValue={firstName || ''}
                   />
                 </div>
@@ -425,17 +425,17 @@ function AccountDetailsContent({
                     htmlFor="lastName"
                     className="text-sm font-semibold text-gray-700"
                   >
-                    Last Name <span className="text-[#FF4D4D]">*</span>
+                    Last Name <span className="text-amber-800 ">*</span>
                   </Label>
                   <Input
                     id="lastName"
                     name="lastName"
                     required
-                    className="h-11 border-gray-300 focus:ring-[#FF4D4D]"
+                    className="h-11 border-gray-300 focus:ring-amber-800 "
                     defaultValue={lastName || ''}
                   />
                 </div>
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label
                     htmlFor="phoneNumber"
                     className="text-sm font-semibold text-gray-700"
@@ -445,11 +445,11 @@ function AccountDetailsContent({
                   <Input
                     id="phoneNumber"
                     name="phoneNumber"
-                    className="h-11 border-gray-300 focus:ring-[#FF4D4D]"
+                    className="h-11 border-gray-300 focus:ring-amber-800 "
                     defaultValue={phoneNumber || ''}
                     placeholder="Enter phone number"
                   />
-                </div>
+                </div> */}
               </div>
               {formError && formError.intent === FormIntent.UpdateDetails && (
                 <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -462,7 +462,7 @@ function AccountDetailsContent({
                 <HighlightedButton
                   type="submit"
                   isSubmitting={state === 'submitting'}
-                  className="h-11 px-6 bg-[#FF4D4D] hover:bg-[#FF6B6B] text-white"
+                  className="h-11 px-6 bg-amber-800 text-white"
                 >
                   <Check className="h-4 w-4 mr-2" /> Save Changes
                 </HighlightedButton>
@@ -487,7 +487,7 @@ function AccountDetailsContent({
                     {replaceEmptyString(fullName)}
                   </p>
                 </div>
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label className="text-xs font-semibold uppercase text-gray-600 flex items-center gap-2">
                     <Phone className="h-4 w-4" />
                     Phone Number
@@ -497,7 +497,7 @@ function AccountDetailsContent({
                       <span className="text-gray-500 italic">Not Provided</span>
                     )}
                   </p>
-                </div>
+                </div> */}
               </div>
             </div>
           )}

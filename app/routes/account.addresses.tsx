@@ -296,7 +296,7 @@ export default function AccountAddresses() {
               </div>
               <HighlightedButton
                 type="button"
-                className="h-10 px-4 bg-[#FF4D4D] hover:bg-[#FF6B6B] text-white"
+                className="h-10 px-4 bg-amber-800  text-white"
                 onClick={() => navigate('/account/addresses/new')}
               >
                 Add New Address

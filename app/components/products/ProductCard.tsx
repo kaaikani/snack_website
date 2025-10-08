@@ -228,7 +228,7 @@ export function ProductCard({
         <button
           type="button"
           className={`w-full text-white py-2 mt-1 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 shadow-md ${
-            isSignedIn ? 'bg-[#FF4D4D] hover:bg-[#FF6B6B]' : 'bg-gray-400'
+            isSignedIn ? 'bg-amber-800  ' : 'bg-gray-400'
           }`}
           onClick={isSignedIn ? handleAddToCart : handleShowSignInModal}
         >

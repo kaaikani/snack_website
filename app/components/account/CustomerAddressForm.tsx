@@ -297,7 +297,7 @@ export default function CustomerAddressForm({
           <div className="mt-6 border-gray-200 pt-4">
             <button
               type="submit"
-              className="group/btn relative h-11 w-full rounded-md bg-[#FF4D4D] hover:bg-[#FF6B6B] font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] transition-all duration-200 hover:shadow-lg"
+              className="group/btn relative h-11 w-full rounded-md bg-amber-800   font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] transition-all duration-200 hover:shadow-lg"
               onClick={submit}
             >
               {isEditing ? 'Update Address' : 'Create Address'}

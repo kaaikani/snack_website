@@ -1,8 +1,16 @@
-import { useLoaderData, useOutletContext, useActionData } from '@remix-run/react';
-import { json, type LoaderFunctionArgs, type DataFunctionArgs } from '@remix-run/node';
+import {
+  useLoaderData,
+  useOutletContext,
+  useActionData,
+} from '@remix-run/react';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type DataFunctionArgs,
+} from '@remix-run/node';
 import { getCollections } from '~/providers/collections/collections';
 import { getCustomBanners } from '~/providers/customPlugins/customPlugin';
-import { getActiveCustomerDetails } from '~/providers/customer/customer'; 
+import { getActiveCustomerDetails } from '~/providers/customer/customer';
 import type { CurrencyCode } from '~/generated/graphql';
 import { CollectionCard } from '~/components/collections/CollectionCard';
 import { ThreeLayoutBanner } from '~/components/ThreeLayoutBanner';
@@ -10,13 +18,13 @@ import { useTranslation } from 'react-i18next';
 import ContentSection from '~/components/ContentSection';
 import { ProductCollectionSlider } from '~/components/products/ProductCollectionSlider';
 import { search } from '~/providers/products/products';
-import  useToggleState  from '~/utils/use-toggle-state'; // Import useToggleState
+import useToggleState from '~/utils/use-toggle-state'; // Import useToggleState
 import { updateCustomer } from '~/providers/account/account'; // Import updateCustomer
 import { withZod } from '@remix-validated-form/with-zod'; // Import for validation
 import { validationError } from 'remix-validated-form';
-import { z } from 'zod'; 
-import { FormIntent } from '~/routes/account'; 
-import type { FormError } from '~/routes/account'; 
+import { z } from 'zod';
+import { FormIntent } from '~/routes/account';
+import type { FormError } from '~/routes/account';
 import { useState, useEffect } from 'react';
 import { Hero } from '~/components/ui/hero';
 import { SweetTreatsSection } from '~/components/SweetTreatsSection';
@@ -168,11 +176,15 @@ type OutletContext = {
 };
 
 export default function Index() {
-  const { collections, banners, activeCustomer } = useLoaderData<typeof loader>();
+  const { collections, banners, activeCustomer } =
+    useLoaderData<typeof loader>();
   const { t } = useTranslation();
-  const { activeOrderFetcher, activeOrder, isSignedIn } = useOutletContext<OutletContext>();
+  const { activeOrderFetcher, activeOrder, isSignedIn } =
+    useOutletContext<OutletContext>();
   const actionData = useActionData<typeof action>();
-  const [showPhoneModal, openPhoneModal, closePhoneModal] = useToggleState(!activeCustomer?.phoneNumber && isSignedIn); // Show modal if no phone number and signed in
+  const [showPhoneModal, openPhoneModal, closePhoneModal] = useToggleState(
+    !activeCustomer?.phoneNumber && isSignedIn,
+  ); // Show modal if no phone number and signed in
   const [formError, setFormError] = useState<FormError>();
 
   // Handle action data
@@ -188,11 +200,11 @@ export default function Index() {
   }, [actionData, closePhoneModal]);
 
   const topRightBannerUrls = [
-    'https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/Common+Banner.jpg'
+    'https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/Common+Banner.jpg',
   ];
 
   const bottomRightBannerUrls = [
-    "https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/Offer+1000.jpg"
+    'https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/SOUTHMITHAI+-+DELFREE.jpg',
   ];
 
   const featuredCollections = [
@@ -201,7 +213,7 @@ export default function Index() {
       backgroundColor: 'bg-white/60',
       backgroundColorInner: 'bg-white/60',
       bannerUrl:
-        "https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/Offer+1000.jpg",
+        'https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/Offer+1000.jpg',
     },
     {
       slug: 'thattai-sev-crispy-snacks',
@@ -212,19 +224,19 @@ export default function Index() {
     {
       slug: 'podi-powder',
       backgroundColor: 'bg-orange-100',
-            bannerUrl:
+      bannerUrl:
         'https://assets-jpcust.jwpsrv.com/thumbnails/0pz2lxly-1280.jpg',
     },
-      {
+    {
       slug: 'achumurukku-murukku-fried-snacks ',
       backgroundColor: 'bg-orange-100',
-            bannerUrl:
+      bannerUrl:
         'https://assets-jpcust.jwpsrv.com/thumbnails/0pz2lxly-1280.jpg',
     },
-      {
+    {
       slug: 'adhirasam-special-sweets',
       backgroundColor: 'bg-orange-100',
-            bannerUrl:
+      bannerUrl:
         'https://assets-jpcust.jwpsrv.com/thumbnails/0pz2lxly-1280.jpg',
     },
   ];
@@ -232,17 +244,16 @@ export default function Index() {
   return (
     <>
       {/* Add PhoneNumberModal */}
-      <PhoneNumberModal
+      {/* <PhoneNumberModal
         open={showPhoneModal}
         onOpenChange={closePhoneModal}
         formError={formError}
-        isSubmitting={false} // Adjust based on your form state
+        isSubmitting={false} 
         fetcher={undefined}
-      />
-      <Hero/>
+      /> */}
+      <Hero />
 
-
-   <SweetTreatsSection collections={collections} />
+      <SweetTreatsSection collections={collections} />
 
       <section aria-labelledby="category-heading" className="z-[-10]">
         {banners &&
@@ -282,13 +293,13 @@ export default function Index() {
           </div>
         </div> */}
 
-       
-
         <div className="text-center my-10 px-4 sm:px-6 lg:px-8 z-[-10]">
           <h1 className="text-3xl sm:text-5xl font-semibold uppercase text-amber-400 drop-shadow-[0_0_20px_rgba(245,158,11,0.45)]">
-Taste of Tradition          </h1>
+            Taste of Tradition{' '}
+          </h1>
           <h2 className="text-base sm:text-lg italic font-normal text-gray-900 mt-1">
-Explore our exquisite range of South Indian sweets and snacks.          </h2>
+            Explore our exquisite range of South Indian sweets and snacks.{' '}
+          </h2>
         </div>
 
         {/* <div className="mt-4 z-[-10]">
@@ -305,7 +316,7 @@ Explore our exquisite range of South Indian sweets and snacks.          </h2>
           ))}
         </div> */}
 
-         <div className="w-full">
+        <div className="w-full">
           <div className="grid grid-cols-1 sm:grid-cols-3   gap-6">
             {collections.map((collection) => (
               <div
@@ -318,7 +329,7 @@ Explore our exquisite range of South Indian sweets and snacks.          </h2>
           </div>
         </div>
 
-         <div className="mt-4 z-[-10]">
+        <div className="mt-4 z-[-10]">
           <ContentSection />
         </div>
       </section>
