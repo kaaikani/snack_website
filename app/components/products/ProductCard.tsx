@@ -61,7 +61,7 @@ export function ProductCard({
   onFavoriteToggle,
   orderCount,
   isSignedIn,
-  showAsVariantCard = false, // 👈 default false
+  showAsVariantCard = false,
 }: ProductCardProps) {
   const { t } = useTranslation();
   const [selectedVariantId, setSelectedVariantId] = useState(
@@ -207,7 +207,7 @@ export function ProductCard({
       </div>
 
       {/* ✅ Variant Selector (hidden if showAsVariantCard) */}
-      {!showAsVariantCard && variants && variants.length > 1 ? (
+      {!showAsVariantCard && variants && variants.length > 0 ? (
         <select
           className="mt-2 border rounded px-1 py-1 text-xs"
           value={selectedVariantId || ''}

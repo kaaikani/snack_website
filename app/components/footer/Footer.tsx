@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 export default function Footer() {
   return (
@@ -13,13 +13,25 @@ export default function Footer() {
         >
           {/* Wave Layers */}
           <g className="wave-move-1">
-            <path fill="#fef3c7" fillOpacity="0.2" d="M0,60 Q300,90 600,60 T1200,60 Q1500,90 1800,60 T2400,60 L2400,0 L0,0 Z" />
+            <path
+              fill="#fef3c7"
+              fillOpacity="0.2"
+              d="M0,60 Q300,90 600,60 T1200,60 Q1500,90 1800,60 T2400,60 L2400,0 L0,0 Z"
+            />
           </g>
           <g className="wave-move-2">
-            <path fill="#fef3c7" fillOpacity="0.4" d="M0,45 Q300,75 600,45 T1200,45 Q1500,75 1800,45 T2400,45 L2400,0 L0,0 Z" />
+            <path
+              fill="#fef3c7"
+              fillOpacity="0.4"
+              d="M0,45 Q300,75 600,45 T1200,45 Q1500,75 1800,45 T2400,45 L2400,0 L0,0 Z"
+            />
           </g>
           <g className="wave-move-3">
-            <path fill="#fef3c7" fillOpacity="0.7" d="M0,30 Q300,60 600,30 T1200,30 Q1500,60 1800,30 T2400,30 L2400,0 L0,0 Z" />
+            <path
+              fill="#fef3c7"
+              fillOpacity="0.7"
+              d="M0,30 Q300,60 600,30 T1200,30 Q1500,60 1800,30 T2400,30 L2400,0 L0,0 Z"
+            />
           </g>
         </svg>
       </div>
@@ -44,14 +56,19 @@ export default function Footer() {
             {/* Brand Section (Column 1) */}
             <div className="lg:col-span-1 flex flex-col items-center text-center lg:items-start lg:text-left">
               <div className="p-2 bg-amber-900/30  inline-block">
-                <img 
-                  src="https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/southmithai(1).png" 
-                  alt="SOUTH MITTHAI LOGO" 
+                <img
+                  src="https://s3.ap-south-1.amazonaws.com/cdn.kaaikani.co.in/southmithai.png"
+                  alt="SOUTH MITTHAI LOGO"
                   className="h-14 w-auto"
                 />
               </div>
               <p className="mt-4 text-sm text-amber-100 leading-relaxed max-w-xs">
-South Mithai delivers authentic, traditional South Indian sweets and savory snacks right to your door. Each item is handcrafted with care, using cherished, generations-old recipes for a truly genuine taste. Order online to experience the perfect blend of tradition and freshness for any occasion.              </p>
+                South Mithai delivers authentic, traditional South Indian sweets
+                and savory snacks right to your door. Each item is handcrafted
+                with care, using cherished, generations-old recipes for a truly
+                genuine taste. Order online to experience the perfect blend of
+                tradition and freshness for any occasion.{' '}
+              </p>
             </div>
 
             {/* Links Wrapper (Columns 2 & 3) */}
@@ -59,29 +76,75 @@ South Mithai delivers authentic, traditional South Indian sweets and savory snac
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center sm:text-left">
                 {/* Quick Links */}
                 <div>
-                  <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">Quick Links</h4>
+                  <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">
+                    Quick Links
+                  </h4>
                   <nav className="space-y-3">
-                    <a href="/" className="block text-amber-100 hover:text-white transition-colors text-sm">Home</a>
-                    <a href="/about" className="block text-amber-100 hover:text-white transition-colors text-sm">About Us</a>
+                    <a
+                      href="/"
+                      className="block text-amber-100 hover:text-white transition-colors text-sm"
+                    >
+                      Home
+                    </a>
+                    <a
+                      href="/about"
+                      className="block text-amber-100 hover:text-white transition-colors text-sm"
+                    >
+                      About Us
+                    </a>
                   </nav>
                 </div>
 
                 {/* Support */}
                 <div>
-                  <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">Support</h4>
+                  <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">
+                    Support
+                  </h4>
                   <nav className="space-y-3">
-                    <a href="/privacy-policy" className="block text-amber-100 hover:text-white transition-colors text-sm">Privacy Policy</a>
-                    <a href="/terms-and-conditions" className="block text-amber-100 hover:text-white transition-colors text-sm">Terms of Service</a>
+                    <a
+                      href="/privacy-policy"
+                      className="block text-amber-100 hover:text-white transition-colors text-sm"
+                    >
+                      Privacy Policy
+                    </a>
+                    <a
+                      href="/terms-and-conditions"
+                      className="block text-amber-100 hover:text-white transition-colors text-sm"
+                    >
+                      Terms of Service
+                    </a>
                   </nav>
                 </div>
 
                 {/* Contact */}
                 <div id="contact">
-                  <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">Get in Touch</h4>
+                  <h4 className="font-semibold text-sm uppercase tracking-wider text-amber-200 mb-4">
+                    Get in Touch
+                  </h4>
                   <address className="not-italic space-y-3 text-sm text-amber-100">
-                    <p className="leading-normal">No.4d-1, Montfort Nagar,<br />Dindigul main road,<br />Pirattiyur, Trichy - 620009</p>
-                    <p className="mt-2"><a href="mailto:southmithai@gmail.com" className="hover:text-white transition-colors">southmithai@gmail.com</a></p>
-                    <p><a href="tel:18003094983" className="hover:text-white transition-colors">1800 309 4983</a></p>
+                    <p className="leading-normal">
+                      No.4d-1, Montfort Nagar,
+                      <br />
+                      Dindigul main road,
+                      <br />
+                      Pirattiyur, Trichy - 620009
+                    </p>
+                    <p className="mt-2">
+                      <a
+                        href="mailto:southmithai@gmail.com"
+                        className="hover:text-white transition-colors"
+                      >
+                        southmithai@gmail.com
+                      </a>
+                    </p>
+                    <p>
+                      <a
+                        href="tel:18003094983"
+                        className="hover:text-white transition-colors"
+                      >
+                        1800 309 4983
+                      </a>
+                    </p>
                   </address>
                 </div>
               </div>
@@ -97,5 +160,5 @@ South Mithai delivers authentic, traditional South Indian sweets and savory snac
         </div>
       </div>
     </footer>
-  )
+  );
 }

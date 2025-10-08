@@ -69,7 +69,7 @@ export function Header({
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
 
-  // Determine if we're on an account page
+  // Detect if on account page
   const isAccountPage = location.pathname.startsWith('/account');
 
   useEffect(() => {
@@ -80,11 +80,9 @@ export function Header({
       }
 
       const currentScrollY = window.scrollY;
-
       if (currentScrollY < 50) setIsHeaderVisible(true);
-      else if (currentScrollY > lastScrollY)
-        setIsHeaderVisible(false); // scrolling down
-      else setIsHeaderVisible(true); // scrolling up
+      else if (currentScrollY > lastScrollY) setIsHeaderVisible(false);
+      else setIsHeaderVisible(true);
 
       setLastScrollY(currentScrollY);
     };
@@ -95,18 +93,7 @@ export function Header({
 
   const handleShowSignInModal = () => setShowSignInModal(true);
 
-  // Mobile menu overlay
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (
-        !target.closest('.mobile-menu') &&
-        !target.closest('.mobile-menu-button')
-      ) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -126,6 +113,7 @@ export function Header({
     >
       <div className="mx-auto max-w-[100rem] px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
           <div className="flex-shrink-0">
             <a href="/" className="text-xl font-semibold text-white">
               <img
@@ -138,38 +126,50 @@ export function Header({
             </a>
           </div>
 
+          {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center space-x-8">
             <Link
               to="/"
               className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
             >
-              Home{' '}
+              Home
             </Link>
-            {/* The "Shop All" Dropdown */}
-            <div className="relative group">
-              {/* The trigger button */}
-              <button className="text-amber-100 hover:text-white flex items-center text-sm font-medium transition-colors">
+
+            <div
+              className="relative"
+              onMouseEnter={() => {
+                clearTimeout((window as any).dropdownTimeout);
+                setIsCollectionsOpen(true);
+              }}
+              onMouseLeave={() => {
+                (window as any).dropdownTimeout = setTimeout(() => {
+                  setIsCollectionsOpen(false);
+                }, 150);
+              }}
+            >
+              <button
+                onClick={() => setIsCollectionsOpen(!isCollectionsOpen)}
+                className="text-amber-100 hover:text-white flex items-center text-sm font-medium transition-colors"
+              >
                 Products <ChevronDownIcon className="w-4 h-4 ml-1" />
               </button>
 
-              {/* The Mega Menu Dropdown Panel (Themed) */}
               <div
-                className="absolute top-full left-1/2 -translate-x-1/2 mt-4
-               w-[900px] max-w-[95vw] p-6 rounded-2xl shadow-2xl
-               bg-amber-950/95 backdrop-blur-lg border border-amber-800
-               invisible opacity-0 scale-95 group-hover:visible group-hover:opacity-100 group-hover:scale-100
-               transition-all duration-300 ease-out z-50"
+                className={`absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[900px] max-w-[95vw] p-6 rounded-2xl shadow-2xl bg-amber-950/95 backdrop-blur-lg border border-amber-800 transition-all duration-300 ease-out z-50
+        ${
+          isCollectionsOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 -translate-y-3 pointer-events-none'
+        }`}
               >
                 <div className="grid grid-cols-4 gap-6">
                   {collections?.map((collection) => (
                     <Link
                       key={collection.id}
                       to={`/collections/${collection.slug}`}
-                      className="group/card flex flex-col p-4 rounded-xl
-                     bg-amber-900/50 hover:bg-amber-900 border border-amber-800/50
-                     transition-all duration-200"
+                      onClick={() => setIsCollectionsOpen(false)}
+                      className="group/card flex flex-col p-4 rounded-xl bg-amber-900/50 hover:bg-amber-900 border border-amber-800/50 transition-all duration-200"
                     >
-                      {/* Image Container */}
                       <div className="w-full h-32 overflow-hidden rounded-lg mb-3 border border-amber-700">
                         <img
                           src={
@@ -177,26 +177,19 @@ export function Header({
                             '/placeholder.svg'
                           }
                           alt={collection.name}
-                          className="w-full h-full object-cover 
-                         transition-transform duration-300 group-hover/card:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
                         />
                       </div>
-                      {/* Text Content */}
                       <div>
                         <h3 className="text-base font-semibold text-amber-100 group-hover/card:text-white">
                           {collection.name}
                         </h3>
-                        {/* <p className="text-sm text-amber-200 mt-1">
-              Explore Collection 
-            </p> */}
                       </div>
                     </Link>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* Other Navigation Links */}
             <Link
               to="/about"
               className="text-amber-100 hover:text-white text-sm font-medium transition-colors"
@@ -205,7 +198,7 @@ export function Header({
             </Link>
           </nav>
 
-          {/* Icons & Mobile */}
+          {/* Icons */}
           <div className="flex items-center space-x-2 sm:space-x-3">
             <SearchBar isOpen={isSearchOpen} />
             <button
@@ -245,7 +238,7 @@ export function Header({
                 aria-label="favorites"
                 className="hidden sm:block p-1.5 sm:p-2 text-amber-200 hover:text-[#fb6331]"
               >
-                <HeartIcon className="w-4 h-4 sm:w-6 sm:h-6 " />
+                <HeartIcon className="w-4 h-4 sm:w-6 sm:h-6" />
               </Link>
             )}
 
@@ -260,121 +253,9 @@ export function Header({
                 <UserIcon className="w-6 h-6" />
               </Link>
             )}
-
-            {/* <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle mobile menu"
-              className="lg:hidden mobile-menu-button p-2 text-amber-100 hover:text-white"
-            >
-              {isMobileMenuOpen ? (
-                <XMarkIcon className="w-6 h-6" />
-              ) : (
-                <Bars3Icon className="w-6 h-6" />
-              )}
-            </button> */}
           </div>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {/* <div
-          className={`mobile-menu absolute top-0 right-0 h-full w-4/5 max-w-sm bg-amber-800 shadow-lg transition-transform duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <div>
-          <div className="p-4 border-b border-amber-700 flex justify-between items-center">
-            <h2 className="font-semibold text-white">Menu</h2>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 text-amber-100"
-            >
-              <XMarkIcon className="w-6 h-6" />
-            </button>
-          </div>
-          <nav className="py-4 px-4 space-y-2">
-            <Link
-              to="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-amber-50 font-medium py-2 px-3 hover:bg-amber-700 rounded-md"
-            >
-              Home
-            </Link>
-            <div className="border-b border-amber-700 pb-2">
-              <button
-                onClick={() => setIsMobileProductsOpen(!isMobileProductsOpen)}
-                className="flex items-center justify-between w-full text-amber-50 font-medium py-2 px-3 hover:bg-amber-700 rounded-md"
-              >
-                <span>Shop All</span>
-                <ChevronDownIcon
-                  className={`w-5 h-5 transition-transform ${
-                    isMobileProductsOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-              <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  isMobileProductsOpen ? 'max-h-96' : 'max-h-0'
-                }`}
-              >
-                <div className="grid grid-cols-1 gap-2 pl-6 pt-2">
-                  {collections?.map((collection) => (
-                    <Link
-                      key={collection.id}
-                      to={`/collections/${collection.slug}`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center space-x-3 p-2 rounded-md hover:bg-amber-700"
-                    >
-                      <img
-                        src={collection.featuredAsset?.preview ?? '/placeholder.svg'}
-                        alt={collection.name}
-                        className="w-8 h-8 object-cover rounded"
-                      />
-                      <span className="text-amber-100 text-sm">
-                        {collection.name}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <Link
-              to="/about"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-amber-50 font-medium py-2 px-3 hover:bg-amber-700 rounded-md"
-            >
-              About
-            </Link>
-            <Link
-              to="/contact"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block text-amber-50 font-medium py-2 px-3 hover:bg-amber-700 rounded-md"
-            >
-              Contact Us
-            </Link>
-
-            <div className="pt-4 border-t border-amber-700">
-              {!isSignedIn ? (
-                <Link
-                  to="/sign-in"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-amber-50 font-medium py-2 px-3 hover:bg-amber-700 rounded-md"
-                >
-                  Sign In
-                </Link>
-              ) : (
-                <Link
-                  to="/account"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-amber-50 font-medium py-2 px-3 hover:bg-amber-700 rounded-md"
-                >
-                  My Account
-                </Link>
-              )}
-            </div>
-          </nav>
-        </div>
-      </div> */}
 
       <SignInPromptModal
         isOpen={showSignInModal}
