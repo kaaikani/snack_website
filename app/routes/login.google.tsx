@@ -5,7 +5,7 @@ import { authenticate } from '~/providers/account/account';
 import { getSessionStorage } from '~/sessions';
 
 // ✅ IMPORTANT: Use the EXACT same token as in graphqlWrapper.ts
-const CHANNEL_TOKEN = 'ind-snacks';
+const CHANNEL_TOKEN = 'Ind-Snacks';
 
 // Type guard functions
 function isCurrentUser(
