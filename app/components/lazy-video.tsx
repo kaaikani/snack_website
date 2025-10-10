@@ -1,110 +1,75 @@
-"use client"
+'use client';
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from 'react';
 
-interface LazyVideoProps {
-  src: string
-  className?: string
-  poster?: string
-  autoplay?: boolean
-  loop?: boolean
-  muted?: boolean
-  controls?: boolean
-  playsInline?: boolean
-  "aria-label"?: string
+interface LazyImageProps {
+  src: string;
+  alt: string;
+  className?: string;
+  placeholder?: string;
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
-export default function LazyVideo({
+export default function LazyImage({
   src,
-  className = "",
-  poster,
-  autoplay = false,
-  loop = false,
-  muted = true,
-  controls = false,
-  playsInline = true,
-  "aria-label": ariaLabel,
+  alt,
+  className = '',
+  placeholder,
+  onLoad,
+  onError,
   ...props
-}: LazyVideoProps) {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const [loaded, setLoaded] = useState(false)
+}: LazyImageProps) {
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
-    const el = videoRef.current
-    if (!el) return
+    const el = imgRef.current;
+    if (!el) return;
 
-    let observer: IntersectionObserver | null = null
-
-    const onIntersect: IntersectionObserverCallback = (entries) => {
-      entries.forEach(async (entry) => {
-        if (entry.isIntersecting && !loaded) {
-          // Set the src attribute to start loading
-          el.src = src
-          el.load()
-
-          // If autoplay is enabled, try to play when ready
-          if (autoplay) {
-            const playVideo = async () => {
-              try {
-                await el.play()
-              } catch (error) {
-                // Autoplay might be blocked
-                console.log("Autoplay blocked:", error)
-              }
-            }
-
-            if (el.readyState >= 3) {
-              // Video is already loaded enough to play
-              playVideo()
-            } else {
-              // Wait for video to load enough data
-              el.addEventListener("canplay", playVideo, { once: true })
-            }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !loaded) {
+            setIsInView(true);
           }
+        });
+      },
+      {
+        rootMargin: '50px', // Start loading 50px before entering viewport
+        threshold: 0.1,
+      },
+    );
 
-          setLoaded(true)
-          // Don't disconnect observer - we want to keep monitoring visibility
-        } else if (!entry.isIntersecting && loaded && autoplay) {
-          // Video is out of view and has autoplay - pause it but keep it loaded
-          try {
-            el.pause()
-          } catch (error) {
-            console.log("Error pausing video:", error)
-          }
-        } else if (entry.isIntersecting && loaded && autoplay) {
-          // Video is back in view and has autoplay - resume playing
-          try {
-            await el.play()
-          } catch (error) {
-            console.log("Error resuming video:", error)
-          }
-        }
-      })
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [loaded]);
+
+  useEffect(() => {
+    if (isInView && !loaded) {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        setLoaded(true);
+        onLoad?.();
+      };
+      img.onerror = () => {
+        onError?.();
+      };
     }
-
-    observer = new IntersectionObserver(onIntersect, {
-      rootMargin: "50px", // Start loading 50px before entering viewport
-      threshold: 0.1,
-    })
-    observer.observe(el)
-
-    return () => observer?.disconnect()
-  }, [src, loaded, autoplay])
+  }, [isInView, src, loaded, onLoad, onError]);
 
   return (
-    <video
-      ref={videoRef}
-      className={className}
-      muted={muted}
-      loop={loop}
-      playsInline={playsInline}
-      controls={controls}
-      preload="none"
-      poster={poster}
-      aria-label={ariaLabel}
+    <img
+      ref={imgRef}
+      src={loaded ? src : placeholder}
+      alt={alt}
+      className={`${className} ${
+        loaded ? 'opacity-100' : 'opacity-0'
+      } transition-opacity duration-300`}
       {...props}
-    >
-      Your browser does not support the video tag.
-    </video>
-  )
+    />
+  );
 }
