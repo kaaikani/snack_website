@@ -123,11 +123,11 @@ export default function Footer() {
                   </h4>
                   <address className="not-italic space-y-3 text-sm text-amber-100">
                     <p className="leading-normal">
-                      No.4d-1, Montfort Nagar,
+                      1st FLOOR, THANGAM HOUSING-II,
                       <br />
-                      Dindigul main road,
+                      NO.8B, Thirumalai Naicker St, EXT,
                       <br />
-                      Pirattiyur, Trichy - 620009
+                      Kovil Pappakudi, Madurai-625018
                     </p>
                     <p className="mt-2">
                       <a
