@@ -17,6 +17,9 @@ import {
   Users,
   Settings,
   Bell,
+  Truck,
+  Package,
+  Clock,
 } from 'lucide-react';
 
 export async function loader({ request }: { request: Request }) {
@@ -381,6 +384,100 @@ export default function PrivacyPolicy() {
                     updated policy on this page and updating the "Last updated"
                     date. We encourage you to review this policy periodically.
                   </p>
+                </div>
+              </section>
+
+              {/* Section 10 */}
+              <section>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-r from-amber-800  to-[#fb6331] rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">10</span>
+                  </div>
+                  <h2 className="text-2xl font-bold">Shipping & Delivery</h2>
+                </div>
+                <div className="ml-11 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        Order Processing
+                      </h3>
+                      <p className="text-base leading-relaxed">
+                        All orders are processed within 1–2 business days
+                        (excluding weekends and holidays) after receiving your
+                        order confirmation email. You will receive another
+                        notification when your order has shipped.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Truck className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        Domestic Shipping (Within Country)
+                      </h3>
+                      <ul className="list-disc list-inside space-y-1 text-base ml-4 mt-2">
+                        <li>
+                          <strong>Delivery Time:</strong> 3–5 business days
+                          after dispatch
+                        </li>
+                        <li>
+                          <strong>Shipping Charges:</strong> Calculated at
+                          checkout based on your location and order weight
+                        </li>
+                        <li>
+                          <strong>Courier Partners:</strong> We use trusted
+                          courier services to ensure fast and reliable delivery
+                          across all regions.
+                        </li>
+                      </ul>
+                      <p className="text-base leading-relaxed mt-2">
+                        <strong>Please note:</strong> Delivery delays can
+                        occasionally occur due to unforeseen circumstances such
+                        as weather, public holidays, or courier service
+                        interruptions.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        International Shipping
+                      </h3>
+                      <ul className="list-disc list-inside space-y-1 text-base ml-4 mt-2">
+                        <li>
+                          <strong>Delivery Time:</strong> 3–7 business days
+                          after dispatch
+                        </li>
+                        <li>
+                          <strong>Shipping Charges:</strong> Calculated at
+                          checkout based on destination, package weight, and
+                          shipping method
+                        </li>
+                        <li>
+                          <strong>Customs & Duties:</strong> International
+                          orders may be subject to import duties, taxes, and
+                          fees, which are the responsibility of the customer.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Package className="w-5 h-5 text-amber-800  mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Order Tracking</h3>
+                      <p className="text-base leading-relaxed">
+                        Once your order has shipped, you will receive a
+                        confirmation email containing your tracking number. You
+                        can use this number to check the delivery status
+                        directly on the courier's website.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </section>
 
