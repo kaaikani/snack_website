@@ -9,6 +9,8 @@ import { Price } from '~/components/products/Price';
 import { CurrencyCode, OrderDetailFragment } from '~/generated/graphql';
 import { useTranslation } from 'react-i18next';
 import { OrderWithOptionalCreatedAt } from '~/types/order';
+import { useEffect } from 'react';
+import { trackCustomEvent } from '~/utils/facebook-pixel';
 
 // Define CartLoaderData explicitly to match /api/active-order.ts loader
 export interface CartLoaderData {
@@ -32,6 +34,18 @@ export function CartTray({
   const location = useLocation();
   const editable = !location.pathname.startsWith('/checkout');
   const { t } = useTranslation();
+
+  // Track cart open
+  useEffect(() => {
+    if (open) {
+      trackCustomEvent('OpenCart', {
+        cart_total: activeOrder?.totalWithTax
+          ? (activeOrder.totalWithTax / 100).toFixed(2)
+          : '0',
+        cart_quantity: activeOrder?.totalQuantity || 0,
+      });
+    }
+  }, [open, activeOrder]);
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -120,7 +134,17 @@ export function CartTray({
                       <div className="mt-6">
                         <Link
                           to="/checkout"
-                          onClick={() => onClose(false)}
+                          onClick={() => {
+                            // Track checkout button click
+                            trackCustomEvent('InitiateCheckout', {
+                              value: activeOrder?.totalWithTax
+                                ? (activeOrder.totalWithTax / 100).toFixed(2)
+                                : '0',
+                              currency: currencyCode,
+                              num_items: activeOrder?.totalQuantity || 0,
+                            });
+                            onClose(false);
+                          }}
                           className="flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-amber-800  hover:text-black hover:bg-white hover:border-amber-800 "
                         >
                           {t('cart.checkout')}

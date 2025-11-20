@@ -9,6 +9,7 @@ import {
   LogOut,
   Award,
 } from 'lucide-react';
+import { trackCustomEvent } from '~/utils/facebook-pixel';
 
 interface AccountHeaderProps {
   activeCustomer: {
@@ -64,6 +65,8 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
                       type="submit"
                       className="flex items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-red-50 hover:text-amber-800  rounded-md transition-all duration-200"
                       onClick={() => {
+                        // Track sign out
+                        trackCustomEvent('SignOut', { method: 'google' });
                         setMenuOpen(false);
                         setTimeout(() => (window.location.href = '/'), 50);
                       }}
@@ -105,9 +108,11 @@ export default function AccountHeader({ activeCustomer }: AccountHeaderProps) {
                   <button
                     type="submit"
                     className="flex items-center px-4 py-2 text-base font-medium text-gray-700  hover:text-amber-800 rounded-md transition-all duration-200"
-                    onClick={() =>
-                      setTimeout(() => (window.location.href = '/'), 50)
-                    }
+                    onClick={() => {
+                      // Track sign out
+                      trackCustomEvent('SignOut', { method: 'google' });
+                      setTimeout(() => (window.location.href = '/'), 50);
+                    }}
                   >
                     <item.icon className="h-5 w-5 mr-2 text-amber-800" />
                     {item.name}

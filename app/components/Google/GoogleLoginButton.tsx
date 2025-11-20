@@ -3,6 +3,7 @@
 import { GoogleLogin } from '@react-oauth/google';
 import { useFetcher } from '@remix-run/react';
 import { useEffect } from 'react';
+import { trackButtonClick } from '~/utils/facebook-pixel';
 
 export function GoogleLoginButton() {
   const fetcher = useFetcher();
@@ -19,6 +20,9 @@ export function GoogleLoginButton() {
     <div className="relative">
       <GoogleLogin
         onSuccess={(credentialResponse) => {
+          // Track button click
+          trackButtonClick('Google Sign In Button');
+
           const token = credentialResponse.credential; // This is the correct ID Token (JWT)
           if (token) {
             fetcher.submit(

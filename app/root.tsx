@@ -35,6 +35,8 @@ import { useTranslation } from 'react-i18next';
 import { getI18NextServer } from '~/i18next.server';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { OrderWithOptionalCreatedAt } from '~/types/order';
+import { useLocation, useSearchParams } from '@remix-run/react';
+import { trackPageView, trackSignIn } from '~/utils/facebook-pixel';
 
 const devMode =
   typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
@@ -103,6 +105,8 @@ export default function App() {
   const loaderData = useLoaderData<RootLoaderData>();
   const { collections, activeCustomer, locale, ENV } = loaderData;
   const { i18n } = useTranslation();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const {
     activeOrderFetcher,
     activeOrder,
@@ -116,6 +120,7 @@ export default function App() {
     !!activeCustomer.activeCustomer?.id,
   );
   const [isClient, setIsClient] = useState(false);
+  const [hasTrackedLogin, setHasTrackedLogin] = useState(false);
 
   useEffect(() => {
     setIsSignedIn(!!loaderData.activeCustomer.activeCustomer?.id);
@@ -129,6 +134,33 @@ export default function App() {
     setIsClient(true);
   }, []);
 
+  // Track sign in when loginSuccess parameter is present
+  useEffect(() => {
+    if (
+      isClient &&
+      searchParams.get('loginSuccess') === 'true' &&
+      !hasTrackedLogin
+    ) {
+      trackSignIn({ method: 'google' });
+      setHasTrackedLogin(true);
+      // Clean up URL parameter
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('loginSuccess');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [isClient, searchParams, hasTrackedLogin]);
+
+  // Track page views for Facebook Pixel with page name
+  useEffect(() => {
+    if (
+      isClient &&
+      typeof window !== 'undefined' &&
+      typeof window.fbq === 'function'
+    ) {
+      trackPageView();
+    }
+  }, [location.pathname, isClient]);
+
   useChangeLanguage(locale);
 
   // Show loading only if we don't have the Google Client ID
@@ -141,6 +173,47 @@ export default function App() {
           <link rel="icon" href="/favicon.ico" type="image/png" />
           <Meta />
           <Links />
+          {/* Google Analytics */}
+          <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-H98QJ8PYLM"
+          />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-H98QJ8PYLM');
+            `,
+            }}
+          />
+          {/* Facebook Meta Pixel */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '864256719277462');
+              fbq('track', 'PageView');
+            `,
+            }}
+          />
+          <noscript>
+            <img
+              height="1"
+              width="1"
+              style={{ display: 'none' }}
+              src="https://www.facebook.com/tr?id=864256719277462&ev=PageView&noscript=1"
+              alt=""
+            />
+          </noscript>
         </head>
         <body>
           <div>Loading...</div>
@@ -161,6 +234,47 @@ export default function App() {
         <link rel="icon" href="/favicon.ico" type="image/png" />
         <Meta />
         <Links />
+        {/* Google Analytics */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-H98QJ8PYLM"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-H98QJ8PYLM');
+            `,
+          }}
+        />
+        {/* Facebook Meta Pixel */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '864256719277462');
+              fbq('track', 'PageView');
+            `,
+          }}
+        />
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src="https://www.facebook.com/tr?id=864256719277462&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
         {/* 👇 this must be before the body to inject early */}
         <script
           dangerouslySetInnerHTML={{
@@ -227,6 +341,47 @@ function DefaultSparseErrorPage({
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
+        {/* Google Analytics */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-H98QJ8PYLM"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-H98QJ8PYLM');
+            `,
+          }}
+        />
+        {/* Facebook Meta Pixel */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '864256719277462');
+              fbq('track', 'PageView');
+            `,
+          }}
+        />
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src="https://www.facebook.com/tr?id=864256719277462&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
       </head>
       <body>
         <main className="flex flex-col items-center px-4 py-16 sm:py-32 text-center">

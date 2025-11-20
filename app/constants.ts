@@ -1,7 +1,7 @@
 export const APP_META_TITLE = 'SouthMithai.com';
 export const APP_META_DESCRIPTION = '';
 
-export const DEMO_API_URL = 'https://kaaikani.co.in/shop-api';
+export const DEMO_API_URL = 'http://localhost:80/shop-api';
 
 export let API_URL: string =
   typeof process !== 'undefined' && process.env?.VENDURE_API_URL

@@ -62,6 +62,15 @@ export const detailedProductFragment = gql`
       currencyCode
       sku
       stockLevel
+      customFields {
+        shadowPrice
+      }
+      options {
+        name
+        group {
+          name
+        }
+      }
       featuredAsset {
         id
         preview
