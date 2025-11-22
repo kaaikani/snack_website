@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
-// const trackPixelEvent = (eventName: string) => {
-//   if (typeof window === 'undefined') {
-//     return;
-//   }
-//   if (typeof window.fbq === 'function') {
-//     window.fbq('trackCustom', eventName);
-//   }
-// };
+const trackPixelEvent = (eventName: string) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  if (typeof window.fbq === 'function') {
+    window.fbq('trackCustom', eventName);
+  }
+};
 
 type UnavailableItemMap = Record<
   string,
@@ -97,7 +97,7 @@ export function CartContents({
     if (removeItem && !removingItems.includes(lineId)) {
       setRemovingItems((prev) => [...prev, lineId]);
       removeItem(lineId);
-      // trackPixelEvent('RemoveitemFromCart');
+      trackPixelEvent('RemoveitemFromCart');
     }
   };
 

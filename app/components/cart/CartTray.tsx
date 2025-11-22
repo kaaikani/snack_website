@@ -8,13 +8,43 @@ import { Link, useLocation } from '@remix-run/react';
 import { Price } from '~/components/products/Price';
 import { CurrencyCode, OrderDetailFragment } from '~/generated/graphql';
 import { useTranslation } from 'react-i18next';
-import { OrderWithOptionalCreatedAt } from '~/types/order';
-import { useEffect } from 'react';
-import { trackCustomEvent } from '~/utils/facebook-pixel';
 
 // Define CartLoaderData explicitly to match /api/active-order.ts loader
 export interface CartLoaderData {
   activeOrder?: OrderDetailFragment | null;
+}
+
+type UnavailableItemSummary = {
+  reason?: string | null;
+  productName?: string | null;
+  variantName?: string | null;
+};
+
+function formatUnavailableReason(reason?: string | null): string {
+  if (!reason) {
+    return 'This item is currently unavailable.';
+  }
+  const normalized = reason.toUpperCase();
+  switch (normalized) {
+    case 'OUT_OF_STOCK':
+    case 'INSUFFICIENT_STOCK':
+    case 'ORDER_LINE_OUT_OF_STOCK':
+      return 'This item is out of stock.';
+    case 'PRODUCT_DISABLED':
+    case 'PRODUCT_VARIANT_DISABLED':
+    case 'DISABLED':
+      return 'This item is currently Unavailable.';
+    default:
+      const cleaned = reason
+        .replace(/[_-]+/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!cleaned) {
+        return 'This item is currently unavailable.';
+      }
+      return `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1)}.`;
+  }
 }
 
 export function CartTray({
@@ -26,7 +56,7 @@ export function CartTray({
 }: {
   open: boolean;
   onClose: (closed: boolean) => void;
-  activeOrder: OrderWithOptionalCreatedAt | null | undefined;
+  activeOrder: OrderDetailFragment | null | undefined;
   adjustOrderLine?: (lineId: string, quantity: number) => void;
   removeItem?: (lineId: string) => void;
 }) {
@@ -34,18 +64,54 @@ export function CartTray({
   const location = useLocation();
   const editable = !location.pathname.startsWith('/checkout');
   const { t } = useTranslation();
+  const validationStatus = activeOrder?.validationStatus;
 
-  // Track cart open
-  useEffect(() => {
-    if (open) {
-      trackCustomEvent('OpenCart', {
-        cart_total: activeOrder?.totalWithTax
-          ? (activeOrder.totalWithTax / 100).toFixed(2)
-          : '0',
-        cart_quantity: activeOrder?.totalQuantity || 0,
-      });
+  const unavailableItemsByLineId = (
+    validationStatus?.unavailableItems ?? []
+  ).reduce<Record<string, UnavailableItemSummary>>((acc, item) => {
+    if (item && item.orderLineId) {
+      acc[item.orderLineId] = {
+        reason: item.reason,
+        productName: item.productName,
+        variantName: item.variantName,
+      };
     }
-  }, [open, activeOrder]);
+    return acc;
+  }, {});
+
+  const outOfStockLineIds = new Set(
+    (activeOrder?.lines ?? [])
+      .filter((line) => line.productVariant.stockLevel === 'OUT_OF_STOCK')
+      .map((line) => line.id),
+  );
+
+  const blockedLineSummaries = (activeOrder?.lines ?? []).reduce<
+    Array<{ id: string; label: string; message: string }>
+  >((acc, line) => {
+    const unavailableEntry = unavailableItemsByLineId[line.id];
+    const isOutOfStock = outOfStockLineIds.has(line.id);
+    if (!unavailableEntry && !isOutOfStock) {
+      return acc;
+    }
+    const message = isOutOfStock
+      ? 'This item is out of stock.'
+      : formatUnavailableReason(unavailableEntry?.reason);
+    const label =
+      unavailableEntry?.variantName ||
+      line.productVariant.name ||
+      unavailableEntry?.productName ||
+      line.productVariant.product.slug ||
+      'Item';
+    acc.push({ id: line.id, label, message });
+    return acc;
+  }, []);
+
+  const isOrderValid = validationStatus?.isValid !== false;
+  const hasUnavailableItems = validationStatus?.hasUnavailableItems ?? false;
+  const hasValidationIssue =
+    !isOrderValid || hasUnavailableItems || blockedLineSummaries.length > 0;
+  const canCheckout =
+    (activeOrder?.totalQuantity ?? 0) > 0 && !hasValidationIssue;
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -106,6 +172,7 @@ export function CartTray({
                           editable={editable}
                           removeItem={removeItem}
                           adjustOrderLine={adjustOrderLine}
+                          unavailableItemsByLineId={unavailableItemsByLineId}
                         />
                       ) : (
                         <div className="flex items-center justify-center h-48 text-xl text-gray-400">
@@ -131,24 +198,45 @@ export function CartTray({
                       <p className="mt-0.5 text-sm text-gray-500">
                         {t('cart.shippingMessage')}
                       </p>
+                      {hasValidationIssue && (
+                        <div className="mt-4 rounded-md bg-red-50 border border-red-100 p-3">
+                          {/* <p className="text-sm font-semibold text-red-700">
+                            Some items are unavailable.
+                          </p>
+                          {blockedLineSummaries.length > 0 && (
+                            <ul className="mt-2 space-y-1 text-sm text-red-600 list-disc list-inside">
+                              {blockedLineSummaries.map((item) => (
+                                <li key={item.id}>
+                                  {item.label}: {item.message}
+                                </li>
+                              ))}
+                            </ul>
+                          )} */}
+                          <p className="mt-2 text-xs text-red-600">
+                            Remove unavailable items from your cart to proceed
+                            to checkout.
+                          </p>
+                        </div>
+                      )}
                       <div className="mt-6">
-                        <Link
-                          to="/checkout"
-                          onClick={() => {
-                            // Track checkout button click
-                            trackCustomEvent('InitiateCheckout', {
-                              value: activeOrder?.totalWithTax
-                                ? (activeOrder.totalWithTax / 100).toFixed(2)
-                                : '0',
-                              currency: currencyCode,
-                              num_items: activeOrder?.totalQuantity || 0,
-                            });
-                            onClose(false);
-                          }}
-                          className="flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-amber-800  hover:text-black hover:bg-white hover:border-amber-800 "
-                        >
-                          {t('cart.checkout')}
-                        </Link>
+                        {canCheckout ? (
+                          <Link
+                            to="/checkout"
+                            onClick={() => onClose(false)}
+                            className="flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-black hover:text-black hover:bg-white hover:border-black transition-colors"
+                          >
+                            {t('cart.checkout')}
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled
+                            className="flex justify-center items-center w-full px-6 py-3 rounded-md border border-gray-200 text-base font-medium text-gray-500 bg-gray-100 cursor-not-allowed"
+                            aria-disabled="true"
+                          >
+                            {t('cart.checkout')}
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
