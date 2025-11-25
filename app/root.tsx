@@ -34,9 +34,9 @@ import { useChangeLanguage } from 'remix-i18next';
 import { useTranslation } from 'react-i18next';
 import { getI18NextServer } from '~/i18next.server';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { OrderWithOptionalCreatedAt } from '~/types/order';
 import { useLocation, useSearchParams } from '@remix-run/react';
 import { trackPageView, trackSignIn } from '~/utils/facebook-pixel';
+import { OrderDetailFragment } from './generated/graphql';
 
 const devMode =
   typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
@@ -309,7 +309,9 @@ export default function App() {
             <CartTray
               open={open}
               onClose={setOpen}
-              activeOrder={activeOrder as OrderWithOptionalCreatedAt}
+              activeOrder={
+                activeOrder as OrderDetailFragment | null | undefined
+              }
               adjustOrderLine={adjustOrderLine}
               removeItem={removeItem}
             />
