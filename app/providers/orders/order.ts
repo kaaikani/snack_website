@@ -424,6 +424,17 @@ gql`
     totalQuantity
     subTotal
     subTotalWithTax
+    validationStatus {
+      isValid
+      hasUnavailableItems
+      totalUnavailableItems
+      unavailableItems {
+        orderLineId
+        productName
+        variantName
+        reason
+      }
+    }
     surcharges {
       id
       price
@@ -493,6 +504,7 @@ gql`
         id
         name
         price
+        stockLevel
         product {
           id
           slug

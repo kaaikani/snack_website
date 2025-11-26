@@ -64,6 +64,7 @@ import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { RadioGroup } from '@headlessui/react';
 import { classNames } from '~/utils/class-names';
 import { CheckCircleIcon, CreditCardIcon } from 'lucide-react';
+import { trackCustomEvent } from '~/utils/facebook-pixel';
 
 interface CouponFetcherData {
   success?: boolean;
@@ -745,6 +746,17 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  // Track checkout page view
+  useEffect(() => {
+    trackCustomEvent('InitiateCheckout', {
+      value: activeOrder?.totalWithTax
+        ? (activeOrder.totalWithTax / 100).toFixed(2)
+        : '0',
+      currency: activeOrder?.currencyCode || 'INR',
+      num_items: activeOrder?.totalQuantity || 0,
+    });
+  }, [activeOrder]);
+
   const { customer, shippingAddress } = activeOrder ?? {};
   const isSignedIn = !!activeCustomer?.id;
   const addresses = activeCustomer?.addresses ?? [];
@@ -994,14 +1006,12 @@ export default function CheckoutPage() {
 
   return (
     <div className="mt-20 bg-amber-100">
-    
       <div className="lg:max-w-7xl max-w-2xl mx-auto pt-8 pb-24 px-4 sm:px-6 lg:px-8">
-                  <h1 className="mt-3 text-center mb-10 text-amber-800 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-                    Checkout Page
-</h1>
+        <h1 className="mt-3 text-center mb-10 text-amber-800 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
+          Checkout Page
+        </h1>
         <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
           <div>
-           
             <Form
               method="post"
               action="/api/active-order"
@@ -1081,15 +1091,13 @@ export default function CheckoutPage() {
               )}
             </Form>
             {activeOrder?.id && (
-              <div className='my-5'>
- <OrderInstructions
-                orderId={activeOrder.id}
-                initialValue={orderInstructions}
-                disabled={false}
-                
-              />
+              <div className="my-5">
+                <OrderInstructions
+                  orderId={activeOrder.id}
+                  initialValue={orderInstructions}
+                  disabled={false}
+                />
               </div>
-             
             )}
             <div className="">
               <ShippingMethodSelector
@@ -1108,82 +1116,80 @@ export default function CheckoutPage() {
               />
             </div>
             <div className="mt-8">
-  {/* 1. Using the same consistent header style */}
-  <h3 className="text-lg font-semibold text-stone-800 border-b pb-2 mb-4">
-    Payment Method
-  </h3>
+              {/* 1. Using the same consistent header style */}
+              <h3 className="text-lg font-semibold text-stone-800 border-b pb-2 mb-4">
+                Payment Method
+              </h3>
 
-  {/* 2. Switched to RadioGroup for consistency and scalability */}
-  <RadioGroup value={paymentMode} onChange={setPaymentMode}>
-    <div className="space-y-4">
-      <RadioGroup.Option
-        value="online"
-        className={({ checked }) =>
-          classNames(
-            'relative flex cursor-pointer rounded-lg p-4 border-2 transition-all duration-200 ease-in-out',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500',
-            // 3. Applying the same styles as the shipping method
-            checked
-              ? 'bg-amber-50 border-amber-600 shadow-md' // Selected state
-              : 'bg-white border-stone-200 hover:border-amber-500', // Default state
-          )
-        }
-      >
-        {({ checked }) => (
-          <>
-            <div className="flex w-full items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <CreditCardIcon
-                  className={classNames(
-                    'h-8 w-8',
-                    checked ? 'text-amber-700' : 'text-stone-400',
-                  )}
-                />
-                <div className="flex flex-col">
-                  <RadioGroup.Label
-                    as="span"
-                    className={classNames(
-                      'block text-sm font-semibold',
-                      checked ? 'text-amber-900' : 'text-stone-800',
-                    )}
+              {/* 2. Switched to RadioGroup for consistency and scalability */}
+              <RadioGroup value={paymentMode} onChange={setPaymentMode}>
+                <div className="space-y-4">
+                  <RadioGroup.Option
+                    value="online"
+                    className={({ checked }) =>
+                      classNames(
+                        'relative flex cursor-pointer rounded-lg p-4 border-2 transition-all duration-200 ease-in-out',
+                        'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500',
+                        // 3. Applying the same styles as the shipping method
+                        checked
+                          ? 'bg-amber-50 border-amber-600 shadow-md' // Selected state
+                          : 'bg-white border-stone-200 hover:border-amber-500', // Default state
+                      )
+                    }
                   >
-                    Online Payment
-                  </RadioGroup.Label>
-                  {/* 4. Added a helpful description */}
-                  <RadioGroup.Description
-                    as="span"
-                    className={classNames(
-                      'text-xs',
-                      checked ? 'text-amber-800' : 'text-stone-500',
+                    {({ checked }) => (
+                      <>
+                        <div className="flex w-full items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <CreditCardIcon
+                              className={classNames(
+                                'h-8 w-8',
+                                checked ? 'text-amber-700' : 'text-stone-400',
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <RadioGroup.Label
+                                as="span"
+                                className={classNames(
+                                  'block text-sm font-semibold',
+                                  checked ? 'text-amber-900' : 'text-stone-800',
+                                )}
+                              >
+                                Online Payment
+                              </RadioGroup.Label>
+                              {/* 4. Added a helpful description */}
+                              <RadioGroup.Description
+                                as="span"
+                                className={classNames(
+                                  'text-xs',
+                                  checked ? 'text-amber-800' : 'text-stone-500',
+                                )}
+                              >
+                                Pay with UPI, Cards, Net Banking, etc.
+                              </RadioGroup.Description>
+                            </div>
+                          </div>
+                          {checked && (
+                            <CheckCircleIcon
+                              className="h-6 w-6 text-amber-600"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </div>
+                      </>
                     )}
-                  >
-                    Pay with UPI, Cards, Net Banking, etc.
-                  </RadioGroup.Description>
+                  </RadioGroup.Option>
+
+                  {/* You can easily add other payment methods like COD here in the future */}
                 </div>
-              </div>
-              {checked && (
-                <CheckCircleIcon
-                  className="h-6 w-6 text-amber-600"
-                  aria-hidden="true"
-                />
+              </RadioGroup>
+
+              {paymentError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-800">{paymentError}</p>
+                </div>
               )}
             </div>
-          </>
-        )}
-      </RadioGroup.Option>
-      
-      {/* You can easily add other payment methods like COD here in the future */}
-      
-    </div>
-  </RadioGroup>
-
-  {paymentError && (
-    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-      <p className="text-sm text-red-800">{paymentError}</p>
-    </div>
-  )}
-</div>
-
 
             {eligibleShippingMethods.length === 0 && (
               <div className="mt-10 border-t border-black pt-10">
@@ -1195,7 +1201,7 @@ export default function CheckoutPage() {
           </div>
           <div className="mt-10 lg:mt-0">
             <div className="bg-white bg-transparent  p-6 rounded-lg shadow-sm border">
-                          <h2 className="text-lg font-medium text-black mb-6">Summary</h2>
+              <h2 className="text-lg font-medium text-black mb-6">Summary</h2>
 
               {loyaltyPoints && activeOrder?.id ? (
                 <ApplyLoyaltyPoints
@@ -1309,97 +1315,86 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
-         <div className="py-6 w-full">
-                    <h3 className="text-base font-medium text-black mb-4">
-                      Review
-                    </h3>
-                    <p className="text-sm text-black mb-4">
-                                    By clicking the Place Order button, you
-                                    confirm that you have read, understand and
-                                    accept our Terms of Use, Terms of Sale and
-                                    Returns Policy and acknowledge that you have
-                                    read SouthMithai Store's Privacy Policy.
-                                  </p>
-                    {isShippingMethodSelected && paymentMode && (
+        <div className="py-6 w-full">
+          <h3 className="text-base font-medium text-black mb-4">Review</h3>
+          <p className="text-sm text-black mb-4">
+            By clicking the Place Order button, you confirm that you have read,
+            understand and accept our Terms of Use, Terms of Sale and Returns
+            Policy and acknowledge that you have read SouthMithai Store's
+            Privacy Policy.
+          </p>
+          {isShippingMethodSelected && paymentMode && (
+            <>
+              {eligiblePaymentMethods
+                .filter((method) => method.code === paymentMode)
+                .map((method) => (
+                  <div key={method.id}>
+                    {method.code === 'online' ? (
                       <>
-                        {eligiblePaymentMethods
-                          .filter((method) => method.code === paymentMode)
-                          .map((method) => (
-                            <div key={method.id}>
-                              {method.code === 'online' ? (
-                                <>
-                                  
-                                  <RazorpayPayments
-                                    orderCode={activeOrder?.code ?? ''}
-                                    amount={activeOrder?.totalWithTax ?? 0}
-                                    currencyCode={
-                                      activeOrder?.currencyCode ?? 'INR'
-                                    }
-                                    customerEmail={customer?.emailAddress ?? ''}
-                                    customerName={`${
-                                      customer?.firstName ?? ''
-                                    } ${customer?.lastName ?? ''}`.trim()}
-                                    customerPhone={
-                                      shippingAddress?.phoneNumber ?? ''
-                                    }
-                                  />
-                                </>
-                              ) : method.code === 'offline' ? (
-                                <Form method="post">
-                                  <input
-                                    type="hidden"
-                                    name="paymentMethodCode"
-                                    value="offline"
-                                  />
-                                  <input
-                                    type="hidden"
-                                    name="paymentNonce"
-                                    value={JSON.stringify({
-                                      method: 'offline',
-                                      status: 'pending',
-                                      amount: activeOrder?.totalWithTax || 0,
-                                      currencyCode:
-                                        activeOrder?.currencyCode || 'INR',
-                                      orderCode: activeOrder?.code || '',
-                                    })}
-                                  />
-                                  <div className="w-full">
-                                    <p className="text-sm text-black mb-4">
-                                      By clicking the Place Order button, you
-                                      confirm that you have read, understand and
-                                      accept our Terms of Use, Terms of Sale and
-                                      Returns Policy and acknowledge that you
-                                      have read KaaiKani Store's Privacy Policy.
-                                    </p>
-                                    <button
-                                      type="submit"
-                                      className="w-full bg-black border hover:bg-white hover:text-black hover:border-black rounded-md py-3 px-4 text-base font-medium text-white"
-                                    >
-                                      Place Order
-                                    </button>
-                                  </div>
-                                </Form>
-                              ) : (
-                                <div className="text-sm text-black">
-                                  Payment method "{method.code}" not supported
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        {!eligiblePaymentMethods.find(
-                          (m) => m.code === paymentMode,
-                        ) && (
-                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                            <p className="text-sm text-yellow-800">
-                              {paymentMode === 'online'
-                                ? 'Online payment is not available. Please contact support if you need to pay online.'
-                                : 'Offline payment is not available. Please contact support for assistance.'}
-                            </p>
-                          </div>
-                        )}
+                        <RazorpayPayments
+                          orderCode={activeOrder?.code ?? ''}
+                          amount={activeOrder?.totalWithTax ?? 0}
+                          currencyCode={activeOrder?.currencyCode ?? 'INR'}
+                          customerEmail={customer?.emailAddress ?? ''}
+                          customerName={`${customer?.firstName ?? ''} ${
+                            customer?.lastName ?? ''
+                          }`.trim()}
+                          customerPhone={shippingAddress?.phoneNumber ?? ''}
+                        />
                       </>
+                    ) : method.code === 'offline' ? (
+                      <Form method="post">
+                        <input
+                          type="hidden"
+                          name="paymentMethodCode"
+                          value="offline"
+                        />
+                        <input
+                          type="hidden"
+                          name="paymentNonce"
+                          value={JSON.stringify({
+                            method: 'offline',
+                            status: 'pending',
+                            amount: activeOrder?.totalWithTax || 0,
+                            currencyCode: activeOrder?.currencyCode || 'INR',
+                            orderCode: activeOrder?.code || '',
+                          })}
+                        />
+                        <div className="w-full">
+                          <p className="text-sm text-black mb-4">
+                            By clicking the Place Order button, you confirm that
+                            you have read, understand and accept our Terms of
+                            Use, Terms of Sale and Returns Policy and
+                            acknowledge that you have read KaaiKani Store's
+                            Privacy Policy.
+                          </p>
+                          <button
+                            type="submit"
+                            className="w-full bg-black border hover:bg-white hover:text-black hover:border-black rounded-md py-3 px-4 text-base font-medium text-white"
+                          >
+                            Place Order
+                          </button>
+                        </div>
+                      </Form>
+                    ) : (
+                      <div className="text-sm text-black">
+                        Payment method "{method.code}" not supported
+                      </div>
                     )}
                   </div>
+                ))}
+              {!eligiblePaymentMethods.find((m) => m.code === paymentMode) && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    {paymentMode === 'online'
+                      ? 'Online payment is not available. Please contact support if you need to pay online.'
+                      : 'Offline payment is not available. Please contact support for assistance.'}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
       <CouponModal
         isOpen={isCouponModalOpen}

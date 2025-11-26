@@ -120,6 +120,19 @@ type BooleanStructFieldConfig implements StructField {
   ui: JSON
 }
 
+type CartContainsUnavailableItemsError implements ErrorResult {
+  errorCode: ErrorCode!
+  message: String!
+  unavailableItems: [UnavailableCartItem!]!
+}
+
+type CartValidationStatus {
+  hasUnavailableItems: Boolean!
+  isValid: Boolean!
+  totalUnavailableItems: Int!
+  unavailableItems: [UnavailableCartItem!]!
+}
+
 type Channel implements Node {
   availableCurrencyCodes: [CurrencyCode!]!
   availableLanguageCodes: [LanguageCode!]
@@ -1058,6 +1071,7 @@ type EmailAddressConflictError implements ErrorResult {
 
 enum ErrorCode {
   ALREADY_LOGGED_IN_ERROR
+  CART_CONTAINS_UNAVAILABLE_ITEMS_ERROR
   COUPON_CODE_EXPIRED_ERROR
   COUPON_CODE_INVALID_ERROR
   COUPON_CODE_LIMIT_ERROR
@@ -1438,6 +1452,7 @@ enum HistoryEntryType {
   ORDER_CUSTOMER_UPDATED
   ORDER_FULFILLMENT
   ORDER_FULFILLMENT_TRANSITION
+  ORDER_LINE_PRICE_UPDATED
   ORDER_MODIFIED
   ORDER_NOTE
   ORDER_PAYMENT_TRANSITION
@@ -2437,6 +2452,7 @@ type Order implements Node {
   totalWithTax: Money!
   type: OrderType!
   updatedAt: DateTime!
+  validationStatus: CartValidationStatus!
 }
 
 type OrderAddress {
@@ -2535,6 +2551,7 @@ type OrderLine implements Node {
   featuredAsset: Asset
   fulfillmentLines: [FulfillmentLine!]
   id: ID!
+  isAvailable: Boolean!
 
   """The total price of the line excluding tax and discounts."""
   linePrice: Money!
@@ -2574,6 +2591,7 @@ type OrderLine implements Node {
   quantity: Int!
   taxLines: [TaxLine!]!
   taxRate: Float!
+  unavailableReason: String
 
   """The price of a single unit, excluding tax and discounts"""
   unitPrice: Money!
@@ -2848,6 +2866,9 @@ enum Permission {
   """Grants permission to create Asset"""
   CreateAsset
 
+  """Grants permission to create Banner"""
+  CreateBanner
+
   """Grants permission to create Products, Facets, Assets, Collections"""
   CreateCatalog
 
@@ -2916,6 +2937,9 @@ enum Permission {
   """Grants permission to delete Asset"""
   DeleteAsset
 
+  """Grants permission to delete Banner"""
+  DeleteBanner
+
   """Grants permission to delete Products, Facets, Assets, Collections"""
   DeleteCatalog
 
@@ -2978,6 +3002,12 @@ enum Permission {
   """Grants permission to delete Zone"""
   DeleteZone
 
+  """Allows viewing and managing loyalty points configurations"""
+  LoyaltyPoints
+
+  """Allows viewing and managing manual customer channel assignments"""
+  ManualCustomerChannel
+
   """Owner means the user owns this entity, e.g. a Customer's own Order"""
   Owner
 
@@ -2989,6 +3019,9 @@ enum Permission {
 
   """Grants permission to read Asset"""
   ReadAsset
+
+  """Grants permission to read Banner"""
+  ReadBanner
 
   """Grants permission to read Products, Facets, Assets, Collections"""
   ReadCatalog
@@ -3060,6 +3093,9 @@ enum Permission {
 
   """Grants permission to update Asset"""
   UpdateAsset
+
+  """Grants permission to update Banner"""
+  UpdateBanner
 
   """Grants permission to update Products, Facets, Assets, Collections"""
   UpdateCatalog
@@ -3144,7 +3180,7 @@ type Product implements Node {
   assets: [Asset!]!
   collections: [Collection!]!
   createdAt: DateTime!
-  customFields: JSON
+  customFields: ProductCustomFields
   description: String!
   enabled: Boolean!
   facetValues: [FacetValue!]!
@@ -3164,12 +3200,17 @@ type Product implements Node {
   variants: [ProductVariant!]!
 }
 
+type ProductCustomFields {
+  hsnCode: String
+}
+
 input ProductFilterParameter {
   _and: [ProductFilterParameter!]
   _or: [ProductFilterParameter!]
   createdAt: DateOperators
   description: StringOperators
   enabled: BooleanOperators
+  hsnCode: StringOperators
   id: IDOperators
   languageCode: StringOperators
   name: StringOperators
@@ -3245,6 +3286,7 @@ type ProductOptionTranslation {
 input ProductSortParameter {
   createdAt: SortOrder
   description: SortOrder
+  hsnCode: SortOrder
   id: SortOrder
   name: SortOrder
   slug: SortOrder
@@ -3285,7 +3327,7 @@ type ProductVariant implements Node {
 }
 
 type ProductVariantCustomFields {
-  hsnCode: String
+  shadowPrice: Int
 }
 
 input ProductVariantFilterParameter {
@@ -3293,13 +3335,13 @@ input ProductVariantFilterParameter {
   _or: [ProductVariantFilterParameter!]
   createdAt: DateOperators
   currencyCode: StringOperators
-  hsnCode: StringOperators
   id: IDOperators
   languageCode: StringOperators
   name: StringOperators
   price: NumberOperators
   priceWithTax: NumberOperators
   productId: IDOperators
+  shadowPrice: NumberOperators
   sku: StringOperators
   stockLevel: StringOperators
   updatedAt: DateOperators
@@ -3331,12 +3373,12 @@ input ProductVariantListOptions {
 
 input ProductVariantSortParameter {
   createdAt: SortOrder
-  hsnCode: SortOrder
   id: SortOrder
   name: SortOrder
   price: SortOrder
   priceWithTax: SortOrder
   productId: SortOrder
+  shadowPrice: SortOrder
   sku: SortOrder
   stockLevel: SortOrder
   updatedAt: SortOrder
@@ -3915,7 +3957,14 @@ type TextStructFieldConfig implements StructField {
   ui: JSON
 }
 
-union TransitionOrderToStateResult = Order | OrderStateTransitionError
+union TransitionOrderToStateResult = CartContainsUnavailableItemsError | Order | OrderStateTransitionError
+
+type UnavailableCartItem {
+  orderLineId: ID!
+  productName: String!
+  reason: String!
+  variantName: String!
+}
 
 """
 Input used to update an Address.

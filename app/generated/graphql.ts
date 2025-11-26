@@ -170,6 +170,21 @@ export type BooleanStructFieldConfig = StructField & {
   ui?: Maybe<Scalars['JSON']>;
 };
 
+export type CartContainsUnavailableItemsError = ErrorResult & {
+  __typename?: 'CartContainsUnavailableItemsError';
+  errorCode: ErrorCode;
+  message: Scalars['String'];
+  unavailableItems: Array<UnavailableCartItem>;
+};
+
+export type CartValidationStatus = {
+  __typename?: 'CartValidationStatus';
+  hasUnavailableItems: Scalars['Boolean'];
+  isValid: Scalars['Boolean'];
+  totalUnavailableItems: Scalars['Int'];
+  unavailableItems: Array<UnavailableCartItem>;
+};
+
 export type Channel = Node & {
   __typename?: 'Channel';
   availableCurrencyCodes: Array<CurrencyCode>;
@@ -990,6 +1005,7 @@ export type EmailAddressConflictError = ErrorResult & {
 
 export enum ErrorCode {
   AlreadyLoggedInError = 'ALREADY_LOGGED_IN_ERROR',
+  CartContainsUnavailableItemsError = 'CART_CONTAINS_UNAVAILABLE_ITEMS_ERROR',
   CouponCodeExpiredError = 'COUPON_CODE_EXPIRED_ERROR',
   CouponCodeInvalidError = 'COUPON_CODE_INVALID_ERROR',
   CouponCodeLimitError = 'COUPON_CODE_LIMIT_ERROR',
@@ -1363,6 +1379,7 @@ export enum HistoryEntryType {
   OrderCustomerUpdated = 'ORDER_CUSTOMER_UPDATED',
   OrderFulfillment = 'ORDER_FULFILLMENT',
   OrderFulfillmentTransition = 'ORDER_FULFILLMENT_TRANSITION',
+  OrderLinePriceUpdated = 'ORDER_LINE_PRICE_UPDATED',
   OrderModified = 'ORDER_MODIFIED',
   OrderNote = 'ORDER_NOTE',
   OrderPaymentTransition = 'ORDER_PAYMENT_TRANSITION',
@@ -2299,6 +2316,7 @@ export type Order = Node & {
   totalWithTax: Scalars['Money'];
   type: OrderType;
   updatedAt: Scalars['DateTime'];
+  validationStatus: CartValidationStatus;
 };
 
 export type OrderHistoryArgs = {
@@ -2400,6 +2418,7 @@ export type OrderLine = Node & {
   featuredAsset?: Maybe<Asset>;
   fulfillmentLines?: Maybe<Array<FulfillmentLine>>;
   id: Scalars['ID'];
+  isAvailable: Scalars['Boolean'];
   /** The total price of the line excluding tax and discounts. */
   linePrice: Scalars['Money'];
   /** The total price of the line including tax but excluding discounts. */
@@ -2430,6 +2449,7 @@ export type OrderLine = Node & {
   quantity: Scalars['Int'];
   taxLines: Array<TaxLine>;
   taxRate: Scalars['Float'];
+  unavailableReason?: Maybe<Scalars['String']>;
   /** The price of a single unit, excluding tax and discounts */
   unitPrice: Scalars['Money'];
   /** Non-zero if the unitPrice has changed since it was initially added to Order */
@@ -2688,6 +2708,8 @@ export enum Permission {
   CreateAdministrator = 'CreateAdministrator',
   /** Grants permission to create Asset */
   CreateAsset = 'CreateAsset',
+  /** Grants permission to create Banner */
+  CreateBanner = 'CreateBanner',
   /** Grants permission to create Products, Facets, Assets, Collections */
   CreateCatalog = 'CreateCatalog',
   /** Grants permission to create Channel */
@@ -2732,6 +2754,8 @@ export enum Permission {
   DeleteAdministrator = 'DeleteAdministrator',
   /** Grants permission to delete Asset */
   DeleteAsset = 'DeleteAsset',
+  /** Grants permission to delete Banner */
+  DeleteBanner = 'DeleteBanner',
   /** Grants permission to delete Products, Facets, Assets, Collections */
   DeleteCatalog = 'DeleteCatalog',
   /** Grants permission to delete Channel */
@@ -2772,6 +2796,10 @@ export enum Permission {
   DeleteTaxRate = 'DeleteTaxRate',
   /** Grants permission to delete Zone */
   DeleteZone = 'DeleteZone',
+  /** Allows viewing and managing loyalty points configurations */
+  LoyaltyPoints = 'LoyaltyPoints',
+  /** Allows viewing and managing manual customer channel assignments */
+  ManualCustomerChannel = 'ManualCustomerChannel',
   /** Owner means the user owns this entity, e.g. a Customer's own Order */
   Owner = 'Owner',
   /** Public means any unauthenticated user may perform the operation */
@@ -2780,6 +2808,8 @@ export enum Permission {
   ReadAdministrator = 'ReadAdministrator',
   /** Grants permission to read Asset */
   ReadAsset = 'ReadAsset',
+  /** Grants permission to read Banner */
+  ReadBanner = 'ReadBanner',
   /** Grants permission to read Products, Facets, Assets, Collections */
   ReadCatalog = 'ReadCatalog',
   /** Grants permission to read Channel */
@@ -2826,6 +2856,8 @@ export enum Permission {
   UpdateAdministrator = 'UpdateAdministrator',
   /** Grants permission to update Asset */
   UpdateAsset = 'UpdateAsset',
+  /** Grants permission to update Banner */
+  UpdateBanner = 'UpdateBanner',
   /** Grants permission to update Products, Facets, Assets, Collections */
   UpdateCatalog = 'UpdateCatalog',
   /** Grants permission to update Channel */
@@ -2889,7 +2921,7 @@ export type Product = Node & {
   assets: Array<Asset>;
   collections: Array<Collection>;
   createdAt: Scalars['DateTime'];
-  customFields?: Maybe<Scalars['JSON']>;
+  customFields?: Maybe<ProductCustomFields>;
   description: Scalars['String'];
   enabled: Scalars['Boolean'];
   facetValues: Array<FacetValue>;
@@ -2911,12 +2943,18 @@ export type ProductVariantListArgs = {
   options?: InputMaybe<ProductVariantListOptions>;
 };
 
+export type ProductCustomFields = {
+  __typename?: 'ProductCustomFields';
+  hsnCode?: Maybe<Scalars['String']>;
+};
+
 export type ProductFilterParameter = {
   _and?: InputMaybe<Array<ProductFilterParameter>>;
   _or?: InputMaybe<Array<ProductFilterParameter>>;
   createdAt?: InputMaybe<DateOperators>;
   description?: InputMaybe<StringOperators>;
   enabled?: InputMaybe<BooleanOperators>;
+  hsnCode?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
   languageCode?: InputMaybe<StringOperators>;
   name?: InputMaybe<StringOperators>;
@@ -2991,6 +3029,7 @@ export type ProductOptionTranslation = {
 export type ProductSortParameter = {
   createdAt?: InputMaybe<SortOrder>;
   description?: InputMaybe<SortOrder>;
+  hsnCode?: InputMaybe<SortOrder>;
   id?: InputMaybe<SortOrder>;
   name?: InputMaybe<SortOrder>;
   slug?: InputMaybe<SortOrder>;
@@ -3034,7 +3073,7 @@ export type ProductVariant = Node & {
 
 export type ProductVariantCustomFields = {
   __typename?: 'ProductVariantCustomFields';
-  hsnCode?: Maybe<Scalars['String']>;
+  shadowPrice?: Maybe<Scalars['Int']>;
 };
 
 export type ProductVariantFilterParameter = {
@@ -3042,13 +3081,13 @@ export type ProductVariantFilterParameter = {
   _or?: InputMaybe<Array<ProductVariantFilterParameter>>;
   createdAt?: InputMaybe<DateOperators>;
   currencyCode?: InputMaybe<StringOperators>;
-  hsnCode?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
   languageCode?: InputMaybe<StringOperators>;
   name?: InputMaybe<StringOperators>;
   price?: InputMaybe<NumberOperators>;
   priceWithTax?: InputMaybe<NumberOperators>;
   productId?: InputMaybe<IdOperators>;
+  shadowPrice?: InputMaybe<NumberOperators>;
   sku?: InputMaybe<StringOperators>;
   stockLevel?: InputMaybe<StringOperators>;
   updatedAt?: InputMaybe<DateOperators>;
@@ -3075,12 +3114,12 @@ export type ProductVariantListOptions = {
 
 export type ProductVariantSortParameter = {
   createdAt?: InputMaybe<SortOrder>;
-  hsnCode?: InputMaybe<SortOrder>;
   id?: InputMaybe<SortOrder>;
   name?: InputMaybe<SortOrder>;
   price?: InputMaybe<SortOrder>;
   priceWithTax?: InputMaybe<SortOrder>;
   productId?: InputMaybe<SortOrder>;
+  shadowPrice?: InputMaybe<SortOrder>;
   sku?: InputMaybe<SortOrder>;
   stockLevel?: InputMaybe<SortOrder>;
   updatedAt?: InputMaybe<SortOrder>;
@@ -3754,7 +3793,18 @@ export type TextStructFieldConfig = StructField & {
   ui?: Maybe<Scalars['JSON']>;
 };
 
-export type TransitionOrderToStateResult = Order | OrderStateTransitionError;
+export type TransitionOrderToStateResult =
+  | CartContainsUnavailableItemsError
+  | Order
+  | OrderStateTransitionError;
+
+export type UnavailableCartItem = {
+  __typename?: 'UnavailableCartItem';
+  orderLineId: Scalars['ID'];
+  productName: Scalars['String'];
+  reason: Scalars['String'];
+  variantName: Scalars['String'];
+};
 
 /**
  * Input used to update an Address.
@@ -4190,6 +4240,19 @@ export type AddPaymentToOrderMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -4270,6 +4333,7 @@ export type AddPaymentToOrderMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -4312,6 +4376,11 @@ export type TransitionOrderToStateMutation = {
   __typename?: 'Mutation';
   transitionOrderToState?:
     | {
+        __typename?: 'CartContainsUnavailableItemsError';
+        errorCode: ErrorCode;
+        message: string;
+      }
+    | {
         __typename: 'Order';
         id: string;
         code: string;
@@ -4325,6 +4394,19 @@ export type TransitionOrderToStateMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -4405,6 +4487,7 @@ export type TransitionOrderToStateMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -4593,6 +4676,12 @@ type ErrorResult_AlreadyLoggedInError_Fragment = {
   message: string;
 };
 
+type ErrorResult_CartContainsUnavailableItemsError_Fragment = {
+  __typename: 'CartContainsUnavailableItemsError';
+  errorCode: ErrorCode;
+  message: string;
+};
+
 type ErrorResult_CouponCodeExpiredError_Fragment = {
   __typename: 'CouponCodeExpiredError';
   errorCode: ErrorCode;
@@ -4769,6 +4858,7 @@ type ErrorResult_VerificationTokenInvalidError_Fragment = {
 
 export type ErrorResultFragment =
   | ErrorResult_AlreadyLoggedInError_Fragment
+  | ErrorResult_CartContainsUnavailableItemsError_Fragment
   | ErrorResult_CouponCodeExpiredError_Fragment
   | ErrorResult_CouponCodeInvalidError_Fragment
   | ErrorResult_CouponCodeLimitError_Fragment
@@ -5482,6 +5572,19 @@ export type SetCustomerForOrderMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -5562,6 +5665,7 @@ export type SetCustomerForOrderMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -5602,6 +5706,19 @@ export type SetOrderShippingAddressMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -5682,6 +5799,7 @@ export type SetOrderShippingAddressMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -5727,6 +5845,19 @@ export type SetOrderShippingMethodMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -5807,6 +5938,7 @@ export type SetOrderShippingMethodMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -5858,6 +5990,19 @@ export type AddItemToOrderMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -5938,6 +6083,7 @@ export type AddItemToOrderMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -5984,6 +6130,19 @@ export type RemoveOrderLineMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -6064,6 +6223,7 @@ export type RemoveOrderLineMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -6120,6 +6280,19 @@ export type AdjustOrderLineMutation = {
         shippingWithTax: number;
         totalWithTax: number;
         couponCodes: Array<string>;
+        validationStatus: {
+          __typename?: 'CartValidationStatus';
+          isValid: boolean;
+          hasUnavailableItems: boolean;
+          totalUnavailableItems: number;
+          unavailableItems: Array<{
+            __typename?: 'UnavailableCartItem';
+            orderLineId: string;
+            productName: string;
+            variantName: string;
+            reason: string;
+          }>;
+        };
         surcharges: Array<{
           __typename?: 'Surcharge';
           id: string;
@@ -6200,6 +6373,7 @@ export type AdjustOrderLineMutation = {
             id: string;
             name: string;
             price: number;
+            stockLevel: string;
             product: { __typename?: 'Product'; id: string; slug: string };
           };
         }>;
@@ -6239,6 +6413,19 @@ export type OrderDetailFragment = {
   shippingWithTax: number;
   totalWithTax: number;
   couponCodes: Array<string>;
+  validationStatus: {
+    __typename?: 'CartValidationStatus';
+    isValid: boolean;
+    hasUnavailableItems: boolean;
+    totalUnavailableItems: number;
+    unavailableItems: Array<{
+      __typename?: 'UnavailableCartItem';
+      orderLineId: string;
+      productName: string;
+      variantName: string;
+      reason: string;
+    }>;
+  };
   surcharges: Array<{ __typename?: 'Surcharge'; id: string; price: number }>;
   taxSummary: Array<{
     __typename?: 'OrderTaxSummary';
@@ -6303,6 +6490,7 @@ export type OrderDetailFragment = {
       id: string;
       name: string;
       price: number;
+      stockLevel: string;
       product: { __typename?: 'Product'; id: string; slug: string };
     };
   }>;
@@ -6338,6 +6526,19 @@ export type ActiveOrderQuery = {
       __typename?: 'OrderCustomFields';
       otherInstructions?: string | null;
     } | null;
+    validationStatus: {
+      __typename?: 'CartValidationStatus';
+      isValid: boolean;
+      hasUnavailableItems: boolean;
+      totalUnavailableItems: number;
+      unavailableItems: Array<{
+        __typename?: 'UnavailableCartItem';
+        orderLineId: string;
+        productName: string;
+        variantName: string;
+        reason: string;
+      }>;
+    };
     surcharges: Array<{ __typename?: 'Surcharge'; id: string; price: number }>;
     taxSummary: Array<{
       __typename?: 'OrderTaxSummary';
@@ -6406,6 +6607,7 @@ export type ActiveOrderQuery = {
         id: string;
         name: string;
         price: number;
+        stockLevel: string;
         product: { __typename?: 'Product'; id: string; slug: string };
       };
     }>;
@@ -6440,6 +6642,19 @@ export type OrderByCodeQuery = {
     shippingWithTax: number;
     totalWithTax: number;
     couponCodes: Array<string>;
+    validationStatus: {
+      __typename?: 'CartValidationStatus';
+      isValid: boolean;
+      hasUnavailableItems: boolean;
+      totalUnavailableItems: number;
+      unavailableItems: Array<{
+        __typename?: 'UnavailableCartItem';
+        orderLineId: string;
+        productName: string;
+        variantName: string;
+        reason: string;
+      }>;
+    };
     surcharges: Array<{ __typename?: 'Surcharge'; id: string; price: number }>;
     taxSummary: Array<{
       __typename?: 'OrderTaxSummary';
@@ -6508,6 +6723,7 @@ export type OrderByCodeQuery = {
         id: string;
         name: string;
         price: number;
+        stockLevel: string;
         product: { __typename?: 'Product'; id: string; slug: string };
       };
     }>;
@@ -6616,6 +6832,15 @@ export type DetailedProductFragment = {
     currencyCode: CurrencyCode;
     sku: string;
     stockLevel: string;
+    customFields?: {
+      __typename?: 'ProductVariantCustomFields';
+      shadowPrice?: number | null;
+    } | null;
+    options: Array<{
+      __typename?: 'ProductOption';
+      name: string;
+      group: { __typename?: 'ProductOptionGroup'; name: string };
+    }>;
     featuredAsset?: {
       __typename?: 'Asset';
       id: string;
@@ -6670,6 +6895,15 @@ export type ProductQuery = {
       currencyCode: CurrencyCode;
       sku: string;
       stockLevel: string;
+      customFields?: {
+        __typename?: 'ProductVariantCustomFields';
+        shadowPrice?: number | null;
+      } | null;
+      options: Array<{
+        __typename?: 'ProductOption';
+        name: string;
+        group: { __typename?: 'ProductOptionGroup'; name: string };
+      }>;
       featuredAsset?: {
         __typename?: 'Asset';
         id: string;
@@ -6874,6 +7108,17 @@ export const OrderDetailFragmentDoc = gql`
     totalQuantity
     subTotal
     subTotalWithTax
+    validationStatus {
+      isValid
+      hasUnavailableItems
+      totalUnavailableItems
+      unavailableItems {
+        orderLineId
+        productName
+        variantName
+        reason
+      }
+    }
     surcharges {
       id
       price
@@ -6943,6 +7188,7 @@ export const OrderDetailFragmentDoc = gql`
         id
         name
         price
+        stockLevel
         product {
           id
           slug
@@ -6999,6 +7245,15 @@ export const DetailedProductFragmentDoc = gql`
       currencyCode
       sku
       stockLevel
+      customFields {
+        shadowPrice
+      }
+      options {
+        name
+        group {
+          name
+        }
+      }
       featuredAsset {
         id
         preview

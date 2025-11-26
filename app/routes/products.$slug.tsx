@@ -12,6 +12,7 @@ import {
   type MetaFunction,
 } from '@remix-run/react';
 import {
+  CheckIcon,
   PhotoIcon,
   HeartIcon as HeartSolidIcon,
 } from '@heroicons/react/24/solid';
@@ -31,7 +32,7 @@ import { useActiveOrder } from '~/utils/use-active-order';
 import { Dialog } from '@headlessui/react';
 import { RecentOrders } from './RecentOrders';
 import { getFrequentlyOrderedProducts } from '~/providers/customPlugins/customPlugin';
-import { SignInPromptModal } from '~/components/modal/SignInPromptModal';
+import { trackCustomEvent } from '~/utils/facebook-pixel';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -102,7 +103,6 @@ export default function ProductSlug() {
     !!activeCustomer?.activeCustomer?.id,
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [showSignInModal, setShowSignInModal] = useState(false);
 
   const { adjustOrderLine, removeItem, refresh } = useActiveOrder();
 
@@ -116,7 +116,7 @@ export default function ProductSlug() {
     activeOrderFetcher.load('/api/active-order');
   };
 
-  // ✅ Favorited state
+  // ✅ Favorited state (keep only once)
   const [isFavorited, setIsFavorited] = useState(false);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function ProductSlug() {
 
   const handleToggleFavorite = async () => {
     if (!isSignedIn) {
-      setShowSignInModal(true);
+      alert(t('product.signInToFavorite'));
       return;
     }
     try {
@@ -164,17 +164,37 @@ export default function ProductSlug() {
     refresh();
   }, []);
 
-  const handleShowSignInModal = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setShowSignInModal(true);
-  };
-
   const [selectedVariantId, setSelectedVariantId] = useState(
     product.variants[0].id,
   );
 
   const findVariantById = (id: string) =>
     product.variants.find((v) => v.id === id);
+
+  const selectLabelText =
+    product.variants[0]?.options?.[0]?.group?.name || t('product.selectOption');
+
+  const getVariantOptionLabel = (
+    variant: (typeof product.variants)[number],
+  ) => {
+    const optionLabels =
+      variant.options
+        ?.map((option) => {
+          const optionName = option.name?.trim();
+
+          if (optionName) {
+            return optionName;
+          }
+          return '';
+        })
+        .filter(Boolean) ?? [];
+
+    if (optionLabels.length) {
+      return optionLabels.join(' • ');
+    }
+
+    return variant.name;
+  };
 
   const selectedVariant = findVariantById(selectedVariantId);
 
@@ -183,6 +203,20 @@ export default function ProductSlug() {
       setSelectedVariantId(product.variants[0].id);
     }
   }, [selectedVariant, product.variants]);
+
+  const extractPriceValue = (price?: any): number | null => {
+    if (price == null) return null;
+    if (typeof price === 'number') return price;
+    if (typeof price === 'object') {
+      if ('value' in price && typeof price.value === 'number') {
+        return price.value;
+      }
+      if ('min' in price && typeof price.min === 'number') {
+        return price.min;
+      }
+    }
+    return null;
+  };
 
   const qtyInCart =
     activeOrder?.lines.find((l) => l.productVariant.id === selectedVariantId)
@@ -193,13 +227,41 @@ export default function ProductSlug() {
     (l) => l.productVariant.id === selectedVariantId,
   );
 
+  const handleShowSignInModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    alert(t('product.signInToFavorite'));
+  };
+
+  const currentPriceValue = extractPriceValue(selectedVariant?.priceWithTax);
+  const shadowPriceRaw = selectedVariant?.customFields?.shadowPrice;
+  const shadowPriceValue =
+    typeof shadowPriceRaw === 'number'
+      ? shadowPriceRaw * 100
+      : extractPriceValue(shadowPriceRaw);
+  const shouldShowShadowPrice =
+    shadowPriceValue != null &&
+    currentPriceValue != null &&
+    shadowPriceValue > currentPriceValue;
+
+  const discountPercent =
+    shouldShowShadowPrice && shadowPriceValue && currentPriceValue
+      ? Math.round(
+          ((shadowPriceValue - currentPriceValue) / shadowPriceValue) * 100,
+        )
+      : null;
+
   const [featuredAsset, setFeaturedAsset] = useState(
     selectedVariant?.featuredAsset,
   );
 
+  const [isAppLeavingz, setIsAppLeaving] = useState(false);
+  const [leaveMessage, setLeaveMessage] = useState('We are currently closed.');
+  const [leaveTitle, setLeaveTitle] = useState('Sorry for the inconvenience');
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+
   return (
     <div>
-      <div className="max-w-6xl mx-auto px-4 mt-20  py-4 min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 py-4 min-h-screen sm:py-6">
         <Breadcrumbs
           items={
             product.collections[product.collections.length - 1]?.breadcrumbs ??
@@ -210,7 +272,7 @@ export default function ProductSlug() {
           <div className="flex flex-col lg:flex-row items-stretch gap-6">
             {/* Image Section */}
             <div className="w-full lg:w-1/2 bg-white p-6 rounded-lg shadow-md flex flex-col">
-              <div className="relative w-full h-96">
+              <div className="relative w-full ">
                 <img
                   src={
                     (featuredAsset?.preview || product.featuredAsset?.preview) +
@@ -277,15 +339,41 @@ export default function ProductSlug() {
                 />
               </div>
 
-              <div className="mt-6 pt-4 border-t border-amber-800 ">
-                <div className="flex items-baseline space-x-2 mb-6">
-                  <span className="text-2xl font-bold text-gray-900">
-                    <Price
-                      priceWithTax={selectedVariant?.priceWithTax}
-                      currencyCode={selectedVariant?.currencyCode}
-                    />
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="mb-6">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-semibold text-gray-900">
+                      <Price
+                        priceWithTax={selectedVariant?.priceWithTax}
+                        currencyCode={selectedVariant?.currencyCode}
+                      />
+                    </span>
+                    {discountPercent && discountPercent > 0 ? (
+                      <span className="text-sm font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-md">
+                        {discountPercent}% Off
+                      </span>
+                    ) : null}
+                  </div>
+                  {shouldShowShadowPrice ? (
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mt-2">
+                      <span className="font-medium">M.R.P:</span>
+                      <span className="line-through text-gray-500">
+                        <Price
+                          priceWithTax={shadowPriceValue ?? 0}
+                          currencyCode={selectedVariant?.currencyCode}
+                        />
+                      </span>
+                      <span className="text-gray-500">
+                        (Incl. of all taxes)
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+                <div className="flex mt-1 flex-wrap items-center justify-between gap-4 text-sm text-gray-600">
+                  <span className="font-medium">
+                    SKU:{' '}
+                    <span className="font-normal">{selectedVariant?.sku}</span>
                   </span>
-                  <span className="text-gray-500">{selectedVariant?.sku}</span>
                   <StockLevelLabel stockLevel={selectedVariant?.stockLevel} />
                 </div>
 
@@ -304,7 +392,7 @@ export default function ProductSlug() {
                       {product.variants.length > 1 ? (
                         <div className="mb-6">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('product.selectOption')}
+                            {selectLabelText}
                           </label>
                           <div className="flex flex-wrap gap-2">
                             {product.variants.map((variant) => (
@@ -313,15 +401,15 @@ export default function ProductSlug() {
                                 type="button"
                                 className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors duration-200 ${
                                   selectedVariantId === variant.id
-                                    ? 'bg-amber-800  text-white border-amber-800 '
-                                    : 'bg-white text-black border-amber-800 '
+                                    ? 'bg-amber-800 text-white border-amber-800'
+                                    : 'bg-white text-amber-800 border-amber-800'
                                 }`}
                                 onClick={() => {
                                   setSelectedVariantId(variant.id);
                                   setFeaturedAsset(variant.featuredAsset);
                                 }}
                               >
-                                {variant.name}
+                                {getVariantOptionLabel(variant)}
                                 <input
                                   type="radio"
                                   name="variantId"
@@ -351,7 +439,22 @@ export default function ProductSlug() {
                           }`}
                           onClick={
                             isSignedIn
-                              ? () => formRef.current?.requestSubmit()
+                              ? () => {
+                                  // Track add to cart
+                                  const variant =
+                                    selectedVariant || product.variants[0];
+                                  trackCustomEvent('AddToCart', {
+                                    content_name: product.name,
+                                    content_ids: [variant.id],
+                                    content_type: 'product',
+                                    value: variant.priceWithTax
+                                      ? (variant.priceWithTax / 100).toFixed(2)
+                                      : '0',
+                                    currency: variant.currencyCode || 'INR',
+                                    quantity: 1,
+                                  });
+                                  formRef.current?.requestSubmit();
+                                }
                               : handleShowSignInModal
                           }
                         >
@@ -402,16 +505,12 @@ export default function ProductSlug() {
         </div>
       </div>
 
-      {/* ✅ Frequently Ordered */}
+      {/* ✅ Use frequentlyOrdered here */}
       <RecentOrders
         products={frequentlyOrdered}
         activeCustomer={activeCustomer}
         activeOrderFetcher={activeOrderFetcher}
         activeOrder={activeOrder}
-      />
-      <SignInPromptModal
-        isOpen={showSignInModal}
-        close={() => setShowSignInModal(false)}
       />
     </div>
   );

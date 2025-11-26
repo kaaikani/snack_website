@@ -14,6 +14,7 @@ import { SearchBar } from './SearchBar';
 import { useState, useEffect } from 'react';
 import { SignInPromptModal } from '~/components/modal/SignInPromptModal';
 import { GoogleLoginButton } from '../Google/GoogleLoginButton';
+import { trackCustomEvent } from '~/utils/facebook-pixel';
 
 interface Collection {
   id: string;
@@ -220,7 +221,15 @@ export function Header({
             )}
 
             <button
-              onClick={isSignedIn ? onCartIconClick : handleShowSignInModal}
+              onClick={() => {
+                if (isSignedIn) {
+                  // Track cart open
+                  trackCustomEvent('OpenCart');
+                  onCartIconClick();
+                } else {
+                  handleShowSignInModal();
+                }
+              }}
               aria-label="Open cart"
               className="p-2 flex items-center relative text-amber-100 hover:text-white transition-colors"
             >
