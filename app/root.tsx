@@ -173,10 +173,10 @@ export default function App() {
           <link rel="icon" href="/favicon.ico" type="image/png" />
           <Meta />
           <Links />
-          {/* Google Analytics */}
+          {/* Google tag (gtag.js) */}
           <script
             async
-            src="https://www.googletagmanager.com/gtag/js?id=G-H98QJ8PYLM"
+            src="https://www.googletagmanager.com/gtag/js?id=AW-17637781771"
           />
           <script
             dangerouslySetInnerHTML={{
@@ -184,7 +184,7 @@ export default function App() {
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-H98QJ8PYLM');
+              gtag('config', 'AW-17637781771');
             `,
             }}
           />
