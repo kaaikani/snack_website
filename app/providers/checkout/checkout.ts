@@ -82,18 +82,6 @@ gql`
 `;
 
 gql`
-  mutation addPaymentToOrder($input: PaymentInput!) {
-    addPaymentToOrder(input: $input) {
-      ...OrderDetail
-      ... on ErrorResult {
-        errorCode
-        message
-      }
-    }
-  }
-`;
-
-gql`
   mutation transitionOrderToState($state: String!) {
     transitionOrderToState(state: $state) {
       ...OrderDetail

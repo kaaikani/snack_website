@@ -1364,6 +1364,15 @@ type FulfillmentLine {
   quantity: Int!
 }
 
+type GenerateRazorpayOrderIdResult {
+  amount: Int
+  currency: String
+  errorMessage: String
+  keyId: String
+  razorpayOrderId: String
+  success: Boolean!
+}
+
 enum GlobalFlag {
   FALSE
   INHERIT
@@ -2182,7 +2191,6 @@ type Mutation {
 
   """Authenticates the user using a named authentication strategy"""
   authenticate(input: AuthenticationInput!, rememberMe: Boolean): AuthenticationResult!
-  cancelOrderOnClientRequest(orderId: ID!, value: Int!): Order!
 
   """Create a new Customer Address"""
   createCustomerAddress(input: CreateAddressInput!): Address!
@@ -2190,7 +2198,7 @@ type Mutation {
 
   """Delete an existing Address"""
   deleteCustomerAddress(id: ID!): Success!
-  generateRazorpayOrderId(orderId: ID!): generateRazorpayOrderIdResult!
+  generateRazorpayOrderId(orderId: ID!): GenerateRazorpayOrderIdResult!
 
   """
   Authenticates the user using the native authentication strategy. This mutation is an alias for authenticate({ native: { ... }})
@@ -2236,6 +2244,12 @@ type Mutation {
 
   """Remove an OrderLine from the Order"""
   removeOrderLine(orderLineId: ID!): RemoveOrderItemsResult!
+
+  """
+  Allows a customer to request cancellation for their order.
+  The reason string can be any text or JSON sent from the client.
+  """
+  requestOrderCancellation(orderId: ID!, reason: String!): Order!
 
   """Requests a password reset email to be sent"""
   requestPasswordReset(emailAddress: String!): RequestPasswordResetResult
@@ -2306,7 +2320,6 @@ type Mutation {
 
   """Update the password of the active Customer"""
   updateCustomerPassword(currentPassword: String!, newPassword: String!): UpdateCustomerPasswordResult!
-  updateOrderPlacedAtIST(orderId: ID!): DateTime!
 
   """
   Verify a Customer email address with the token sent to that address. Only applicable if `authOptions.requireVerification` is set to true.
@@ -2470,21 +2483,16 @@ type OrderAddress {
 }
 
 type OrderCustomFields {
-  clientRequestToCancel: Int
   deviceMedium: String
   loyaltyPointsEarned: Int
   loyaltyPointsUsed: Int
   otherInstructions: String
-  placedAtISTFormatted: DateTime
-  razorpayStatus: String
-  razorpay_order_id: String
 }
 
 input OrderFilterParameter {
   _and: [OrderFilterParameter!]
   _or: [OrderFilterParameter!]
   active: BooleanOperators
-  clientRequestToCancel: NumberOperators
   code: StringOperators
   createdAt: DateOperators
   currencyCode: StringOperators
@@ -2494,9 +2502,6 @@ input OrderFilterParameter {
   loyaltyPointsUsed: NumberOperators
   orderPlacedAt: DateOperators
   otherInstructions: StringOperators
-  placedAtISTFormatted: DateOperators
-  razorpayStatus: StringOperators
-  razorpay_order_id: StringOperators
   shipping: NumberOperators
   shippingWithTax: NumberOperators
   state: StringOperators
@@ -2652,7 +2657,6 @@ type OrderPaymentStateError implements ErrorResult {
 }
 
 input OrderSortParameter {
-  clientRequestToCancel: SortOrder
   code: SortOrder
   createdAt: SortOrder
   deviceMedium: SortOrder
@@ -2661,9 +2665,6 @@ input OrderSortParameter {
   loyaltyPointsUsed: SortOrder
   orderPlacedAt: SortOrder
   otherInstructions: SortOrder
-  placedAtISTFormatted: SortOrder
-  razorpayStatus: SortOrder
-  razorpay_order_id: SortOrder
   shipping: SortOrder
   shippingWithTax: SortOrder
   state: SortOrder
@@ -3498,6 +3499,7 @@ type Query {
   getChannelsByCustomerPhoneNumber(phoneNumber: String!): [Channel!]!
   getCouponCodeList: CoupcodesList!
   getPasswordResetToken: String!
+  getRazorpayOrderStatus(orderId: ID!): RazorpayOrderStatus
   loyaltyPointsConfig: LoyaltyPointsConfig
 
   """Returns information about the current authenticated User"""
@@ -3534,15 +3536,22 @@ type Query {
   search(input: SearchInput!): SearchResponse!
 }
 
-type RazorpayOrderIdGenerationError {
-  errorCode: String
-  message: String
+type RazorpayOrderStatus {
+  amountDue: Int
+  amountPaid: Int
+  attempts: Int
+  history: [RazorpayPaymentAttempt]
+  razorpayOrderId: String
+  status: String
 }
 
-type RazorpayOrderIdSuccess {
-  keyId: String!
-  keySecret: String!
-  razorpayOrderId: String!
+type RazorpayPaymentAttempt {
+  amount: Int
+  createdAt: String
+  errorReason: String
+  id: String!
+  method: String
+  status: String!
 }
 
 union RefreshCustomerVerificationResult = NativeAuthStrategyError | Success
@@ -4006,12 +4015,9 @@ input UpdateCustomerInput {
 union UpdateCustomerPasswordResult = InvalidCredentialsError | NativeAuthStrategyError | PasswordValidationError | Success
 
 input UpdateOrderCustomFieldsInput {
-  clientRequestToCancel: Int
   deviceMedium: String
   loyaltyPointsEarned: Int
   loyaltyPointsUsed: Int
-  otherInstructions: String
-  razorpay_order_id: String
 }
 
 input UpdateOrderInput {
@@ -4063,5 +4069,3 @@ type Zone implements Node {
   name: String!
   updatedAt: DateTime!
 }
-
-union generateRazorpayOrderIdResult = RazorpayOrderIdGenerationError | RazorpayOrderIdSuccess

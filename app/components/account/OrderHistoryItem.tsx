@@ -9,7 +9,6 @@ import { ChevronRightIcon } from '@heroicons/react/24/solid';
 import { EllipsisVerticalIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Link, useFetcher } from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
-import { ConfirmationDialog } from '~/components/ConfirmationDialog';
 
 // Define types that match exactly what comes from your GraphQL query
 type FulfillmentLine = {
@@ -108,8 +107,8 @@ type Order = {
   shippingLines: ShippingLine[];
   fulfillments?: Fulfillment[];
   customFields?: {
-    clientRequestToCancel?: number;
     otherInstructions?: string;
+    clientRequestToCancel?: number;
   };
 };
 
@@ -132,6 +131,7 @@ export default function OrderHistoryItem({
   );
   const [isLineCalcExpanded, setIsLineCalcExpanded] = useState<boolean>(false);
   const [showCancelDialog, setShowCancelDialog] = useState<boolean>(false);
+  const [cancelReason, setCancelReason] = useState<string>('');
   const { t } = useTranslation();
   const fetcher = useFetcher();
 
@@ -142,18 +142,24 @@ export default function OrderHistoryItem({
 
   // Check if cancel request is already pending
   const hasPendingCancelRequest =
-    order?.customFields?.clientRequestToCancel || false;
+    order?.customFields?.clientRequestToCancel !== undefined &&
+    order.customFields.clientRequestToCancel !== null &&
+    order.customFields.clientRequestToCancel > 0;
 
   const handleCancelOrder = () => {
     if (!order?.id || !order?.totalWithTax) return;
+    if (!cancelReason || cancelReason.trim() === '') {
+      return; // Don't submit if reason is empty
+    }
 
     const formData = new FormData();
     formData.append('intent', 'cancel-order');
     formData.append('orderId', order.id);
-    formData.append('value', '1');
+    formData.append('reason', cancelReason.trim());
 
     fetcher.submit(formData, { method: 'post' });
     setShowCancelDialog(false);
+    setCancelReason(''); // Reset reason after submission
   };
 
   const shipping = order.shippingWithTax ?? 0;
@@ -490,17 +496,76 @@ export default function OrderHistoryItem({
         </div>
       )}
 
-      {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={showCancelDialog}
-        onClose={() => setShowCancelDialog(false)}
-        onConfirm={handleCancelOrder}
-        title="Cancel Order"
-        message={`Are you sure you want to cancel order ${order.code}? This action will submit a cancellation request that requires admin approval.`}
-        confirmText="Yes, Cancel Order"
-        cancelText="Keep Order"
-        isLoading={isSubmitting}
-      />
+      {/* Cancel Order Dialog with Reason Input */}
+      {showCancelDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => {
+              setShowCancelDialog(false);
+              setCancelReason('');
+            }}
+          />
+
+          {/* Dialog */}
+          <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Cancel Order
+            </h3>
+
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to cancel order {order.code}? This action
+              will submit a cancellation request that requires admin approval.
+            </p>
+
+            <div className="mb-6">
+              <label
+                htmlFor="cancel-reason"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Reason for Cancellation <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="cancel-reason"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Please provide a reason for cancelling this order..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                rows={4}
+                required
+              />
+              {!cancelReason || cancelReason.trim() === '' ? (
+                <p className="mt-1 text-xs text-red-600">
+                  Please provide a reason for cancellation
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={() => {
+                  setShowCancelDialog(false);
+                  setCancelReason('');
+                }}
+                className="bg-gray-200 text-gray-800 hover:bg-gray-300"
+                disabled={isSubmitting}
+              >
+                Keep Order
+              </Button>
+              <Button
+                onClick={handleCancelOrder}
+                className="bg-red-600 text-white hover:bg-red-700"
+                disabled={
+                  isSubmitting || !cancelReason || cancelReason.trim() === ''
+                }
+              >
+                {isSubmitting ? 'Processing...' : 'Yes, Cancel Order'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

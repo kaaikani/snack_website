@@ -53,7 +53,6 @@ import {
   applyLoyaltyPoints,
   removeLoyaltyPoints,
   getLoyaltyPointsConfig,
-  updateOrderPlacedAtISTMutation,
 } from '~/providers/customPlugins/customPlugin';
 import { Header } from '~/components/header/Header';
 import { getCollections } from '~/providers/collections/collections';
@@ -679,20 +678,6 @@ export async function action({ request }: DataFunctionArgs) {
     );
 
     if (result.addPaymentToOrder.__typename === 'Order') {
-      // Call UpdateOrderPlacedAtIST after successful payment
-      try {
-        await updateOrderPlacedAtISTMutation(result.addPaymentToOrder.id, {
-          request,
-        });
-        console.log(
-          'OrderPlacedAtIST updated successfully for order:',
-          result.addPaymentToOrder.id,
-        );
-      } catch (error: any) {
-        console.error('Failed to update OrderPlacedAtIST:', error);
-        // Optionally handle the error (e.g., log it, but proceed with redirect)
-      }
-
       return redirect(
         `/checkout/confirmation/${result.addPaymentToOrder.code}`,
       );

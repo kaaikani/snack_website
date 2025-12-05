@@ -10,7 +10,6 @@ import {
   transitionOrderToState,
   addPaymentToOrder,
 } from '~/providers/checkout/checkout';
-import { updateOrderPlacedAtISTMutation } from '~/providers/customPlugins/customPlugin';
 import { getActiveOrder } from '~/providers/orders/order';
 import { useTranslation } from 'react-i18next';
 import { ErrorCode, type ErrorResult } from '~/generated/graphql';
@@ -94,18 +93,6 @@ export async function action({ request }: DataFunctionArgs) {
     );
 
     if (result.addPaymentToOrder.__typename === 'Order') {
-      try {
-        await updateOrderPlacedAtISTMutation(result.addPaymentToOrder.id, {
-          request,
-        });
-        console.log(
-          'OrderPlacedAtIST updated successfully for order:',
-          result.addPaymentToOrder.id,
-        );
-      } catch (error: any) {
-        console.error('Failed to update OrderPlacedAtIST:', error);
-      }
-
       return redirect(
         `/checkout/confirmation/${result.addPaymentToOrder.code}`,
       );

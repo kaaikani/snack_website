@@ -1,6 +1,15 @@
 import gql from 'graphql-tag';
 import { QueryOptions, sdk } from '../../graphqlWrapper';
-import { CreateAddressInput, CreateCustomerInput } from '~/generated/graphql';
+import {
+  CreateAddressInput,
+  CreateCustomerInput,
+  PaymentInput,
+} from '~/generated/graphql';
+import type {
+  AddPaymentToOrderResponse,
+  PaymentOrderResponse,
+  PaymentError,
+} from '~/types/payment';
 
 export function getActiveOrder(options: QueryOptions) {
   return sdk
@@ -59,6 +68,67 @@ export function setOrderShippingMethod(
   options: QueryOptions,
 ) {
   return sdk.setOrderShippingMethod({ shippingMethodId }, options);
+}
+
+/**
+ * Adds a payment to the active order
+ * @param input - Payment input containing method and metadata
+ * @param options - Query options including request and custom headers
+ * @returns Promise resolving to a typed payment response (success or error)
+ */
+export async function addPaymentToOrder(
+  input: PaymentInput,
+  options: QueryOptions,
+): Promise<AddPaymentToOrderResponse> {
+  const response = await sdk.addPaymentToOrder({ input }, options);
+  const result = response.addPaymentToOrder as any;
+
+  // Check if the result is a successful Order
+  if (result?.__typename === 'Order') {
+    const order: PaymentOrderResponse = {
+      id: result.id || '',
+      code: result.code || '',
+      state: result.state || '',
+      totalWithTax: result.totalWithTax || 0,
+      payments: (result.payments || []).map((payment: any) => ({
+        id: payment.id || '',
+        amount: payment.amount || 0,
+        state: payment.state || '',
+        transactionId: payment.transactionId || null,
+      })),
+    };
+
+    return {
+      success: true,
+      order,
+    };
+  }
+
+  // Check if the result is an error
+  if (
+    result?.__typename === 'IneligiblePaymentMethodError' ||
+    result?.__typename === 'NoActiveOrderError' ||
+    result?.__typename === 'OrderPaymentStateError' ||
+    result?.__typename === 'OrderStateTransitionError' ||
+    result?.__typename === 'PaymentDeclinedError' ||
+    result?.__typename === 'PaymentFailedError'
+  ) {
+    return {
+      success: false,
+      error: result as PaymentError,
+    };
+  }
+
+  // Fallback for unexpected response type
+  return {
+    success: false,
+    error: {
+      __typename: 'PaymentFailedError',
+      errorCode: 'PAYMENT_FAILED_ERROR' as any,
+      message: 'Unexpected response from payment service',
+      paymentErrorMessage: 'Unknown error occurred',
+    },
+  };
 }
 
 export function applyCouponCode(input: string, options: QueryOptions) {
@@ -367,8 +437,40 @@ gql`
 gql`
   mutation addPaymentToOrder($input: PaymentInput!) {
     addPaymentToOrder(input: $input) {
-      ...OrderDetail
-      ... on ErrorResult {
+      __typename
+      ... on Order {
+        id
+        code
+        state
+        totalWithTax
+        payments {
+          id
+          amount
+          state
+          transactionId
+        }
+      }
+      ... on OrderPaymentStateError {
+        errorCode
+        message
+      }
+      ... on IneligiblePaymentMethodError {
+        errorCode
+        message
+      }
+      ... on PaymentFailedError {
+        errorCode
+        message
+      }
+      ... on PaymentDeclinedError {
+        errorCode
+        message
+      }
+      ... on OrderStateTransitionError {
+        errorCode
+        message
+      }
+      ... on NoActiveOrderError {
         errorCode
         message
       }

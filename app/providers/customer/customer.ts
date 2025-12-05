@@ -117,7 +117,6 @@ gql`
       id
       firstName
       emailAddress
-      # ✅ Favorites kept in order list too
       favorites {
         totalItems
         items {
@@ -155,7 +154,6 @@ gql`
             trackingCode
           }
           customFields {
-            clientRequestToCancel
             otherInstructions
           }
           lines {
