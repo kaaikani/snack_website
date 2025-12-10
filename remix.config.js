@@ -9,6 +9,8 @@ const commonConfig = {
   serverDependenciesToBundle: [
     'remix-i18next',
     '@remix-validated-form/with-zod',
+    'accept-language-parser',
+    'intl-parse-accept-language',
   ],
   tailwind: true,
   routes(defineRoutes) {
@@ -21,7 +23,7 @@ const commonConfig = {
  * @type {import('@remix-run/dev').AppConfig}
  */
 const cloudflarePagesConfig = {
-  serverBuildPath: 'functions/[[path]].js',
+  serverBuildPath: 'build/index.js',
   serverPlatform: 'neutral',
   server: './server-cloudflare-pages.js',
   ignoredRouteFiles: ['**/.*'],
@@ -56,6 +58,7 @@ const buildConfig = {
   assetsBuildDirectory: 'public/build',
   publicPath: '/build/',
   serverBuildDirectory: 'build',
+  serverBuildPath: 'build/index.js', // ✅ REQUIRED FOR LOCAL PRODUCTION
   ignoredRouteFiles: ['.*'],
   ...commonConfig,
 };
