@@ -22,14 +22,15 @@ jobs:
             sudo git reset --hard HEAD
             sudo git clean -fd
             sudo git pull origin main      
-            sudo npm install
+            sudo npm install -g pnpm
+            sudo pnpm install
           
-            # Check if PM2 is running a process named "web"
-            if pm2 list | grep -q "web"; then
-              echo "🔁 PM2 process 'web' exists. Restarting..."
-              pm2 restart web
+            # Check if PM2 is running a process named "snack"
+            if pm2 list | grep -q "snack"; then
+              echo "🔁 PM2 process 'snack' exists. Restarting..."
+              pm2 restart snack
             else
-              echo "▶️ PM2 process 'web' not found. Starting..."
-              pm2 start npm --name "web" -- start
+              echo "▶️ PM2 process 'snack' not found. Starting..."
+              pm2 start npm --name "snack" -- start
           
             fi
