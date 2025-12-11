@@ -24,7 +24,7 @@ jobs:
             sudo git pull origin main      
             sudo npm install -g pnpm
             sudo pnpm install
-          
+            sudo pnpm build
             # Check if PM2 is running a process named "snack"
             if pm2 list | grep -q "snack"; then
               echo "🔁 PM2 process 'snack' exists. Restarting..."
