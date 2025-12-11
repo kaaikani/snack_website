@@ -58,9 +58,10 @@ const buildConfig = {
   assetsBuildDirectory: 'public/build',
   publicPath: '/build/',
   serverBuildDirectory: 'build',
-  serverBuildPath: 'build/index.js', // ✅ REQUIRED FOR LOCAL PRODUCTION
+  serverBuildPath: 'build/index.cjs', // Use .cjs extension for CommonJS when package.json has "type": "module"
   ignoredRouteFiles: ['.*'],
   ...commonConfig,
+  serverModuleFormat: 'cjs', // Use CommonJS for remix-serve compatibility (override ESM from commonConfig)
 };
 
 function selectConfig() {
