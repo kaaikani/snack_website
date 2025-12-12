@@ -3,10 +3,9 @@ import type { ActionFunction } from '@remix-run/node';
 import {
   transitionOrderToState,
   getNextOrderStates,
-  addPaymentToOrder,
 } from '~/providers/checkout/checkout';
+import { addPaymentToOrder } from '~/providers/orders/order';
 import { getActiveOrder } from '~/providers/orders/order';
-import { updateOrderPlacedAtISTMutation } from '~/providers/customPlugins/customPlugin'; // Import the mutation
 
 interface RazorpayPaymentResponse {
   success: boolean;
@@ -23,7 +22,42 @@ export const action: ActionFunction = async ({ request }) => {
   const orderCode = formData.get('orderCode') as string;
   const amount = formData.get('amount') as string;
   const currencyCode = formData.get('currencyCode') as string;
-  const paymentMethodCode = 'online';
+  // Get eligible payment methods to find the correct code
+  const { getEligiblePaymentMethods } = await import(
+    '~/providers/checkout/checkout'
+  );
+  const paymentMethods = await getEligiblePaymentMethods({ request });
+
+  // Find the Razorpay payment method
+  // Backend handler code is 'razorpay-payment' but might also be 'online'
+  const razorpayPaymentMethod = paymentMethods.eligiblePaymentMethods.find(
+    (method) =>
+      method.code === 'razorpay-payment' ||
+      method.code === 'online' ||
+      method.code.toLowerCase().includes('razorpay') ||
+      method.code.toLowerCase().includes('online'),
+  );
+
+  const paymentMethodCode = razorpayPaymentMethod?.code || 'razorpay-payment';
+
+  if (!razorpayPaymentMethod) {
+    console.error(
+      'Razorpay payment method not found. Available methods:',
+      paymentMethods.eligiblePaymentMethods.map((m) => ({
+        code: m.code,
+        name: m.name,
+      })),
+    );
+    return json<RazorpayPaymentResponse>(
+      { success: false, error: 'Razorpay payment method not found' },
+      { status: 400 },
+    );
+  }
+
+  console.log('Using payment method:', {
+    code: paymentMethodCode,
+    name: razorpayPaymentMethod.name,
+  });
 
   if (!paymentId || !orderId || !signature) {
     return json<RazorpayPaymentResponse>(
@@ -57,19 +91,82 @@ export const action: ActionFunction = async ({ request }) => {
       }
     }
 
+    // Get the active order to get the amount and currency
+    const activeOrder = await getActiveOrder({ request });
+    if (!activeOrder) {
+      return json<RazorpayPaymentResponse>(
+        { success: false, error: 'No active order found' },
+        { status: 400 },
+      );
+    }
+
+    // Verify order code matches
+    if (activeOrder.code !== orderCode) {
+      console.error('Order code mismatch:', {
+        expected: activeOrder.code,
+        received: orderCode,
+      });
+      return json<RazorpayPaymentResponse>(
+        { success: false, error: 'Order code mismatch' },
+        { status: 400 },
+      );
+    }
+
+    // Calculate amounts for verification
+    const orderAmountInPaise = activeOrder.totalWithTax || 0;
+    const orderAmountInRupees = (orderAmountInPaise / 100).toFixed(2);
+    const razorpayAmountInPaise = amount ? Number.parseInt(amount, 10) : null;
+
+    // Log amount verification
+    console.log('Amount Verification:', {
+      orderAmountPaise: orderAmountInPaise,
+      orderAmountRupees: orderAmountInRupees,
+      razorpayAmountPaise: razorpayAmountInPaise,
+      razorpayAmountRupees: razorpayAmountInPaise
+        ? (razorpayAmountInPaise / 100).toFixed(2)
+        : null,
+      amountsMatch:
+        razorpayAmountInPaise !== null &&
+        razorpayAmountInPaise === orderAmountInPaise,
+    });
+
+    // Verify amount matches (optional check - backend will also verify)
+    if (
+      razorpayAmountInPaise !== null &&
+      razorpayAmountInPaise !== orderAmountInPaise
+    ) {
+      console.warn('Amount mismatch detected:', {
+        orderAmount: orderAmountInPaise,
+        razorpayAmount: razorpayAmountInPaise,
+        difference: Math.abs(orderAmountInPaise - razorpayAmountInPaise),
+      });
+    }
+
     // Create metadata for the payment
+    // Backend expects camelCase property names: razorpayPaymentId, razorpayOrderId, razorpaySignature
     const metadata = {
-      method: 'online',
-      status: 'completed',
-      orderCode: orderCode,
-      payment_details: {
-        razorpay_payment_id: paymentId,
-        razorpay_order_id: orderId,
-        razorpay_signature: signature,
-      },
+      razorpayPaymentId: paymentId,
+      razorpayOrderId: orderId,
+      razorpaySignature: signature,
     };
 
-    console.log('Adding payment to order with metadata:', metadata);
+    const orderCurrency = activeOrder.currencyCode || currencyCode || 'INR';
+
+    console.log('📋 Payment Details Summary:', {
+      orderCode: orderCode,
+      paymentMethod: paymentMethodCode,
+      amount: orderAmountInRupees,
+      currency: orderCurrency,
+      razorpayPaymentId: paymentId,
+      razorpayOrderId: orderId,
+      hasSignature: !!signature,
+      orderState: activeOrder.state,
+    });
+
+    console.log(
+      '📦 Metadata being sent to backend (camelCase format):',
+      metadata,
+    );
 
     // Add payment to the order
     const result = await addPaymentToOrder(
@@ -77,36 +174,51 @@ export const action: ActionFunction = async ({ request }) => {
       { request },
     );
 
-    if (result.addPaymentToOrder.__typename === 'Order') {
-      // Call UpdateOrderPlacedAtIST after successful payment
-      try {
-        await updateOrderPlacedAtISTMutation(result.addPaymentToOrder.id, {
-          request,
-        });
-        console.log(
-          'OrderPlacedAtIST updated successfully for order:',
-          result.addPaymentToOrder.id,
-        );
-      } catch (error: any) {
-        console.error('Failed to update OrderPlacedAtIST:', error);
-        // Optionally handle the error (e.g., log it, but proceed with redirect)
+    console.log('Result of addPaymentToOrder:', result);
+
+    if (result.success) {
+      const redirectUrl = `/checkout/confirmation/${result.order.code}`;
+      console.log('Payment added successfully, redirecting to:', redirectUrl);
+      return redirect(redirectUrl);
+    } else {
+      // Handle all error types with proper typing
+      const errorResult = result.error;
+
+      console.error('Failed to add payment to order:', {
+        errorType: errorResult.__typename,
+        errorCode: errorResult.errorCode,
+        message: errorResult.message,
+      });
+
+      // Provide user-friendly error messages based on error type
+      let errorMessage =
+        errorResult.message || 'Failed to add payment to order';
+
+      switch (errorResult.__typename) {
+        case 'OrderPaymentStateError':
+          errorMessage = `Order payment state error: ${errorResult.message}`;
+          break;
+        case 'IneligiblePaymentMethodError':
+          errorMessage = `Payment method not eligible: ${errorResult.message}`;
+          break;
+        case 'PaymentFailedError':
+          errorMessage = `Payment failed: ${errorResult.message}`;
+          break;
+        case 'PaymentDeclinedError':
+          errorMessage = `Payment declined: ${errorResult.message}`;
+          break;
+        case 'OrderStateTransitionError':
+          errorMessage = `Order state error: ${errorResult.message}`;
+          break;
+        case 'NoActiveOrderError':
+          errorMessage = `No active order found: ${errorResult.message}`;
+          break;
       }
 
-      console.log('Payment added successfully, redirecting to confirmation');
-      return redirect(
-        `/checkout/confirmation/${result.addPaymentToOrder.code}`,
-      );
-    } else {
-      console.error(
-        'Failed to add payment to order:',
-        result.addPaymentToOrder?.message,
-      );
       return json<RazorpayPaymentResponse>(
         {
           success: false,
-          error:
-            result.addPaymentToOrder?.message ||
-            'Failed to add payment to order',
+          error: errorMessage,
         },
         { status: 400 },
       );

@@ -19,7 +19,7 @@ import {
   getActiveCustomerOrderList,
   getActiveCustomerDetails,
 } from '~/providers/customer/customer';
-import { cancelOrderOnClientRequest } from '~/providers/customPlugins/customPlugin';
+import { requestOrderCancellation } from '~/providers/customPlugins/customPlugin';
 import { type OrderListOptions, SortOrder } from '~/generated/graphql';
 import { Pagination } from '~/components/Pagination';
 import { ValidatedForm } from 'remix-validated-form';
@@ -58,14 +58,22 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === 'cancel-order') {
     const orderId = formData.get('orderId') as string;
-    const value = formData.get('value') as string;
+    const reason = formData.get('reason') as string;
+
+    if (!reason || reason.trim() === '') {
+      return json(
+        {
+          success: false,
+          message: 'Please provide a reason for cancellation.',
+        },
+        { status: 400 },
+      );
+    }
 
     try {
-      const result = await cancelOrderOnClientRequest(
-        orderId,
-        Number.parseInt(value),
-        { request },
-      );
+      const result = await requestOrderCancellation(orderId, reason.trim(), {
+        request,
+      });
 
       return json({
         success: true,

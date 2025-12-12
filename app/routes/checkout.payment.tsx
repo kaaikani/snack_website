@@ -10,7 +10,6 @@ import {
   transitionOrderToState,
   addPaymentToOrder,
 } from '~/providers/checkout/checkout';
-import { updateOrderPlacedAtISTMutation } from '~/providers/customPlugins/customPlugin';
 import { getActiveOrder } from '~/providers/orders/order';
 import { useTranslation } from 'react-i18next';
 import { ErrorCode, type ErrorResult } from '~/generated/graphql';
@@ -94,18 +93,6 @@ export async function action({ request }: DataFunctionArgs) {
     );
 
     if (result.addPaymentToOrder.__typename === 'Order') {
-      try {
-        await updateOrderPlacedAtISTMutation(result.addPaymentToOrder.id, {
-          request,
-        });
-        console.log(
-          'OrderPlacedAtIST updated successfully for order:',
-          result.addPaymentToOrder.id,
-        );
-      } catch (error: any) {
-        console.error('Failed to update OrderPlacedAtIST:', error);
-      }
-
       return redirect(
         `/checkout/confirmation/${result.addPaymentToOrder.code}`,
       );
@@ -208,7 +195,7 @@ export default function PaymentStep({
                       By clicking the Place Order button, you confirm that you
                       have read, understand and accept our Terms of Use, Terms
                       of Sale and Returns Policy and acknowledge that you have
-                      read KaaiKani Store's Privacy Policy.
+                      read South Mithai Store's Privacy Policy.
                     </p>
                     <RazorpayPayments
                       orderCode={activeOrder?.code ?? ''}
@@ -241,7 +228,7 @@ export default function PaymentStep({
                       By clicking the Place Order button, you confirm that you
                       have read, understand and accept our Terms of Use, Terms
                       of Sale and Returns Policy and acknowledge that you have
-                      read KaaiKani Store's Privacy Policy.
+                      read south Mithai Store's Privacy Policy.
                     </p>
                     <button
                       type="submit"

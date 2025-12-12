@@ -53,7 +53,6 @@ import {
   applyLoyaltyPoints,
   removeLoyaltyPoints,
   getLoyaltyPointsConfig,
-  updateOrderPlacedAtISTMutation,
 } from '~/providers/customPlugins/customPlugin';
 import { Header } from '~/components/header/Header';
 import { getCollections } from '~/providers/collections/collections';
@@ -660,12 +659,6 @@ export async function action({ request }: DataFunctionArgs) {
         console.error('Error parsing payment nonce:', e);
         metadata = { nonce: paymentNonce };
       }
-    } else if (paymentMethodCode === 'offline') {
-      metadata = {
-        method: 'offline',
-        amount: Number(((activeOrder?.totalWithTax || 0) / 100).toFixed(2)),
-        currencyCode: activeOrder?.currencyCode || 'INR',
-      };
     }
 
     console.log('Adding payment to order with:', {
@@ -679,20 +672,6 @@ export async function action({ request }: DataFunctionArgs) {
     );
 
     if (result.addPaymentToOrder.__typename === 'Order') {
-      // Call UpdateOrderPlacedAtIST after successful payment
-      try {
-        await updateOrderPlacedAtISTMutation(result.addPaymentToOrder.id, {
-          request,
-        });
-        console.log(
-          'OrderPlacedAtIST updated successfully for order:',
-          result.addPaymentToOrder.id,
-        );
-      } catch (error: any) {
-        console.error('Failed to update OrderPlacedAtIST:', error);
-        // Optionally handle the error (e.g., log it, but proceed with redirect)
-      }
-
       return redirect(
         `/checkout/confirmation/${result.addPaymentToOrder.code}`,
       );
@@ -732,9 +711,7 @@ export default function CheckoutPage() {
   const [customerFormChanged, setCustomerFormChanged] = useState(false);
   const [addressFormChanged, setAddressFormChanged] = useState(false);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
-  const [paymentMode, setPaymentMode] = useState<'online' | 'offline' | null>(
-    null,
-  );
+  const [paymentMode, setPaymentMode] = useState<'online' | null>(null);
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [showAllCartItems, setShowAllCartItems] = useState(false);
   const [shouldRefreshAfterCouponRemoval, setShouldRefreshAfterCouponRemoval] =
@@ -1342,40 +1319,6 @@ export default function CheckoutPage() {
                           customerPhone={shippingAddress?.phoneNumber ?? ''}
                         />
                       </>
-                    ) : method.code === 'offline' ? (
-                      <Form method="post">
-                        <input
-                          type="hidden"
-                          name="paymentMethodCode"
-                          value="offline"
-                        />
-                        <input
-                          type="hidden"
-                          name="paymentNonce"
-                          value={JSON.stringify({
-                            method: 'offline',
-                            status: 'pending',
-                            amount: activeOrder?.totalWithTax || 0,
-                            currencyCode: activeOrder?.currencyCode || 'INR',
-                            orderCode: activeOrder?.code || '',
-                          })}
-                        />
-                        <div className="w-full">
-                          <p className="text-sm text-black mb-4">
-                            By clicking the Place Order button, you confirm that
-                            you have read, understand and accept our Terms of
-                            Use, Terms of Sale and Returns Policy and
-                            acknowledge that you have read KaaiKani Store's
-                            Privacy Policy.
-                          </p>
-                          <button
-                            type="submit"
-                            className="w-full bg-black border hover:bg-white hover:text-black hover:border-black rounded-md py-3 px-4 text-base font-medium text-white"
-                          >
-                            Place Order
-                          </button>
-                        </div>
-                      </Form>
                     ) : (
                       <div className="text-sm text-black">
                         Payment method "{method.code}" not supported
@@ -1386,9 +1329,8 @@ export default function CheckoutPage() {
               {!eligiblePaymentMethods.find((m) => m.code === paymentMode) && (
                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="text-sm text-yellow-800">
-                    {paymentMode === 'online'
-                      ? 'Online payment is not available. Please contact support if you need to pay online.'
-                      : 'Offline payment is not available. Please contact support for assistance.'}
+                    Online payment is not available. Please contact support if
+                    you need to pay online.
                   </p>
                 </div>
               )}

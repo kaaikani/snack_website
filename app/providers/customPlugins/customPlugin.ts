@@ -13,31 +13,33 @@ import {
   ResetPasswordMutation,
   SendPhoneOtpMutation,
   SendPhoneOtpMutationVariables,
-  CancelOrderOnClientRequestMutation,
+  Order,
   OtherInstructionsMutation,
   ToggleFavoriteMutation,
   RemoveLoyaltyPointsFromActiveOrderMutation,
   ApplyLoyaltyPointsMutation,
   LoyaltyPointsConfig,
-  UpdateOrderPlacedAtIstMutation,
   GetFrequentlyOrderedProductsQuery,
-  AuthenticateGoogleMutation,
-  GetCollectionProductsBySlugQuery,
-  GetCollectionProductsBySlugDocument,
-  ProductVariantList,
 } from '~/generated/graphql';
-
-type CollectionWithProductVariants =
-  GetCollectionProductsBySlugQuery['collection'];
-
 import { QueryOptions, sdk, WithHeaders } from '~/graphqlWrapper';
+import { authenticate } from '~/providers/account/account';
+import type { CurrentUser, ErrorResult } from '~/generated/graphql';
 
 export async function getChannelList(p0: {
   request: Request;
 }): Promise<WithHeaders<GetChannelListQuery['getChannelList']>> {
   return sdk.getChannelList().then((res) => {
-    const data = res.getChannelList;
-    const result = Object.assign([...data], { _headers: res._headers });
+    const allChannels = res.getChannelList;
+    const allowedCities = ['Madurai', 'Coimbatore', 'Trichy', 'Salem'];
+    const filteredChannels = allChannels.filter(
+      (channel) =>
+        channel.code !== '__default_channel__' &&
+        allowedCities.includes(channel.code),
+    );
+
+    const result = Object.assign([...filteredChannels], {
+      _headers: res._headers,
+    });
     return result;
   });
 }
@@ -308,12 +310,14 @@ export async function getRazorpayOrderId(
   channelToken?: string,
 ): Promise<
   | {
-      razorpayOrderId: string;
+      amount: number;
+      currency: string;
       keyId: string;
-      keySecret: string;
+      razorpayOrderId: string;
+      success: boolean;
       headers: any;
     }
-  | { message: string; headers: any }
+  | { errorMessage: string; success: boolean; headers: any }
   | false
 > {
   try {
@@ -330,23 +334,24 @@ export async function getRazorpayOrderId(
       },
     );
 
-    const result = response.generateRazorpayOrderId;
+    const result = response.generateRazorpayOrderId as any;
 
-    if ('razorpayOrderId' in result) {
+    if (result?.success) {
       return {
-        razorpayOrderId: result.razorpayOrderId,
+        amount: result.amount,
+        currency: result.currency,
         keyId: result.keyId,
-        keySecret: result.keySecret,
+        razorpayOrderId: result.razorpayOrderId,
+        success: result.success,
         headers: response._headers,
       };
-    } else if ('message' in result) {
+    } else {
       return {
-        message: result.message ?? 'Unknown error',
+        errorMessage: result?.errorMessage ?? 'Unknown error',
+        success: result?.success ?? false,
         headers: response._headers,
       };
     }
-
-    return false;
   } catch (error) {
     console.error('Error in getRazorpayOrderId:', error);
     return false;
@@ -356,39 +361,39 @@ export async function getRazorpayOrderId(
 gql`
   mutation generateRazorpayOrderId($orderId: ID!) {
     generateRazorpayOrderId(orderId: $orderId) {
-      ... on RazorpayOrderIdSuccess {
-        razorpayOrderId
-        keyId
-        keySecret
-      }
-      ... on RazorpayOrderIdGenerationError {
-        message
-      }
+      amount
+      currency
+      errorMessage
+      keyId
+      razorpayOrderId
+      success
     }
   }
 `;
 
-export async function cancelOrderOnClientRequest(
+export async function requestOrderCancellation(
   orderId: string,
-  value: number,
+  reason: string,
   options?: { request: Request; customHeaders?: Record<string, string> },
-): Promise<
-  WithHeaders<CancelOrderOnClientRequestMutation['cancelOrderOnClientRequest']>
-> {
-  const response = await sdk.CancelOrderOnClientRequest(
-    { orderId, value },
+): Promise<WithHeaders<Order>> {
+  // Type assertion needed until GraphQL types are regenerated
+  const response = (sdk as any).RequestOrderCancellation(
+    { orderId, reason },
     options,
-  );
+  ) as Promise<{ requestOrderCancellation: Order; _headers: Headers }>;
 
-  return Object.assign(response.cancelOrderOnClientRequest, {
-    _headers: response._headers,
+  const result = await response;
+
+  return Object.assign(result.requestOrderCancellation, {
+    _headers: result._headers,
   });
 }
 
 gql`
-  mutation CancelOrderOnClientRequest($orderId: ID!, $value: Int!) {
-    cancelOrderOnClientRequest(orderId: $orderId, value: $value) {
+  mutation RequestOrderCancellation($orderId: ID!, $reason: String!) {
+    requestOrderCancellation(orderId: $orderId, reason: $reason) {
       ...Cart
+      __typename
     }
   }
 
@@ -469,9 +474,6 @@ gql`
       adjustmentSource
       type
       __typename
-    }
-    customFields {
-      clientRequestToCancel
     }
     __typename
   }
@@ -564,7 +566,6 @@ gql`
         amountWithTax
       }
       customFields {
-        razorpay_order_id
         otherInstructions
         loyaltyPointsEarned
       }
@@ -652,27 +653,6 @@ gql`
   }
 `;
 
-export async function updateOrderPlacedAtISTMutation(
-  orderId: string | number,
-  options?: { request: Request; customHeaders?: Record<string, string> },
-): Promise<WithHeaders<string>> {
-  const response = await sdk.UpdateOrderPlacedAtIST(
-    { orderId: String(orderId) },
-    options,
-  );
-
-  return {
-    ...response.updateOrderPlacedAtIST,
-    _headers: response._headers,
-  };
-}
-
-gql`
-  mutation UpdateOrderPlacedAtIST($orderId: ID!) {
-    updateOrderPlacedAtIST(orderId: $orderId)
-  }
-`;
-
 export async function getFrequentlyOrderedProducts(options?: {
   request?: Request;
   customHeaders?: Record<string, string>;
@@ -711,78 +691,29 @@ gql`
   }
 `;
 
+/**
+ * Authenticates a user using Google OAuth token
+ * @param token - Google OAuth ID token (JWT)
+ * @param options - Query options including request
+ * @returns Promise resolving to CurrentUser or ErrorResult
+ */
 export async function authenticateWithGoogle(
   token: string,
-  options?: { request: Request; customHeaders?: Record<string, string> }
-): Promise<WithHeaders<AuthenticateGoogleMutation['authenticate']>> {
-  const response = await sdk.AuthenticateGoogle(
-    { input: { google: { token } } },
-    options
+  options: { request: Request },
+): Promise<CurrentUser | ErrorResult> {
+  const CHANNEL_TOKEN = 'Ind-Snacks';
+
+  const result = await authenticate(
+    {
+      google: {
+        token: token,
+      },
+    },
+    {
+      request: options.request,
+      customHeaders: { 'vendure-token': CHANNEL_TOKEN },
+    },
   );
 
-  return Object.assign(response.authenticate, {
-    _headers: response._headers,
-  });
+  return result.result;
 }
-gql`
-mutation AuthenticateGoogle($input: AuthenticationInput!) {
-  authenticate(input: $input) {
-    ... on CurrentUser {
-      id
-      identifier
-    }
-    ... on ErrorResult {
-      errorCode
-      message
-    }
-  }
-}`
-
-export async function getCollectionProductsBySlug(
-  collectionSlug: string,
-): Promise<WithHeaders<CollectionWithProductVariants> | null> {
-  const response = await sdk.GetCollectionProductsBySlug({ collectionSlug });
-
-  if (!response.collection) {
-    return null;
-  }
-  return {
-    _headers: response._headers,
-    ...response.collection,
-  } as WithHeaders<CollectionWithProductVariants>;
-}
-
-gql`
-  query GetCollectionProductsBySlug($collectionSlug: String!) {
-    collection(slug: $collectionSlug) {
-      id
-      name
-      slug
-      featuredAsset {
-        id
-        preview
-      }
-      productVariants {
-        items {
-          product {
-            id
-            name
-            slug
-            featuredAsset {
-              id
-              preview
-            }
-            variants {
-              id
-              name
-              priceWithTax
-              currencyCode
-              stockLevel
-              sku
-            }
-          }
-        }
-      }
-    }
-  }
-`;

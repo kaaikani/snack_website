@@ -1,6 +1,7 @@
 import type { EntryContext } from '@remix-run/server-runtime';
 import { RemixServer } from '@remix-run/react';
 import isbot from 'isbot';
+import React from 'react';
 
 import ReactDOM from 'react-dom/server';
 
