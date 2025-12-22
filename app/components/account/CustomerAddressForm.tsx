@@ -8,6 +8,11 @@ import type { Address } from '~/generated/graphql';
 import { Input } from '~/components/Input';
 import { useTranslation } from 'react-i18next';
 import { cn } from '~/lib/utils';
+import {
+  getCountriesForCurrency,
+  getStoredCurrency,
+  getStoredCountry,
+} from '~/utils/country-currency';
 // Removed Select component imports as PostalCodeSelect is removed
 // import {
 //   Select,
@@ -30,7 +35,7 @@ export const validator = withZod(
       .regex(/^\d{10}$/, { message: 'Phone number must be exactly 10 digits' }),
     company: z.string().optional(),
     province: z.string().optional(), // ✅ Add this
-    countryCode: z.string().optional(), // ✅ And this
+    countryCode: z.string().min(1, { message: 'Country is required' }),
     addressType: z.string().min(1, { message: 'Address type is required' }),
     defaultShippingAddress: z.string().optional(),
     defaultBillingAddress: z.string().optional(),
@@ -158,13 +163,92 @@ const AddressTypeSelect = () => {
   );
 };
 
+const CountrySelect = ({ address }: { address?: Address }) => {
+  const { error, getInputProps } = useField('countryCode');
+  const [selectedCurrency, setSelectedCurrency] = React.useState<string>('INR');
+
+  // Get currency from localStorage on mount and when it changes
+  React.useEffect(() => {
+    const currency = getStoredCurrency() || 'INR';
+    setSelectedCurrency(currency);
+
+    // Listen for storage changes (when currency changes in header)
+    const handleStorageChange = () => {
+      const newCurrency = getStoredCurrency() || 'INR';
+      setSelectedCurrency(newCurrency);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also check periodically for changes (since storage event only fires in other tabs)
+    const interval = setInterval(() => {
+      const currentCurrency = getStoredCurrency() || 'INR';
+      if (currentCurrency !== selectedCurrency) {
+        setSelectedCurrency(currentCurrency);
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [selectedCurrency]);
+
+  // Get countries for the selected currency
+  const currencyCountries = getCountriesForCurrency(selectedCurrency);
+
+  // Get stored country from header selection
+  const storedCountryCode = getStoredCountry();
+
+  // Determine default country: use stored country if available and valid, otherwise use address country or empty
+  const getDefaultCountryCode = () => {
+    if (
+      storedCountryCode &&
+      currencyCountries.some((c) => c.code === storedCountryCode)
+    ) {
+      return storedCountryCode;
+    }
+    if (
+      address?.country?.code &&
+      currencyCountries.some((c) => c.code === address.country.code)
+    ) {
+      return address.country.code;
+    }
+    return '';
+  };
+
+  return (
+    <LabelInputContainer>
+      <label
+        htmlFor="countryCode"
+        className="text-sm font-medium text-neutral-800"
+      >
+        Country <span className="text-red-500">*</span>
+      </label>
+      <select
+        key={`country-${selectedCurrency}-${getDefaultCountryCode()}`}
+        {...getInputProps({
+          id: 'countryCode',
+        })}
+        className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm transition-all duration-200 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/20"
+      >
+        <option value="">Select Country</option>
+        {currencyCountries.map((country) => (
+          <option key={country.code} value={country.code}>
+            {country.name}
+          </option>
+        ))}
+      </select>
+      {error && <span className="text-sm text-red-500">{error}</span>}
+    </LabelInputContainer>
+  );
+};
+
 export default function CustomerAddressForm({
   address,
   formRef,
   submit,
   isEditing = false,
   activeCustomer,
-  availableCountries,
 }: {
   address?: Address;
   formRef: RefObject<HTMLFormElement>;
@@ -175,7 +259,6 @@ export default function CustomerAddressForm({
     lastName?: string;
     phoneNumber?: string;
   };
-  availableCountries?: { id: string; name: string; code: string }[];
 }) {
   const { t } = useTranslation();
 
@@ -184,6 +267,26 @@ export default function CustomerAddressForm({
     activeCustomer?.firstName && activeCustomer?.lastName
       ? `${activeCustomer.firstName} ${activeCustomer.lastName}`
       : activeCustomer?.firstName || activeCustomer?.lastName || '';
+
+  // Get default country code: use stored country if available and valid, otherwise use address country
+  const getDefaultCountryCode = () => {
+    const stored = getStoredCountry();
+    const currency = getStoredCurrency() || 'INR';
+    const currencyCountries = getCountriesForCurrency(currency);
+
+    if (stored && currencyCountries.some((c) => c.code === stored)) {
+      return stored;
+    }
+    if (
+      address?.country?.code &&
+      currencyCountries.some((c) => c.code === address.country.code)
+    ) {
+      return address.country.code;
+    }
+    return '';
+  };
+
+  const defaultCountryCode = getDefaultCountryCode();
 
   return (
     <div
@@ -215,6 +318,7 @@ export default function CustomerAddressForm({
               ? address?.phoneNumber || ''
               : activeCustomer?.phoneNumber || '',
             company: address?.company || '',
+            countryCode: defaultCountryCode,
             addressType:
               isEditing && address
                 ? address.defaultShippingAddress &&
@@ -277,6 +381,7 @@ export default function CustomerAddressForm({
                 autoComplete="postal-code"
               />
             </div>
+            <CountrySelect address={address} />
             <ModernInput
               label="Phone Number"
               name="phone"

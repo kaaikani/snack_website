@@ -1306,6 +1306,17 @@ export type GenerateRazorpayOrderIdResult = {
   success: Scalars['Boolean'];
 };
 
+export type GenerateStripePaymentIntentResult = {
+  __typename?: 'GenerateStripePaymentIntentResult';
+  amount?: Maybe<Scalars['Int']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  currency?: Maybe<Scalars['String']>;
+  errorMessage?: Maybe<Scalars['String']>;
+  paymentIntentId?: Maybe<Scalars['String']>;
+  publishableKey?: Maybe<Scalars['String']>;
+  success: Scalars['Boolean'];
+};
+
 export enum GlobalFlag {
   False = 'FALSE',
   Inherit = 'INHERIT',
@@ -1953,6 +1964,7 @@ export type Mutation = {
   /** Delete an existing Address */
   deleteCustomerAddress: Success;
   generateRazorpayOrderId: GenerateRazorpayOrderIdResult;
+  generateStripePaymentIntent: GenerateStripePaymentIntentResult;
   /**
    * Authenticates the user using the native authentication strategy. This mutation is an alias for authenticate({ native: { ... }})
    *
@@ -2086,6 +2098,10 @@ export type MutationDeleteCustomerAddressArgs = {
 };
 
 export type MutationGenerateRazorpayOrderIdArgs = {
+  orderId: Scalars['ID'];
+};
+
+export type MutationGenerateStripePaymentIntentArgs = {
   orderId: Scalars['ID'];
 };
 
@@ -3231,6 +3247,7 @@ export type Query = {
   getCouponCodeList: CoupcodesList;
   getPasswordResetToken: Scalars['String'];
   getRazorpayOrderStatus?: Maybe<RazorpayOrderStatus>;
+  getStripePaymentStatus?: Maybe<StripePaymentStatus>;
   loyaltyPointsConfig?: Maybe<LoyaltyPointsConfig>;
   /** Returns information about the current authenticated User */
   me?: Maybe<CurrentUser>;
@@ -3290,6 +3307,10 @@ export type QueryGetChannelsByCustomerPhoneNumberArgs = {
 };
 
 export type QueryGetRazorpayOrderStatusArgs = {
+  orderId: Scalars['ID'];
+};
+
+export type QueryGetStripePaymentStatusArgs = {
   orderId: Scalars['ID'];
 };
 
@@ -3675,6 +3696,25 @@ export type StringStructFieldConfig = StructField & {
   pattern?: Maybe<Scalars['String']>;
   type: Scalars['String'];
   ui?: Maybe<Scalars['JSON']>;
+};
+
+export type StripeCharge = {
+  __typename?: 'StripeCharge';
+  amount?: Maybe<Scalars['Int']>;
+  createdAt?: Maybe<Scalars['String']>;
+  failureReason?: Maybe<Scalars['String']>;
+  id: Scalars['String'];
+  paymentMethod?: Maybe<Scalars['String']>;
+  status: Scalars['String'];
+};
+
+export type StripePaymentStatus = {
+  __typename?: 'StripePaymentStatus';
+  amount?: Maybe<Scalars['Int']>;
+  charges?: Maybe<Array<Maybe<StripeCharge>>>;
+  currency?: Maybe<Scalars['String']>;
+  paymentIntentId?: Maybe<Scalars['String']>;
+  status?: Maybe<Scalars['String']>;
 };
 
 export type StructCustomFieldConfig = CustomField & {
@@ -4351,13 +4391,22 @@ export type TransitionOrderToStateMutation = {
     | null;
 };
 
-export type CreateStripePaymentIntentMutationVariables = Exact<{
-  [key: string]: never;
+export type GenerateStripePaymentIntentMutationVariables = Exact<{
+  orderId: Scalars['ID'];
 }>;
 
-export type CreateStripePaymentIntentMutation = {
+export type GenerateStripePaymentIntentMutation = {
   __typename?: 'Mutation';
-  createStripePaymentIntent?: string | null;
+  generateStripePaymentIntent: {
+    __typename?: 'GenerateStripePaymentIntentResult';
+    success: boolean;
+    clientSecret?: string | null;
+    paymentIntentId?: string | null;
+    amount?: number | null;
+    currency?: string | null;
+    publishableKey?: string | null;
+    errorMessage?: string | null;
+  };
 };
 
 export type GenerateBraintreeClientTokenQueryVariables = Exact<{
@@ -4433,6 +4482,8 @@ export type GetChannelListQuery = {
     id: string;
     token: string;
     code: string;
+    availableCurrencyCodes: Array<CurrencyCode>;
+    defaultCurrencyCode: CurrencyCode;
   }>;
 };
 
@@ -7282,9 +7333,17 @@ export const TransitionOrderToStateDocument = gql`
   }
   ${OrderDetailFragmentDoc}
 `;
-export const CreateStripePaymentIntentDocument = gql`
-  mutation createStripePaymentIntent {
-    createStripePaymentIntent
+export const GenerateStripePaymentIntentDocument = gql`
+  mutation generateStripePaymentIntent($orderId: ID!) {
+    generateStripePaymentIntent(orderId: $orderId) {
+      success
+      clientSecret
+      paymentIntentId
+      amount
+      currency
+      publishableKey
+      errorMessage
+    }
   }
 `;
 export const GenerateBraintreeClientTokenDocument = gql`
@@ -7339,6 +7398,8 @@ export const GetChannelListDocument = gql`
       id
       token
       code
+      availableCurrencyCodes
+      defaultCurrencyCode
     }
   }
 `;
@@ -8141,18 +8202,18 @@ export function getSdk<C, E>(requester: Requester<C, E>) {
         options,
       ) as Promise<TransitionOrderToStateMutation>;
     },
-    createStripePaymentIntent(
-      variables?: CreateStripePaymentIntentMutationVariables,
+    generateStripePaymentIntent(
+      variables: GenerateStripePaymentIntentMutationVariables,
       options?: C,
-    ): Promise<CreateStripePaymentIntentMutation> {
+    ): Promise<GenerateStripePaymentIntentMutation> {
       return requester<
-        CreateStripePaymentIntentMutation,
-        CreateStripePaymentIntentMutationVariables
+        GenerateStripePaymentIntentMutation,
+        GenerateStripePaymentIntentMutationVariables
       >(
-        CreateStripePaymentIntentDocument,
+        GenerateStripePaymentIntentDocument,
         variables,
         options,
-      ) as Promise<CreateStripePaymentIntentMutation>;
+      ) as Promise<GenerateStripePaymentIntentMutation>;
     },
     generateBraintreeClientToken(
       variables?: GenerateBraintreeClientTokenQueryVariables,

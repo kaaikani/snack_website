@@ -9,8 +9,8 @@ import {
 import { OutletContext } from '~/types';
 import { DataFunctionArgs, json, redirect } from '@remix-run/server-runtime';
 import {
-  getAvailableCountries,
   getEligibleShippingMethods,
+  getAvailableCountries,
 } from '~/providers/checkout/checkout';
 import { shippingFormDataIsValid } from '~/utils/validation';
 import { getSessionStorage } from '~/sessions';
@@ -45,24 +45,25 @@ export async function loader({ request }: DataFunctionArgs) {
     // return redirect('/');
   }
 
-  const { availableCountries } = await getAvailableCountries({ request });
   const { eligibleShippingMethods } = await getEligibleShippingMethods({
     request,
   });
   const { activeCustomer } = await getActiveCustomerAddresses({ request });
+  // Fetch available countries to validate country codes
+  const { availableCountries } = await getAvailableCountries({ request });
   const error = session.get('activeOrderError');
 
   return json({
-    availableCountries,
     eligibleShippingMethods,
     activeCustomer,
+    availableCountries,
     error,
   });
 }
 
 // Main component
 export default function CheckoutShipping() {
-  const { availableCountries, eligibleShippingMethods, activeCustomer, error } =
+  const { eligibleShippingMethods, activeCustomer, availableCountries, error } =
     useLoaderData<typeof loader>();
   const { activeOrderFetcher, activeOrder } = useOutletContext<OutletContext>();
   const [customerFormChanged, setCustomerFormChanged] = useState(false);
@@ -73,11 +74,10 @@ export default function CheckoutShipping() {
 
   console.log('Rendering CheckoutShipping:', {
     activeOrder,
-    availableCountries,
     error,
   }); // Debug log
 
-  if (!activeOrder || !availableCountries || !eligibleShippingMethods) {
+  if (!activeOrder || !eligibleShippingMethods) {
     return <div>Loading CheckoutShipping...</div>; // Fallback UI
   }
 
@@ -279,9 +279,9 @@ export default function CheckoutShipping() {
           </div>
         ) : (
           <AddressForm
-            availableCountries={availableCountries}
             address={shippingAddress}
             defaultFullName={defaultFullName}
+            availableCountries={availableCountries}
           />
         )}
       </Form>

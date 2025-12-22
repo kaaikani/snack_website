@@ -2,6 +2,7 @@ import { DocumentNode, print } from 'graphql';
 import { API_URL } from './constants';
 import { getSdk } from './generated/graphql';
 import { getSessionStorage } from '~/sessions';
+import { getStoredChannelToken } from './utils/country-currency';
 
 export interface QueryOptions {
   request?: Request;
@@ -16,8 +17,38 @@ export interface GraphqlResponse<Response> {
 
 export type WithHeaders<T> = T & { _headers: Headers };
 
-// Fixed channel token
-const CHANNEL_TOKEN = 'Ind-Snacks';
+// Get channel token from cookie (for server-side) or localStorage (for client-side)
+function getChannelTokenFromCookie(request?: Request): string | null {
+  if (!request) return null;
+  const cookieHeader = request.headers.get('Cookie');
+  if (!cookieHeader) return null;
+
+  const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    acc[key] = value;
+    return acc;
+  }, {} as Record<string, string>);
+
+  return cookies['channel-token'] || null;
+}
+
+// Get channel token dynamically from localStorage, cookie, or default
+function getChannelToken(request?: Request): string {
+  if (typeof window !== 'undefined') {
+    return getStoredChannelToken();
+  }
+
+  // Server-side: try to get from cookie
+  if (request) {
+    const cookieToken = getChannelTokenFromCookie(request);
+    if (cookieToken) {
+      return cookieToken;
+    }
+  }
+
+  // Default for server-side - India INR channel (Ind-Snacks)
+  return 'Ind-Snacks';
+}
 
 async function sendQuery<Response, Variables = {}>(options: {
   query: string;
@@ -29,8 +60,9 @@ async function sendQuery<Response, Variables = {}>(options: {
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');
 
-  // Always attach your fixed channel token
-  headers.set('vendure-token', CHANNEL_TOKEN);
+  // Get channel token dynamically (from localStorage on client, cookie on server, or default)
+  const channelToken = getChannelToken(options.request);
+  headers.set('vendure-token', channelToken);
 
   if (options.request) {
     const session = await getSessionStorage().then((s) =>

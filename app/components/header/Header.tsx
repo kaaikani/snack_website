@@ -11,6 +11,7 @@ import {
   HeartIcon,
 } from '@heroicons/react/24/outline';
 import { SearchBar } from './SearchBar';
+import { CountryCurrencyDropdown } from './CountryCurrencyDropdown';
 import { useState, useEffect } from 'react';
 import { SignInPromptModal } from '~/components/modal/SignInPromptModal';
 import { GoogleLoginButton } from '../Google/GoogleLoginButton';
@@ -201,6 +202,7 @@ export function Header({
 
           {/* Icons */}
           <div className="flex items-center space-x-2 sm:space-x-3">
+            <CountryCurrencyDropdown />
             <SearchBar isOpen={isSearchOpen} />
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}

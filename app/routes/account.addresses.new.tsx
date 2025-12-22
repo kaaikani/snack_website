@@ -7,7 +7,12 @@ import {
   type ActionFunctionArgs,
 } from '@remix-run/server-runtime';
 // 1. Import useLocation to read URL params in the component
-import { useLoaderData, useNavigate, useSubmit, useLocation } from '@remix-run/react';
+import {
+  useLoaderData,
+  useNavigate,
+  useSubmit,
+  useLocation,
+} from '@remix-run/react';
 import { useEffect, useRef } from 'react';
 import CustomerAddressForm, {
   validator,
@@ -82,7 +87,7 @@ export async function action({ request }: ActionFunctionArgs) {
     company: data.company || undefined,
     defaultShippingAddress: data.defaultShippingAddress === 'true',
     defaultBillingAddress: data.defaultBillingAddress === 'true',
-    countryCode: 'IN',
+    countryCode: data.countryCode || 'IN',
     province: '',
   };
 
@@ -118,7 +123,7 @@ export default function NewAddress() {
   const navigate = useNavigate();
   const submit = useSubmit();
   const formRef = useRef<HTMLFormElement>(null);
-  
+
   // --- KEY CHANGE 2: Get the redirectTo param for the cancel button ---
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);

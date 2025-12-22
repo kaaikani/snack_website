@@ -1373,6 +1373,16 @@ type GenerateRazorpayOrderIdResult {
   success: Boolean!
 }
 
+type GenerateStripePaymentIntentResult {
+  amount: Int
+  clientSecret: String
+  currency: String
+  errorMessage: String
+  paymentIntentId: String
+  publishableKey: String
+  success: Boolean!
+}
+
 enum GlobalFlag {
   FALSE
   INHERIT
@@ -2199,6 +2209,7 @@ type Mutation {
   """Delete an existing Address"""
   deleteCustomerAddress(id: ID!): Success!
   generateRazorpayOrderId(orderId: ID!): GenerateRazorpayOrderIdResult!
+  generateStripePaymentIntent(orderId: ID!): GenerateStripePaymentIntentResult!
 
   """
   Authenticates the user using the native authentication strategy. This mutation is an alias for authenticate({ native: { ... }})
@@ -3500,6 +3511,7 @@ type Query {
   getCouponCodeList: CoupcodesList!
   getPasswordResetToken: String!
   getRazorpayOrderStatus(orderId: ID!): RazorpayOrderStatus
+  getStripePaymentStatus(orderId: ID!): StripePaymentStatus
   loyaltyPointsConfig: LoyaltyPointsConfig
 
   """Returns information about the current authenticated User"""
@@ -3854,6 +3866,23 @@ type StringStructFieldConfig implements StructField {
   pattern: String
   type: String!
   ui: JSON
+}
+
+type StripeCharge {
+  amount: Int
+  createdAt: String
+  failureReason: String
+  id: String!
+  paymentMethod: String
+  status: String!
+}
+
+type StripePaymentStatus {
+  amount: Int
+  charges: [StripeCharge]
+  currency: String
+  paymentIntentId: String
+  status: String
 }
 
 type StructCustomFieldConfig implements CustomField {

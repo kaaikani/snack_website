@@ -82,10 +82,18 @@ export async function loader({ params, request, context }: DataFunctionArgs) {
 
   const frequentlyOrdered = await getFrequentlyOrderedProducts({ request });
 
-  const collection = (await sdk.collection({ slug: params.slug }))
-    .collection as Collection;
+  const collectionResult = await sdk.collection(
+    { slug: params.slug },
+    { request },
+  );
+  const collection = collectionResult.collection as Collection;
 
   if (!collection?.id || !collection?.name) {
+    console.error('Collection not found:', {
+      slug: params.slug,
+      collectionResult,
+      channelToken: request.headers.get('vendure-token') || 'not set',
+    });
     throw new Response('Not Found', {
       status: 404,
     });

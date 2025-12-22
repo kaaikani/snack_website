@@ -44,12 +44,36 @@ export async function getChannelList(p0: {
   });
 }
 
+// Get channel by code to fetch currencies (works on both client and server)
+export async function getChannelByCode(
+  channelCode: string,
+  options?: { request?: Request },
+): Promise<WithHeaders<GetChannelListQuery['getChannelList'][0] | null>> {
+  const queryOptions = options?.request
+    ? { request: options.request }
+    : undefined;
+
+  return sdk.getChannelList({}, queryOptions).then((res) => {
+    const channel = res.getChannelList.find(
+      (ch) => ch.code === channelCode || ch.token === channelCode,
+    );
+    if (!channel) {
+      return Object.assign({} as GetChannelListQuery['getChannelList'][0], {
+        _headers: res._headers,
+      }) as WithHeaders<GetChannelListQuery['getChannelList'][0] | null>;
+    }
+    return Object.assign(channel, { _headers: res._headers });
+  });
+}
+
 gql`
   query getChannelList {
     getChannelList {
       id
       token
       code
+      availableCurrencyCodes
+      defaultCurrencyCode
     }
   }
 `;

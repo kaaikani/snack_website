@@ -18,7 +18,7 @@ import {
   getAvailableCountries,
   getEligibleShippingMethods,
   getEligiblePaymentMethods,
-  createStripePaymentIntent,
+  generateStripePaymentIntent,
   generateBraintreeClientToken,
   getNextOrderStates,
   transitionOrderToState,
@@ -165,11 +165,12 @@ export async function loader({ request }: DataFunctionArgs) {
     }
   }
 
-  const { availableCountries } = await getAvailableCountries({ request });
   const { eligibleShippingMethods } = await getEligibleShippingMethods({
     request,
   });
   const { activeCustomer } = await getActiveCustomerAddresses({ request });
+  // Fetch available countries to validate country codes
+  const { availableCountries } = await getAvailableCountries({ request });
 
   // Fetch loyalty points for signed-in user
   let loyaltyPoints = null;
@@ -195,29 +196,23 @@ export async function loader({ request }: DataFunctionArgs) {
   let brainTreeError: string | undefined;
   if (eligiblePaymentMethods.find((method) => method.code.includes('stripe'))) {
     try {
-      const stripePaymentIntentResult = await createStripePaymentIntent({
-        request,
-      });
-      const intentDataRaw = stripePaymentIntentResult.createStripePaymentIntent;
-      let intentData: Record<string, any> = {};
-      if (
-        intentDataRaw &&
-        typeof intentDataRaw === 'object' &&
-        !Array.isArray(intentDataRaw)
-      ) {
-        intentData = intentDataRaw as Record<string, any>;
+      if (!activeOrder?.id) {
+        stripeError = 'No active order found';
+      } else {
+        const stripePaymentIntentResult = await generateStripePaymentIntent(
+          activeOrder.id,
+          { request },
+        );
+        const result = stripePaymentIntentResult.generateStripePaymentIntent;
+
+        if (result?.success) {
+          stripePaymentIntent = result.clientSecret || '';
+          stripePublishableKey = result.publishableKey || '';
+        } else {
+          stripeError =
+            result?.errorMessage || 'Failed to create payment intent';
+        }
       }
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Stripe intentData keys:', Object.keys(intentData));
-      }
-      stripePaymentIntent =
-        intentData['paymentIntent'] ?? intentData['clientSecret'] ?? '';
-      stripePublishableKey =
-        intentData['publishableKey'] ??
-        intentData['stripePublishableKey'] ??
-        '';
-      stripeError =
-        intentData['error'] ?? intentData['stripeError'] ?? undefined;
     } catch (e: any) {
       stripeError = e.message;
     }

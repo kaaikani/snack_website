@@ -21,7 +21,6 @@ import CustomerAddressForm, {
   validator,
 } from '~/components/account/CustomerAddressForm';
 import { updateCustomerAddress } from '~/providers/account/account';
-import { getAvailableCountries } from '~/providers/checkout/checkout';
 import { getActiveCustomerAddresses } from '~/providers/customer/customer';
 
 type AddressUpdateInput = {
@@ -49,10 +48,8 @@ export async function loader({ request, params }: DataFunctionArgs) {
     return redirect('/account/addresses');
   }
 
-  const { availableCountries } = await getAvailableCountries({ request });
   return json({
     address,
-    availableCountries,
   });
 }
 
@@ -100,7 +97,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 }
 
 export default function EditAddress() {
-  const { address, availableCountries } = useLoaderData<typeof loader>();
+  const { address } = useLoaderData<typeof loader>();
   const actionData = useActionData<{ saved?: boolean; error?: string }>();
   const navigation = useNavigation();
   const navigate = useNavigate();
@@ -147,7 +144,6 @@ export default function EditAddress() {
           <div className="max-h-[80vh] overflow-y-auto">
             <CustomerAddressForm
               address={address as Address}
-              availableCountries={availableCountries}
               formRef={formRef}
               submit={submitForm}
               isEditing={true}
