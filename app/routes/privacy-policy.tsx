@@ -588,6 +588,28 @@ export default function PrivacyPolicy() {
                     </span>
                   </div>
                 </div>
+                <div className="mt-6 pt-6 border-t border-amber-800 /20">
+                  <div className="text-center">
+                    <h4 className="text-lg font-semibold text-[#1F0322] mb-3">
+                      About South Mithai
+                    </h4>
+                    <p className="text-base leading-relaxed text-[#1F0322]/80 mb-4">
+                      South Mithai delivers authentic, traditional South Indian
+                      sweets and savory snacks right to your door. Each item is
+                      handcrafted with care, using cherished, generations-old
+                      recipes for a truly genuine taste. We are committed to
+                      preserving the rich culinary heritage of South India while
+                      bringing these delightful treats to your home with the
+                      utmost freshness and quality.
+                    </p>
+                    <p className="text-sm text-[#1F0322]/70 italic">
+                      Founded by{' '}
+                      <span className="font-semibold not-italic">
+                        Soma Sundaram Arumugam
+                      </span>
+                    </p>
+                  </div>
+                </div>
               </section>
             </div>
           </div>
