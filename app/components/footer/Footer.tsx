@@ -111,7 +111,7 @@ export default function Footer() {
                       href="/terms-and-conditions"
                       className="block text-amber-100 hover:text-white transition-colors text-sm"
                     >
-                      Terms of Conditions
+                      Terms & Conditions
                     </a>
                   </nav>
                 </div>
