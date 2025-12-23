@@ -12,7 +12,7 @@
     "dev": "remix dev",
     "dev:cf": "cross-env CF_PAGES=1 remix dev --manual -c \"pnpm run dev:wrangler\"",
     "start:cf": "cross-env NODE_ENV=production pnpm run dev:wrangler",
-    "start": "cross-env NODE_ENV=production PORT=8004 dotenv -e .env -- remix-serve build/index.cjs",
+    "start": "cross-env NODE_ENV=production dotenv -e .env -- remix-serve build/index.cjs",
     "generate": "graphql-codegen --config codegen.yml",
     "prepare": "husky install",
     "codegen": "graphql-codegen --config codegen.ts"
@@ -75,7 +75,9 @@
     "remix-validated-form": "^5.1.5",
     "tailwind-merge": "^3.3.1",
     "use-debounce": "^10.0.5",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "vite": "5.2.8"
+		
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231218.0",

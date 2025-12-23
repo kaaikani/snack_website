@@ -2210,6 +2210,8 @@ type Mutation {
 
   """End the current authenticated session"""
   logout: Success!
+
+  """Add other instructions to the order custom fields"""
   otherInstructions(orderId: ID!, value: String!): Order!
 
   """
