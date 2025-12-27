@@ -713,6 +713,7 @@ export default function CheckoutPage() {
     useState(false);
   const [isNavigatingToHome, setIsNavigatingToHome] = useState(false);
   const [showAddressToast, setShowAddressToast] = useState(false);
+  const [showShippingMessage, setShowShippingMessage] = useState(false);
 
   const couponFetcher = useFetcher<CouponFetcherData>();
   const navigate = useNavigate();
@@ -951,6 +952,13 @@ export default function CheckoutPage() {
     }
   }, [activeOrder, isNavigatingToHome, navigate]);
 
+  // Clear shipping message when shipping is selected
+  useEffect(() => {
+    if (isShippingMethodSelected && showShippingMessage) {
+      setShowShippingMessage(false);
+    }
+  }, [isShippingMethodSelected, showShippingMessage]);
+
   const allLines = activeOrder?.lines ?? [];
   const visibleLines = showAllCartItems ? allLines : allLines.slice(0, 3);
 
@@ -1087,13 +1095,12 @@ export default function CheckoutPage() {
                 }}
               />
             </div>
-            <div className="mt-8">
-              {/* 1. Using the same consistent header style */}
+            {/* Payment Method Section - Commented out */}
+            {/* <div className="mt-8">
               <h3 className="text-lg font-semibold text-stone-800 border-b pb-2 mb-4">
                 Payment Method
               </h3>
 
-              {/* 2. Switched to RadioGroup for consistency and scalability */}
               <RadioGroup value={paymentMode} onChange={setPaymentMode}>
                 <div className="space-y-4">
                   <RadioGroup.Option
@@ -1102,10 +1109,9 @@ export default function CheckoutPage() {
                       classNames(
                         'relative flex cursor-pointer rounded-lg p-4 border-2 transition-all duration-200 ease-in-out',
                         'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500',
-                        // 3. Applying the same styles as the shipping method
                         checked
-                          ? 'bg-amber-50 border-amber-600 shadow-md' // Selected state
-                          : 'bg-white border-stone-200 hover:border-amber-500', // Default state
+                          ? 'bg-amber-50 border-amber-600 shadow-md'
+                          : 'bg-white border-stone-200 hover:border-amber-500',
                       )
                     }
                   >
@@ -1129,7 +1135,6 @@ export default function CheckoutPage() {
                               >
                                 Online Payment
                               </RadioGroup.Label>
-                              {/* 4. Added a helpful description */}
                               <RadioGroup.Description
                                 as="span"
                                 className={classNames(
@@ -1151,8 +1156,6 @@ export default function CheckoutPage() {
                       </>
                     )}
                   </RadioGroup.Option>
-
-                  {/* You can easily add other payment methods like COD here in the future */}
                 </div>
               </RadioGroup>
 
@@ -1161,7 +1164,7 @@ export default function CheckoutPage() {
                   <p className="text-sm text-red-800">{paymentError}</p>
                 </div>
               )}
-            </div>
+            </div> */}
 
             {eligibleShippingMethods.length === 0 && (
               <div className="mt-10 border-t border-black pt-10">
@@ -1295,41 +1298,33 @@ export default function CheckoutPage() {
             Policy and acknowledge that you have read SouthMithai Store's
             Privacy Policy.
           </p>
-          {isShippingMethodSelected && paymentMode && (
-            <>
-              {eligiblePaymentMethods
-                .filter((method) => method.code === paymentMode)
-                .map((method) => (
-                  <div key={method.id}>
-                    {method.code === 'online' ? (
-                      <>
-                        <RazorpayPayments
-                          orderCode={activeOrder?.code ?? ''}
-                          amount={activeOrder?.totalWithTax ?? 0}
-                          currencyCode={activeOrder?.currencyCode ?? 'INR'}
-                          customerEmail={customer?.emailAddress ?? ''}
-                          customerName={`${customer?.firstName ?? ''} ${
-                            customer?.lastName ?? ''
-                          }`.trim()}
-                          customerPhone={shippingAddress?.phoneNumber ?? ''}
-                        />
-                      </>
-                    ) : (
-                      <div className="text-sm text-black">
-                        Payment method "{method.code}" not supported
-                      </div>
-                    )}
-                  </div>
-                ))}
-              {!eligiblePaymentMethods.find((m) => m.code === paymentMode) && (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="text-sm text-yellow-800">
-                    Online payment is not available. Please contact support if
-                    you need to pay online.
-                  </p>
-                </div>
-              )}
-            </>
+
+          {/* Always show Place Order button */}
+          {eligiblePaymentMethods
+            .filter((method) => method.code === 'online')
+            .map((method) => (
+              <div key={method.id}>
+                <RazorpayPayments
+                  orderCode={activeOrder?.code ?? ''}
+                  amount={activeOrder?.totalWithTax ?? 0}
+                  currencyCode={activeOrder?.currencyCode ?? 'INR'}
+                  customerEmail={customer?.emailAddress ?? ''}
+                  customerName={`${customer?.firstName ?? ''} ${
+                    customer?.lastName ?? ''
+                  }`.trim()}
+                  customerPhone={shippingAddress?.phoneNumber ?? ''}
+                  disabled={!isShippingMethodSelected}
+                  onDisabledClick={() => setShowShippingMessage(true)}
+                />
+              </div>
+            ))}
+          {!eligiblePaymentMethods.find((m) => m.code === 'online') && (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                Online payment is not available. Please contact support if you
+                need to pay online.
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -1346,6 +1341,13 @@ export default function CheckoutPage() {
         title="Address Required"
         message="Address is required to place an order."
         onClose={() => setShowAddressToast(false)}
+      />
+      <ToastNotification
+        show={showShippingMessage && !isShippingMethodSelected}
+        type="error"
+        title="Shipping Required"
+        message="Please select shipping method to proceed."
+        onClose={() => setShowShippingMessage(false)}
       />
     </div>
   );

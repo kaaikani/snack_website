@@ -125,8 +125,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }),
   );
 
+  // Sort collections by the number at the end of their slug
+  const sortedCollections = collectionsWithProducts.sort((a, b) => {
+    const extractNumber = (slug: string): number => {
+      const match = slug.match(/-(\d+)$/);
+      return match ? parseInt(match[1], 10) : Infinity;
+    };
+
+    const numA = extractNumber(a.slug);
+    const numB = extractNumber(b.slug);
+
+    return numA - numB;
+  });
+
   return json({
-    collections: collectionsWithProducts,
+    collections: sortedCollections,
     banners,
     activeCustomer, // Include activeCustomer in loader data
   });

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from '@remix-run/react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import {
   CURRENCY_DISPLAY_NAMES,
@@ -22,6 +23,7 @@ const AVAILABLE_CURRENCIES = [
 ] as const;
 
 export function CountryCurrencyDropdown() {
+  const location = useLocation();
   const [selectedCurrency, setSelectedCurrency] = useState<string>(
     getStoredCurrency() || 'INR',
   );
@@ -98,8 +100,24 @@ export function CountryCurrencyDropdown() {
     setIsOpen(false);
     setShowCountries(false);
 
-    // Reload page to apply new channel if needed
-    window.location.reload();
+    // Ensure cookie is set before navigation
+    const currentCurrency = getStoredCurrency() || 'INR';
+    const channelToken = getChannelTokenForCurrency(currentCurrency);
+    setStoredChannelToken(channelToken);
+
+    // Check if we're on the home page
+    const isHomePage = location.pathname === '/';
+
+    // Small delay to ensure cookie is set
+    setTimeout(() => {
+      if (isHomePage) {
+        // If already on home page, just reload
+        window.location.reload();
+      } else {
+        // If on non-home page, navigate to home to avoid errors
+        window.location.href = '/';
+      }
+    }, 100);
   };
 
   const getCurrencyDisplayName = (code: string): string => {

@@ -14,6 +14,8 @@ interface RazorpayPaymentsProps {
   customerEmail?: string;
   customerName?: string;
   customerPhone?: string;
+  disabled?: boolean;
+  onDisabledClick?: () => void;
 }
 
 interface RazorpayPaymentResponse {
@@ -45,6 +47,8 @@ export function RazorpayPayments({
   customerEmail = '',
   customerName = '',
   customerPhone = '',
+  disabled = false,
+  onDisabledClick,
 }: RazorpayPaymentsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -79,6 +83,13 @@ export function RazorpayPayments({
   }, [loadRazorpayScript]);
 
   const generateRazorpayOrderId = useCallback(() => {
+    if (disabled) {
+      if (onDisabledClick) {
+        onDisabledClick();
+      }
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -89,7 +100,7 @@ export function RazorpayPayments({
       method: 'post',
       action: '/api/razorpay-generate-order',
     });
-  }, [orderCode, fetcher]);
+  }, [orderCode, fetcher, disabled, onDisabledClick]);
 
   const openRazorpayPopup = useCallback(
     (razorpayOrderId: string, keyId: string) => {
@@ -272,8 +283,8 @@ export function RazorpayPayments({
         onClick={generateRazorpayOrderId}
         disabled={!scriptLoaded || isProcessing}
         className={classNames(
-          scriptLoaded && !isProcessing
-            ? 'bg-amber-800 border-2 border-amber-950 text-white'
+          !disabled && scriptLoaded && !isProcessing
+            ? 'bg-amber-800 border-2 border-amber-950 text-white hover:bg-amber-900'
             : 'bg-gray-300 text-gray-600 cursor-not-allowed',
           'rounded-md py-3 px-4 text-base font-medium w-full transition-colors duration-200',
         )}
